@@ -1,14 +1,13 @@
 import logging
 
-from integrations.gmail.auth import get_gmail_service
-from integrations.gmail.search import find_bank_email
+from src.integrations.gmail.search import find_bank_email
+
+from src.integrations.gmail import get_gmail_service
 
 LOGGER = logging.getLogger(__name__)
 
 
 def main() -> int:
-    configure_logging()
-
     try:
         return run()
     except Exception as error:
@@ -22,11 +21,11 @@ def run() -> int:
 
     if bank_email is None:
         LOGGER.warning("No matching bank email found")
-        print("No matching bank email found in the last 30 days.")
+        LOGGER.info("No matching bank email found in the last 30 days.")
         return 0
 
     LOGGER.info("Found newest matching bank email: %s", bank_email.gmail_message_id)
-    print(
+    LOGGER.info(
         "\n".join(
             (
                 "Newest matching bank email:",
