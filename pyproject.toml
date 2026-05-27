@@ -20,10 +20,18 @@ python-dotenv = "^1.2.2"
 docxtpl = "^0.20.2"
 ruff = "^0.15.14"
 canvas = "^0.155.0"
+pytest = "^9.0.3"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(levelname)s:%(name)s:%(message)s"
+testpaths = ["tests"]
 
 
 [tool.ruff.lint]
