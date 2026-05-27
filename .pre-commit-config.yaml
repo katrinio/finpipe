@@ -1,0 +1,37 @@
+default_language_version:
+  python: python3.14
+
+# Защищенное регулярное выражение для игнорирования папок и файлов
+exclude: >
+  (?x)^(
+    .*\.pytest_cache/|
+    .*\.ruff_cache/|
+    .*\.venv/|
+    .*/logs/|
+    .*/output/|
+    .*credentials\.json|
+    .*token\.json|
+    src/storage/processed_messages\.json
+  )
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+        types_or: [yaml, json, toml, markdown]
+      - id: trailing-whitespace
+        types_or: [yaml, json, toml, markdown]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.14
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
