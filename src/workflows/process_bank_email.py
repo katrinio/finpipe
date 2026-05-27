@@ -1,8 +1,7 @@
 import logging
 
-from src.integrations.gmail.search import find_bank_email
-
 from src.integrations.gmail import get_gmail_service
+from src.integrations.gmail.search import find_bank_email
 
 LOGGER = logging.getLogger(__name__)
 
@@ -10,7 +9,8 @@ LOGGER = logging.getLogger(__name__)
 def main() -> int:
     try:
         return run()
-    except Exception as error:
+    except Exception as e:
+        error = e
         LOGGER.exception("Bank email workflow failed: %s", error)
         return 1
 
