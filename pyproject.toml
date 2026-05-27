@@ -1,0 +1,127 @@
+[tool.poetry]
+name = "invoice-automation"
+version = "0.1.0"
+description = "Monthly salary invoice and bank PDF automation."
+authors = ["Katrin"]
+readme = "README.md"
+packages = [
+    { include = "services", from = "src" },
+    { include = "workflows", from = "src" },
+    { include = "storage", from = "src" },
+    { include = "integrations", from = "src" },
+    { include = "config.py", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pypdf = "^6.1.0"
+reportlab = "^4.4.0"
+google-api-python-client = "^2.196.0"
+google-auth-httplib2 = "^0.4.0"
+google-auth-oauthlib = "^1.4.0"
+python-dotenv = "^1.2.2"
+docxtpl = "^0.20.2"
+ruff = "^0.15.14"
+
+[tool.poetry.scripts]
+generate-invoice = "services.invoice.main:main"
+process-bank-pdf = "services.bank.main:main"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff.lint]
+select = [
+    "F", # Pyflakes
+    "W", # Warning
+    "E", # pycodestyle
+    "C90", # mccabe
+    "I", # isort
+    "N", # pep8-naming
+    "UP", # pyupgrade
+    "YTT", # flake8-2020
+    "ASYNC", # flake8-async
+    "B", # flake8-bugbear
+    "A", # flake8-builtins
+    "COM", # flake8-commas
+    "C4", # flake8-comprehensions
+    "DTZ", # flake8-datetimez
+    "T10", # flake8-debugger
+    "EM", # flake8-errmsg
+    "EXE", # flake8-executable
+    "FA", # flake8-future-annotations
+    "ISC", # flake8-implicit-str-concat
+    "ICN", # flake8-import-conventions
+    "LOG", # flake8-logging
+    "G", # flake8-logging-format
+    "INP", # flake8-no-pep420
+    "PIE", # flake8-pie
+    "T20", # flake8-print
+    "PYI", # flake8-pyi
+    "PT", # flake8-pytest-style
+    "RSE", # flake8-raise
+    "RET", # flake8-return
+    "SLF", # flake8-self
+    "SLOT", # flake8-slots
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "TCH", # flake8-type-checking
+    "INT", # flake8-gettext
+    "TD", # flake8-todos
+    "PGH", # pygrep-hooks
+    "PL", # Pylint
+    "TRY", # tryceratops
+    "FLY", # flynt
+    "PERF", # Perflint
+    "FURB", # refurb
+    "RUF", # Ruff
+]
+ignore = [
+    "E731", # allow lambdas
+    "PT018", # allow multiple in-place asserts
+    "B023", # allow lambda definition closurures
+    "B904", # allow raise() withot implicit from
+    "B905", # allow strictless zip
+    "B024", # allow ABC without abstract methods
+    "W605", # supress `Invalid escape sequence`, works bad
+    "RUF001", "RUF002", "RUF003", # unicode check ignore in strings
+    "PIE804", # allow dict kwargs
+    "PYI001", "PYI002", "PYI048", # lower pyi checker
+    "TD002", "TD003", # allow todos without author/issue
+    "TC001", "TC002", "TC003", # allow not using TYPE_CHECKING automatically
+    "PERF401", "PERF402", # allow manual lists creation/copy
+    "RUF012", # allow mutable class attrs withoout ClassVar annotaion
+    "PLR2004", "PLR0913", "PLR0915", "PLR0911", "PLR0912", # supress over check in pylint
+    "PLR1704", # new overcheck of pylint (e.g. `with session as session`)
+    "PLW0108", # allow lambda in place
+    "COM812", "ISC001", # ruff format conflicts disable
+    "SIM113", # over simplification for enumarates
+    "SIM103", # not good for implicity checks
+    "UP037", # allow quotes from type annotation
+]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "pypackages",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
