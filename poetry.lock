@@ -336,20 +336,6 @@ docs = ["Sphinx", "sphinxcontrib-napoleon"]
 subdoc = ["docxcompose"]
 
 [[package]]
-name = "dotenv"
-version = "0.9.9"
-description = "Deprecated package"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9"},
-]
-
-[package.dependencies]
-python-dotenv = "*"
-
-[[package]]
 name = "google-api-core"
 version = "2.30.3"
 description = "Google API client core library"
@@ -1178,4 +1164,4 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "bc80e63c92a7bfb5e703707c5345639aee37cb0bd5c8bfdf09156cbc5605af0a"
+content-hash = "42ad9129bdf954b56d9654af6be212895d62fd70b4e5998675219d2a3f70d18c"

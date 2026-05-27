@@ -5,11 +5,8 @@ description = "Monthly salary invoice and bank PDF automation."
 authors = ["Katrin"]
 readme = "README.md"
 packages = [
-    { include = "services", from = "src" },
-    { include = "workflows", from = "src" },
     { include = "storage", from = "src" },
     { include = "integrations", from = "src" },
-    { include = "config.py", from = "src" },
 ]
 
 [tool.poetry.dependencies]
@@ -22,11 +19,6 @@ google-auth-oauthlib = "^1.4.0"
 python-dotenv = "^1.2.2"
 docxtpl = "^0.20.2"
 ruff = "^0.15.14"
-dotenv = "^0.9.9"
-
-[tool.poetry.scripts]
-generate-invoice = "services.invoice.main:main"
-process-bank-pdf = "services.bank.main:main"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

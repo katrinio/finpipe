@@ -35,7 +35,8 @@ def get_gmail_service() -> Any:
 def get_env_path(name: str) -> Path:
     value = os.getenv(name)
     if not value:
-        raise RuntimeError(f"Missing required environment variable: {name}")
+        message = f"Missing required environment variable: {name}"
+        raise RuntimeError(message)
 
     path = Path(value).expanduser()
     if not path.is_absolute():
@@ -52,13 +53,17 @@ def load_credentials(token_path: Path) -> Credentials | None:
     try:
         return Credentials.from_authorized_user_file(str(token_path), GMAIL_SCOPES)
     except ValueError as error:
-        LOGGER.warning("Ignoring invalid Gmail OAuth token at %s: %s", token_path, error)
+        LOGGER.warning(
+            "Ignoring invalid Gmail OAuth token at %s: %s",
+            token_path,
+            error,
+        )
         return None
 
 
 def refresh_or_create_credentials(
-        credentials: Credentials | None,
-        credentials_path: Path,
+    credentials: Credentials | None,
+    credentials_path: Path,
 ) -> Credentials:
     if credentials and credentials.expired and credentials.refresh_token:
         LOGGER.info("Refreshing expired Gmail OAuth token")
@@ -66,10 +71,14 @@ def refresh_or_create_credentials(
         return credentials
 
     if not credentials_path.exists():
-        raise FileNotFoundError(f"Gmail credentials file not found: {credentials_path}")
+        message = f"Gmail credentials file not found: {credentials_path}"
+        raise FileNotFoundError(message)
 
     LOGGER.info("Starting Gmail OAuth browser login")
-    flow = InstalledAppFlow.from_client_secrets_file(str(credentials_path), GMAIL_SCOPES)
+    flow = InstalledAppFlow.from_client_secrets_file(
+        str(credentials_path),
+        GMAIL_SCOPES,
+    )
     return flow.run_local_server(port=0)
 
 

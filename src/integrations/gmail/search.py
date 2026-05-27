@@ -39,7 +39,8 @@ def build_bank_email_query() -> str:
     load_dotenv(ENV_PATH)
     subject = os.getenv("BANK_EMAIL_SUBJECT")
     if not subject:
-        raise RuntimeError("Missing required environment variable: BANK_EMAIL_SUBJECT")
+        message = "Missing required environment variable: BANK_EMAIL_SUBJECT"
+        raise RuntimeError(message)
 
     subject = subject.replace('"', r"\"")
     return f'subject:"{subject}" newer_than:{LOOKBACK_WINDOW}'
@@ -65,7 +66,8 @@ def build_bank_email_result(message: dict[str, Any]) -> BankEmail:
         subject=headers.get("subject", ""),
         sender=headers.get("from", ""),
         date=headers.get("date", ""),
-        gmail_message_id=message["id"],
+        message_id=message["id"],
+        thread_id=message["threadId"],
     )
 
 

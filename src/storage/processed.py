@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-FILE_PATH = Path("processed_messages.json")
+FILE_PATH = Path(__file__).with_name("processed_messages.json")
 
 
 def load_processed_messages() -> set[str]:
@@ -15,9 +15,7 @@ def load_processed_messages() -> set[str]:
 
 
 def save_processed_messages(ids: set[str]) -> None:
-    data = {
-        "processed_messages": list(ids)
-    }
+    data = {"processed_messages": sorted(ids)}
 
     with open(FILE_PATH, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
