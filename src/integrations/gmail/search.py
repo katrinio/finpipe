@@ -5,7 +5,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from .auth import ENV_PATH
-from .models import BankEmail
+from .gmail_models import BankEmail
 
 LOGGER = logging.getLogger(__name__)
 USER_ID = "me"
