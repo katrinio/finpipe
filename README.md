@@ -13,3 +13,23 @@ Pet project for accounting workflow automation.
 ### Установка зависимостей:
 1. Выполнить команду ```pip install poetry==2.2.1``` - установка пакета poetry, который управляет зависимостями
 2. Выполнить команды для установки зависимостей ```poetry install --no-root --no-interaction --no-ansi --no-cache```
+
+### Pre-commit:
+Pre-commit запускается только локально при коммите после установки git hook.
+
+1. Установить pre-commit, если он еще не установлен:
+```bash
+poetry add --group dev pre-commit
+```
+
+2. Установить git hook:
+```bash
+poetry run pre-commit install
+```
+
+3. Проверить весь проект вручную:
+```bash
+poetry run pre-commit run --all-files
+```
+
+Если pre-commit автоматически исправил файлы, нужно добавить эти изменения в git и повторить commit.

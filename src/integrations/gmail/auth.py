@@ -62,8 +62,8 @@ def load_credentials(token_path: Path) -> Credentials | None:
 
 
 def refresh_or_create_credentials(
-        credentials: Credentials | None,
-        credentials_path: Path,
+    credentials: Credentials | None,
+    credentials_path: Path,
 ) -> Credentials:
     if credentials and credentials.expired and credentials.refresh_token:
         LOGGER.info("Refreshing expired Gmail OAuth token")

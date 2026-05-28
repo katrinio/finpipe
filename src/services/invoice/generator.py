@@ -211,9 +211,7 @@ def build_replacements(
 ) -> dict[str, str]:
     replacements: dict[str, str] = {}
 
-    for field_name, placeholder_names in (
-        invoice_details.placeholder_aliases.items()
-    ):
+    for field_name, placeholder_names in invoice_details.placeholder_aliases.items():
         value = str(data[field_name])
 
         for placeholder_name in placeholder_names:

@@ -7,5 +7,3 @@ class InvoiceData:
     invoice_date: str
     amount_eur: str
     client_name: str
-
-
