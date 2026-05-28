@@ -2,63 +2,43 @@ import logging
 
 from src.integrations.gmail import get_gmail_service
 from src.integrations.gmail.search import find_bank_email
+from src.storage import is_processed, mark_as_processed
 
 LOGGER = logging.getLogger(__name__)
 
 
 def main() -> int:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s:%(name)s:%(message)s",
+    )
+
     try:
-        return run()
-    except Exception as e:
-        error = e
-        LOGGER.exception("Bank email workflow failed: %s", error)
+        process_bank_email_workflow()
+    except Exception:
+        LOGGER.exception("Bank email workflow failed")
         return 1
 
+    return 0
 
-def run() -> int:
-    LOGGER.info("Starting bank email search workflow")
-    bank_email = find_bank_email(get_gmail_service())
+
+def process_bank_email_workflow() -> None:
+    LOGGER.info("Starting bank email workflow")
+    service = get_gmail_service()
+    bank_email = find_bank_email(service)
 
     if bank_email is None:
-        LOGGER.warning("No matching bank email found")
-        LOGGER.info("No matching bank email found in the last 30 days.")
-        return 0
+        LOGGER.info("No bank emails found")
+        return
 
-    LOGGER.info("Found newest matching bank email: %s", bank_email.gmail_message_id)
-    LOGGER.info(
-        "\n".join(
-            (
-                "Newest matching bank email:",
-                f"  Subject: {bank_email.subject}",
-                f"  From: {bank_email.sender}",
-                f"  Date: {bank_email.date}",
-                f"  Gmail message id: {bank_email.gmail_message_id}",
-            )
-        )
-    )
-    return 0
+    if is_processed(bank_email.message_id):
+        LOGGER.info("Bank email already processed: %s", bank_email.message_id)
+        return
+
+    LOGGER.info("Processing bank email: %s", bank_email.message_id)
+    mark_as_processed(bank_email.message_id)
+    LOGGER.info("Marked bank email as processed: %s", bank_email.message_id)
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-# def process_bank_email_workflow():
-#     service = get_gmail_service()
-#
-#     messages = find_bank_emails(service)
-#
-#     if not messages:
-#         logger.info("No bank emails found")
-#         return
-#
-#     newest_message = messages[0]
-#
-#     email = get_message_metadata(service, newest_message)
-#
-#     if is_processed(email.message_id):
-#         logger.info("Already processed")
-#         return
-#
-#     logger.info("Processing email")
-#
-#     mark_as_processed(email.message_id)

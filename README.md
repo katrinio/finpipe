@@ -26,6 +26,14 @@ output/invoices/invoice-YYYY-MM.docx
 output/invoices/invoice-YYYY-MM.pdf
 ```
 
+### Обработка банковского письма:
+1. Заполнить в ```.env``` переменные ```GMAIL_CREDENTIALS_PATH```, ```GMAIL_TOKEN_PATH```, ```BANK_EMAIL_SUBJECT``` и ```BANK_EMAIL_FROM```.
+
+2. Выполнить команду:
+```bash
+poetry run process_bank_email
+```
+
 ### Pre-commit:
 Pre-commit запускается только локально при коммите после установки git hook.
 

@@ -38,12 +38,19 @@ def find_bank_email(service: Any) -> BankEmail | None:
 def build_bank_email_query() -> str:
     load_dotenv(ENV_PATH)
     subject = os.getenv("BANK_EMAIL_SUBJECT")
+    from_user = os.getenv("BANK_EMAIL_FROM")
+
     if not subject:
         message = "Missing required environment variable: BANK_EMAIL_SUBJECT"
         raise RuntimeError(message)
 
+    if not from_user:
+        message = "Missing required environment variable: BANK_EMAIL_FROM"
+        raise RuntimeError(message)
+
     subject = subject.replace('"', r"\"")
-    return f'subject:"{subject}" newer_than:{LOOKBACK_WINDOW}'
+    from_user = from_user.replace('"', r"\"")
+    return f'subject:"{subject}" from:"{from_user}" newer_than:{LOOKBACK_WINDOW}'
 
 
 def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:
