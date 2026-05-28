@@ -213,3 +213,4 @@ templates/
 credentials.json
 token.json
 output/
+src/storage/processed_messages.json

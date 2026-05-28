@@ -1,7 +1,7 @@
 """Gmail integration modules."""
 
 from .auth import get_gmail_service
-from .models import BankEmail
+from .gmail_models import BankEmail
 from .search import find_bank_email
 
 __all__ = [

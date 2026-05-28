@@ -5,7 +5,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from .auth import ENV_PATH
-from .models import BankEmail
+from .gmail_models import BankEmail
 
 LOGGER = logging.getLogger(__name__)
 USER_ID = "me"
@@ -38,12 +38,24 @@ def find_bank_email(service: Any) -> BankEmail | None:
 def build_bank_email_query() -> str:
     load_dotenv(ENV_PATH)
     subject = os.getenv("BANK_EMAIL_SUBJECT")
+    from_user = os.getenv("BANK_EMAIL_FROM")
+
     if not subject:
         message = "Missing required environment variable: BANK_EMAIL_SUBJECT"
         raise RuntimeError(message)
 
+    if not from_user:
+        message = "Missing required environment variable: BANK_EMAIL_FROM"
+        raise RuntimeError(message)
+
     subject = subject.replace('"', r"\"")
-    return f'subject:"{subject}" newer_than:{LOOKBACK_WINDOW}'
+    from_user = from_user.replace('"', r"\"")
+    return (
+        f'subject:"{subject}" '
+        f'from:"{from_user}" '
+        f"newer_than:{LOOKBACK_WINDOW} "
+        f"has:attachment"
+    )
 
 
 def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:
