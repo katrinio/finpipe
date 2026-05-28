@@ -5,15 +5,12 @@ description = "Monthly salary invoice and bank PDF automation."
 authors = ["Katrin"]
 readme = "README.md"
 packages = [
-    { include = "services", from = "src" },
-    { include = "workflows", from = "src" },
     { include = "storage", from = "src" },
     { include = "integrations", from = "src" },
-    { include = "config.py", from = "src" },
 ]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.14,<3.15"
 pypdf = "^6.1.0"
 reportlab = "^4.4.0"
 google-api-python-client = "^2.196.0"
@@ -22,14 +19,19 @@ google-auth-oauthlib = "^1.4.0"
 python-dotenv = "^1.2.2"
 docxtpl = "^0.20.2"
 ruff = "^0.15.14"
-
-[tool.poetry.scripts]
-generate-invoice = "services.invoice.main:main"
-process-bank-pdf = "services.bank.main:main"
+canvas = "^0.155.0"
+pytest = "^9.0.3"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(levelname)s:%(name)s:%(message)s"
+testpaths = ["tests"]
 
 
 [tool.ruff.lint]
@@ -125,3 +127,8 @@ exclude = [
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[dependency-groups]
+dev = [
+    "pre-commit (>=4.6.0,<5.0.0)"
+]
