@@ -5,9 +5,11 @@ description = "Monthly salary invoice and bank PDF automation."
 authors = ["Katrin"]
 readme = "README.md"
 packages = [
-    { include = "storage", from = "src" },
-    { include = "integrations", from = "src" },
+    { include = "src" },
 ]
+
+[tool.poetry.scripts]
+generate-invoice = "src.workflows.generate_invoice:main"
 
 [tool.poetry.dependencies]
 python = ">=3.14,<3.15"
