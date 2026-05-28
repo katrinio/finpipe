@@ -1,6 +1,7 @@
 import logging
 
 from src.integrations.gmail import get_gmail_service
+from src.integrations.gmail.downloader import download_attachments
 from src.integrations.gmail.search import find_bank_email
 from src.storage import is_processed, mark_as_processed
 
@@ -35,6 +36,7 @@ def process_bank_email_workflow() -> None:
         LOGGER.info("Bank email already processed: %s", bank_email.message_id)
         return
 
+    download_attachments(bank_email)
     LOGGER.info("Processing bank email: %s", bank_email.message_id)
     mark_as_processed(bank_email.message_id)
     LOGGER.info("Marked bank email as processed: %s", bank_email.message_id)

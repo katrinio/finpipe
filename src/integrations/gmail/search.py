@@ -50,7 +50,12 @@ def build_bank_email_query() -> str:
 
     subject = subject.replace('"', r"\"")
     from_user = from_user.replace('"', r"\"")
-    return f'subject:"{subject}" from:"{from_user}" newer_than:{LOOKBACK_WINDOW}'
+    return (
+        f'subject:"{subject}" '
+        f'from:"{from_user}" '
+        f"newer_than:{LOOKBACK_WINDOW} "
+        f"has:attachment"
+    )
 
 
 def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:
