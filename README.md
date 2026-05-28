@@ -12,7 +12,19 @@ Pet project for accounting workflow automation.
 
 ### Установка зависимостей:
 1. Выполнить команду ```pip install poetry==2.2.1``` - установка пакета poetry, который управляет зависимостями
-2. Выполнить команды для установки зависимостей ```poetry install --no-root --no-interaction --no-ansi --no-cache```
+2. Выполнить команды для установки зависимостей ```poetry install --no-interaction --no-ansi --no-cache```
+
+### Генерация инвойса:
+1. Выполнить команду:
+```bash
+poetry run generate-invoice --amount 1000
+```
+
+2. Готовые файлы сохраняются в папку ```output/invoices```:
+```text
+output/invoices/invoice-YYYY-MM.docx
+output/invoices/invoice-YYYY-MM.pdf
+```
 
 ### Pre-commit:
 Pre-commit запускается только локально при коммите после установки git hook.
