@@ -24,9 +24,9 @@ def main() -> int:
 
     try:
         return run(args.bank_template, args.signature, args.output_dir)
-    except Exception as error:
-        e = error
-        LOGGER.exception("Bank PDF processing failed: %s", e)
+    except Exception as e:
+        error = e
+        LOGGER.exception("Bank PDF processing failed: %s", error)
         return 1
 
 

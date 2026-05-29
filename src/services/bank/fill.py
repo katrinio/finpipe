@@ -1,0 +1,97 @@
+import logging
+import os
+from io import BytesIO
+from pathlib import Path
+
+from pypdf import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
+
+from services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
+
+LOGGER = logging.getLogger(__name__)
+
+
+def fill_bank_pdf(
+    input_pdf: Path,
+    output_pdf: Path,
+    amount: float,
+    date: str,
+    signature: Path,
+) -> None:
+    reader = PdfReader(str(input_pdf))
+    page = reader.pages[0]
+
+    packet = BytesIO()
+    overlay = canvas.Canvas(packet, pagesize=get_page_size(page))
+    draw_form_fields(overlay, build_bank_form_data(amount, date))
+    draw_signature(overlay, signature)
+    overlay.save()
+    packet.seek(0)
+
+    overlay_page = PdfReader(packet).pages[0]
+    page.merge_page(overlay_page)
+
+    writer = PdfWriter()
+    writer.add_page(page)
+    for other_page in reader.pages[1:]:
+        writer.add_page(other_page)
+
+    output_pdf.parent.mkdir(parents=True, exist_ok=True)
+    with output_pdf.open("wb") as file_handle:
+        writer.write(file_handle)
+
+    LOGGER.info("Generated filled bank PDF: %s", output_pdf)
+
+
+def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
+    payment_number = os.getenv("PAYMENT_NUMBER")
+    payment_code = os.getenv("PAYMENT_CODE")
+    payment_description = os.getenv("PAYMENT_DESCRIPTION")
+    recipient = os.getenv("RECIPIENT_NUMBER")
+    registration_number = os.getenv("REGISTRATION_NUMBER")
+    account_number = os.getenv("ACCOUNT_NUMBER")
+    city = os.getenv("CITY")
+
+    return {
+        "number": payment_number,
+        "code": payment_code,
+        "year": date[-4:],
+        "description": payment_description,
+        "recipient": recipient,
+        "registration_number": registration_number,
+        "account_number": account_number,
+        "amount": f"{amount:.2f} €",
+        "place_and_date": f"{city} {date}",
+    }
+
+
+def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:
+    if not signature.exists():
+        LOGGER.warning("Signature image does not exist: %s", signature)
+        return
+
+    signature_field = PDF_FIELDS["signature"]
+    pdf_canvas.drawImage(
+        str(signature),
+        signature_field["x"],
+        signature_field["y"],
+        width=signature_field["width"],
+        height=signature_field["height"],
+        mask="auto",
+    )
+
+
+def draw_form_fields(
+    pdf_canvas: canvas.Canvas,
+    values: dict[str, str],
+) -> None:
+    pdf_canvas.setFont("Helvetica", 9)
+    for field_name in BANK_FIELD_ORDER:
+        value = values.get(field_name)
+        if value is not None:
+            field = PDF_FIELDS[field_name]
+            pdf_canvas.drawString(field["x"], field["y"], str(value))
+
+
+def get_page_size(page: object) -> tuple[float, float]:
+    return float(page.mediabox.width), float(page.mediabox.height)
