@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 
 from src.constants import Format, Invoice
 from src.logging_config import configure_logging
-from src.services.invoice.context import build_invoice_period
-from src.services.invoice.generator import generate_invoice
+from src.services.invoice.invoice_context import build_invoice_period
+from src.services.invoice.invoice_generator import generate_invoice
 
 LOGGER = logging.getLogger(__name__)
 

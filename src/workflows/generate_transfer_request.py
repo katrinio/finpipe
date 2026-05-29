@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 
 from src.constants import Format, TransferRequest
 from src.logging_config import configure_logging
-from src.services.invoice.context import build_invoice_period
-from src.services.transfer_request.generator import generate_transfer_request
+from src.services.invoice.invoice_context import build_invoice_period
+from src.services.transfer_request.transfer_request_generator import generate_transfer_request
 
 LOGGER = logging.getLogger(__name__)
 

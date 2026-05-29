@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.services.bank import extract
+from src.services.bank import bank_extract as extract
 
 
 def test_extract_amount_parses_bank_pdf_amount(monkeypatch) -> None:

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from src.services.invoice.generator import build_osascript_command, build_replacements
+from src.services.invoice.invoice_generator import build_osascript_command, build_replacements
 
 
 def test_build_replacements_wraps_plain_placeholder_names() -> None:
