@@ -3,6 +3,7 @@ import logging
 import os
 
 from src.integrations.gmail import BankEmail, get_gmail_service
+from utils import Utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -12,15 +13,11 @@ def download_attachments(bank_email: BankEmail) -> None:
 
     service = get_gmail_service()
     user_id = "me"
+    new_filename = f"Obavestenje o prilivu {Utils.today()}"
 
     os.makedirs("attachments", exist_ok=True)
 
-    message = (
-        service.users()
-        .messages()
-        .get(userId=user_id, id=bank_email.message_id)
-        .execute()
-    )
+    message = service.users().messages().get(userId=user_id, id=bank_email.message_id).execute()
 
     payload = message.get("payload", {})
     parts = payload.get("parts", [])
@@ -48,8 +45,8 @@ def download_attachments(bank_email: BankEmail) -> None:
 
                 LOGGER.info("Saving attach: %s", filename)
 
-                filepath = os.path.join("attachments", filename)
+                filepath = os.path.join("attachments", new_filename)
                 with open(filepath, "wb") as f:
                     f.write(file_data)
 
-                LOGGER.info("Attach saved: %s", filename)
+                LOGGER.info("Attach saved: %s", new_filename)
