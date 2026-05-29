@@ -6,7 +6,7 @@ from pathlib import Path
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 
-from services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
+from src.services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,10 +81,7 @@ def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:
     )
 
 
-def draw_form_fields(
-    pdf_canvas: canvas.Canvas,
-    values: dict[str, str],
-) -> None:
+def draw_form_fields(pdf_canvas: canvas.Canvas, values: dict[str, str]) -> None:
     pdf_canvas.setFont("Helvetica", 9)
     for field_name in BANK_FIELD_ORDER:
         value = values.get(field_name)

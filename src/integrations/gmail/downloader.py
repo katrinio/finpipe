@@ -3,7 +3,7 @@ import logging
 import os
 
 from src.integrations.gmail import BankEmail, get_gmail_service
-from utils import Utils
+from src.utils import Utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ def download_attachments(bank_email: BankEmail) -> None:
 
     service = get_gmail_service()
     user_id = "me"
-    new_filename = f"Obavestenje o prilivu {Utils.today()}"
+    new_filename = f"bank-form-{Utils.today()}"
 
     os.makedirs("attachments", exist_ok=True)
 

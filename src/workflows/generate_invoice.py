@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from constants import Format, Invoice
+from src.constants import Format, Invoice
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generator import generate_invoice
 

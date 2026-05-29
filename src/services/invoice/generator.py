@@ -6,7 +6,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from constants import Format
+from src.constants import Format
 
 LOGGER = logging.getLogger(__name__)
 
