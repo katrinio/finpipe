@@ -11,6 +11,8 @@ packages = [
 [tool.poetry.scripts]
 generate-invoice = "src.workflows.generate_invoice:main"
 process_bank_email = "src.workflows.process_bank_email:main"
+prepare_bank_pdf = "src.workflows.prepare_bank_pdf:main"
+clear_processed_history = "src.workflows.clear_processed_history:main"
 
 [tool.poetry.dependencies]
 python = ">=3.14,<3.15"

@@ -29,3 +29,10 @@ def mark_as_processed(message_id: str) -> None:
     ids = load_processed_messages()
     ids.add(message_id)
     save_processed_messages(ids)
+
+
+def clear_processed_history() -> None:
+    data = {"processed_messages": []}
+
+    with open(FILE_PATH, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
