@@ -2,10 +2,11 @@ import argparse
 import logging
 from pathlib import Path
 
+from constants import Bank, Format
 from services.bank.extract import extract_amount
 from services.bank.fill import fill_bank_pdf
-from services.constants import Bank
 from services.invoice.context import build_invoice_period
+from utils import Utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,8 +36,8 @@ def run(bank_template: Path, signature: Path, output_dir: Path) -> int:
 
     amount = extract_amount(bank_template)
     invoice_period = build_invoice_period()
-    # period_suffix = build_period_suffix(invoice_period.invoice_number)
-    bank_output = output_dir / "bank_8.pdf"
+    period_suffix = Utils.today()
+    bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
 
     fill_bank_pdf(
         input_pdf=bank_template,

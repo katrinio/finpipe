@@ -6,6 +6,8 @@ from zipfile import ZIP_DEFLATED, ZipFile
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
+from constants import Format
+
 LOGGER = logging.getLogger(__name__)
 
 PAGES_APP_PATH = Path("/Applications/Pages.app")
@@ -27,7 +29,7 @@ def generate_invoice(
 ) -> None:
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
-    rendered_docx_path = output_pdf_path.with_suffix(".docx")
+    rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
     render_docx_template(
         template_path=template_path,
@@ -215,11 +217,7 @@ def build_replacements(
         value = str(data[field_name])
 
         for placeholder_name in placeholder_names:
-            placeholder = (
-                placeholder_name
-                if placeholder_name.startswith("{{")
-                else f"{{{{{placeholder_name}}}}}"
-            )
+            placeholder = placeholder_name if placeholder_name.startswith("{{") else f"{{{{{placeholder_name}}}}}"
 
             replacements[placeholder] = value
 

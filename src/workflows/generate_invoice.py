@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from services.constants import Invoice
+from constants import Format, Invoice
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generator import generate_invoice
 
@@ -52,7 +52,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
-    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.pdf"
+    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
     data = invoice_period.as_template_data() | {"amount": amount}
 
