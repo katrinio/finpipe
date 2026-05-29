@@ -3,14 +3,13 @@ import logging
 from collections.abc import Sequence
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 from src.constants import Bank, Format
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.services.bank.bank_fill import fill_bank_pdf
 from src.services.invoice.invoice_context import build_invoice_period
-from src.utils import Utils
+from src.utils.credentials import EnvVar
+from src.utils.utils import Utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     configure_logging()
-    load_dotenv()
+    EnvVar.get_dotenv()
 
     parser = build_parser()
     args = parser.parse_args(argv)

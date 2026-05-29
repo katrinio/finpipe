@@ -2,18 +2,16 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 from src.constants import Format, Invoice
 from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.invoice.invoice_generator import generate_invoice
+from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,12 +34,12 @@ INVOICE_TEMPLATE_DETAILS = InvoiceTemplateDetails(
 
 def main(argv: Sequence[str] | None = None) -> int:
     configure_logging()
-    load_dotenv()
+    EnvVar.get_dotenv()
 
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    amount = args.amount or os.getenv("INVOICE_AMOUNT")
+    amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
     if not amount:
         parser.error("Pass --amount or set INVOICE_AMOUNT in .env")
 

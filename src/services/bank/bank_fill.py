@@ -1,5 +1,4 @@
 import logging
-import os
 from io import BytesIO
 from pathlib import Path
 
@@ -7,6 +6,8 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 
 from src.services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
+from src.services.document.pdf_get_page_size import PdfGetPageSize
+from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def fill_bank_pdf(
     page = reader.pages[0]
 
     packet = BytesIO()
-    overlay = canvas.Canvas(packet, pagesize=get_page_size(page))
+    overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
     draw_form_fields(overlay, build_bank_form_data(amount, date))
     draw_signature(overlay, signature)
     overlay.save()
@@ -45,13 +46,13 @@ def fill_bank_pdf(
 
 
 def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
-    payment_number = get_required_env("PAYMENT_NUMBER")
-    payment_code = get_required_env("PAYMENT_CODE")
-    payment_description = get_required_env("PAYMENT_DESCRIPTION")
-    recipient = get_required_env("RECIPIENT")
-    registration_number = get_required_env("REGISTRATION_NUMBER")
-    account_number = get_required_env("ACCOUNT_NUMBER")
-    city = get_required_env("CITY")
+    payment_number = EnvVar.get_required_env("PAYMENT_NUMBER")
+    payment_code = EnvVar.get_required_env("PAYMENT_CODE")
+    payment_description = EnvVar.get_required_env("PAYMENT_DESCRIPTION")
+    recipient = EnvVar.get_required_env("RECIPIENT")
+    registration_number = EnvVar.get_required_env("REGISTRATION_NUMBER")
+    account_number = EnvVar.get_required_env("ACCOUNT_NUMBER")
+    city = EnvVar.get_required_env("CITY")
 
     return {
         "number": payment_number,
@@ -64,15 +65,6 @@ def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
         "amount": f"{amount:.2f} €",
         "place_and_date": f"{city} {date}",
     }
-
-
-def get_required_env(name: str) -> str:
-    value = os.getenv(name)
-    if not value:
-        msg = f"Missing required environment variable: {name}"
-        raise RuntimeError(msg)
-
-    return value
 
 
 def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:
@@ -98,7 +90,3 @@ def draw_form_fields(pdf_canvas: canvas.Canvas, values: dict[str, str]) -> None:
         if value is not None:
             field = PDF_FIELDS[field_name]
             pdf_canvas.drawString(field["x"], field["y"], str(value))
-
-
-def get_page_size(page: object) -> tuple[float, float]:
-    return float(page.mediabox.width), float(page.mediabox.height)
