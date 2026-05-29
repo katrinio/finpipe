@@ -16,12 +16,7 @@ METADATA_HEADERS = ("Subject", "From", "Date")
 def find_bank_email(service: Any) -> BankEmail | None:
     LOGGER.info("Searching Gmail for bank email from the last %s", LOOKBACK_WINDOW)
 
-    response = (
-        service.users()
-        .messages()
-        .list(userId=USER_ID, q=build_bank_email_query(), maxResults=10)
-        .execute()
-    )
+    response = service.users().messages().list(userId=USER_ID, q=build_bank_email_query(), maxResults=10).execute()
     messages = response.get("messages", [])
     if not messages:
         LOGGER.info("No Gmail messages matched the configured bank email subject")
@@ -50,12 +45,7 @@ def build_bank_email_query() -> str:
 
     subject = subject.replace('"', r"\"")
     from_user = from_user.replace('"', r"\"")
-    return (
-        f'subject:"{subject}" '
-        f'from:"{from_user}" '
-        f"newer_than:{LOOKBACK_WINDOW} "
-        f"has:attachment"
-    )
+    return f'subject:"{subject}" from:"{from_user}" newer_than:{LOOKBACK_WINDOW} has:attachment'
 
 
 def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:
@@ -84,8 +74,4 @@ def build_bank_email_result(message: dict[str, Any]) -> BankEmail:
 
 
 def extract_headers(message: dict[str, Any]) -> dict[str, str]:
-    return {
-        header.get("name", "").lower(): header.get("value", "")
-        for header in message.get("payload", {}).get("headers", [])
-        if header.get("name")
-    }
+    return {header.get("name", "").lower(): header.get("value", "") for header in message.get("payload", {}).get("headers", []) if header.get("name")}

@@ -7,6 +7,7 @@ exclude: >
     .*\.pytest_cache/|
     .*\.ruff_cache/|
     .*\.venv/|
+    .*/attachments/|
     .*/logs/|
     .*/output/|
     .*credentials\.json|

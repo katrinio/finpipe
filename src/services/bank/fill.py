@@ -44,13 +44,13 @@ def fill_bank_pdf(
 
 
 def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
-    payment_number = os.getenv("PAYMENT_NUMBER")
-    payment_code = os.getenv("PAYMENT_CODE")
-    payment_description = os.getenv("PAYMENT_DESCRIPTION")
-    recipient = os.getenv("RECIPIENT_NUMBER")
-    registration_number = os.getenv("REGISTRATION_NUMBER")
-    account_number = os.getenv("ACCOUNT_NUMBER")
-    city = os.getenv("CITY")
+    payment_number = get_required_env("PAYMENT_NUMBER")
+    payment_code = get_required_env("PAYMENT_CODE")
+    payment_description = get_required_env("PAYMENT_DESCRIPTION")
+    recipient = get_required_env("RECIPIENT")
+    registration_number = get_required_env("REGISTRATION_NUMBER")
+    account_number = get_required_env("ACCOUNT_NUMBER")
+    city = get_required_env("CITY")
 
     return {
         "number": payment_number,
@@ -63,6 +63,15 @@ def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
         "amount": f"{amount:.2f} €",
         "place_and_date": f"{city} {date}",
     }
+
+
+def get_required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        msg = f"Missing required environment variable: {name}"
+        raise RuntimeError(msg)
+
+    return value
 
 
 def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:

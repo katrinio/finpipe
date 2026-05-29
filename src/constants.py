@@ -13,6 +13,6 @@ class Invoice:
 
 
 class Bank:
-    TEMPLATE_PATH = Path(f"attachments/invoice_template.{Format.DOCX}")
+    ATTACHMENTS_DIR = Path("attachments")
     SIGNATURE_PATH = Path(f"templates/signature.{Format.PNG}")
     OUTPUT_DIR = Path("output/bank")

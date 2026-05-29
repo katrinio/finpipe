@@ -1,6 +1,9 @@
 import argparse
 import logging
+from collections.abc import Sequence
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 from src.constants import Bank, Format
 from src.services.bank.extract import extract_amount
@@ -13,21 +16,32 @@ LOGGER = logging.getLogger(__name__)
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Extract amount and fill bank PDF.")
-    parser.add_argument("--bank-template", type=Path, default=Bank.TEMPLATE_PATH)
+    parser.add_argument(
+        "--bank-template",
+        type=Path,
+        default=None,
+        help=f"Path to source bank PDF. Defaults to the newest PDF in {Bank.ATTACHMENTS_DIR}.",
+    )
     parser.add_argument("--signature", type=Path, default=Bank.SIGNATURE_PATH)
     parser.add_argument("--output-dir", type=Path, default=Bank.OUTPUT_DIR)
     return parser
 
 
-def main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s:%(name)s:%(message)s",
+    )
+    load_dotenv()
+
     parser = build_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     try:
-        return run(args.bank_template, args.signature, args.output_dir)
-    except Exception as e:
-        error = e
-        LOGGER.exception("Bank PDF processing failed: %s", error)
+        bank_template = resolve_bank_template(args.bank_template)
+        return run(bank_template, args.signature, args.output_dir)
+    except Exception:
+        LOGGER.exception("Bank PDF processing failed")
         return 1
 
 
@@ -43,12 +57,41 @@ def run(bank_template: Path, signature: Path, output_dir: Path) -> int:
         input_pdf=bank_template,
         output_pdf=bank_output,
         amount=amount,
-        date=invoice_period.date,
+        date=invoice_period.invoice_date,
         signature=signature,
     )
 
     LOGGER.info("Bank PDF processing finished successfully")
     return 0
+
+
+def resolve_bank_template(bank_template: Path | None) -> Path:
+    if bank_template is not None:
+        if not bank_template.exists():
+            msg = f"Bank PDF not found: {bank_template}"
+            raise FileNotFoundError(msg)
+
+        if not is_pdf_file(bank_template):
+            msg = f"Bank template is not a PDF: {bank_template}"
+            raise ValueError(msg)
+
+        return bank_template
+
+    if not Bank.ATTACHMENTS_DIR.exists():
+        msg = f"Attachments directory not found: {Bank.ATTACHMENTS_DIR}"
+        raise FileNotFoundError(msg)
+
+    candidates = [path for path in Bank.ATTACHMENTS_DIR.iterdir() if path.is_file() and is_pdf_file(path)]
+    if not candidates:
+        msg = f"No bank PDF found in {Bank.ATTACHMENTS_DIR}. Pass --bank-template."
+        raise FileNotFoundError(msg)
+
+    return max(candidates, key=lambda path: path.stat().st_mtime)
+
+
+def is_pdf_file(path: Path) -> bool:
+    with path.open("rb") as file_handle:
+        return file_handle.read(5) == b"%PDF-"
 
 
 if __name__ == "__main__":

@@ -89,9 +89,7 @@ def test_gmail_integration() -> None:
         )
 
         assert "payload" in full_message, "Сообщение Gmail не содержит ключ 'payload'"
-        assert "headers" in full_message["payload"], (
-            "Payload сообщения Gmail не содержит ключ 'headers'"
-        )
+        assert "headers" in full_message["payload"], "Payload сообщения Gmail не содержит ключ 'headers'"
 
         headers = full_message["payload"]["headers"]
 
