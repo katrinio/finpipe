@@ -1,0 +1,113 @@
+from __future__ import annotations
+
+import argparse
+import logging
+import os
+from collections.abc import Sequence
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+from src.constants import Format, TransferRequest
+from src.logging_config import configure_logging
+from src.services.invoice.context import build_invoice_period
+from src.services.invoice.generator import generate_invoice
+
+LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class TransferRequestTemplateDetails:
+    placeholder_aliases: dict[str, tuple[str, ...]]
+
+
+TRANSFER_REQUEST_TEMPLATE_DETAILS = TransferRequestTemplateDetails(
+    placeholder_aliases={
+        "account_number": ("accountNumber",),
+        "amount": ("amount",),
+        "city": ("city",),
+        "date": ("date",),
+        "name": ("name",),
+    },
+)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    configure_logging()
+    load_dotenv()
+
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    amount = args.amount or os.getenv("INVOICE_AMOUNT")
+    if not amount:
+        parser.error("Pass --amount or set INVOICE_AMOUNT in .env")
+
+    if not args.template.exists():
+        LOGGER.error("Transfer Request template not found: %s", args.template)
+        return 1
+
+    invoice_period = build_invoice_period(args.invoice_date)
+    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
+
+    data = invoice_period.as_template_data() | {"amount": amount}
+
+    LOGGER.info(
+        "Generating invoice %s for period %s - %s",
+        invoice_period.invoice_number,
+        invoice_period.period_from,
+        invoice_period.period_to,
+    )
+    generate_invoice(
+        template_path=args.template,
+        output_pdf_path=output_pdf_path,
+        data=data,
+        invoice_details=TRANSFER_REQUEST_TEMPLATE_DETAILS,
+    )
+
+    LOGGER.info("Transfer Request saved to %s", output_pdf_path)
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Generate salary invoice PDF and DOCX files.",
+    )
+    parser.add_argument(
+        "--amount",
+        help="Transfer Request amount in EUR. Defaults to INVOICE_AMOUNT from .env.",
+    )
+    parser.add_argument(
+        "--date",
+        dest="invoice_date",
+        type=parse_invoice_date,
+        default=None,
+        help="Transfer Request date in YYYY-MM-DD format. Defaults to today.",
+    )
+    parser.add_argument(
+        "--template",
+        type=Path,
+        default=TransferRequest.TEMPLATE_PATH,
+        help=f"Path to invoice DOCX template. Defaults to {TransferRequest.TEMPLATE_PATH}.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=TransferRequest.OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {TransferRequest.OUTPUT_DIR}.",
+    )
+    return parser
+
+
+def parse_invoice_date(value: str) -> date:
+    try:
+        return date.fromisoformat(value)
+    except ValueError as error:
+        msg = "Expected date in YYYY-MM-DD format"
+        raise argparse.ArgumentTypeError(msg) from error
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

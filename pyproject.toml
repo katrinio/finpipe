@@ -9,9 +9,10 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-generate-invoice = "src.workflows.generate_invoice:main"
-process_bank_email = "src.workflows.process_bank_email:main"
-prepare_bank_pdf = "src.workflows.prepare_bank_pdf:main"
+gen_invoice = "src.workflows.generate_invoice:main"
+gen_transfer_request = "src.workflows.generate_transfer_request:main"
+get_bank_email = "src.workflows.process_bank_email:main"
+fill_bank_pdf = "src.workflows.prepare_bank_pdf:main"
 clear_processed_history = "src.workflows.clear_processed_history:main"
 
 [tool.poetry.dependencies]
