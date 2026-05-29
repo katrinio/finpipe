@@ -1,10 +1,10 @@
 import logging
-import os
 from typing import Any
 
 from dotenv import load_dotenv
 
-from .auth import ENV_PATH
+from src.utils.credentials import EnvVar
+
 from .gmail_models import BankEmail
 
 LOGGER = logging.getLogger(__name__)
@@ -38,9 +38,9 @@ def find_bank_email(service: Any) -> BankEmail | None:
 
 
 def build_bank_email_query() -> str:
-    load_dotenv(ENV_PATH)
-    subject = os.getenv("BANK_EMAIL_SUBJECT")
-    from_user = os.getenv("BANK_EMAIL_FROM")
+    load_dotenv(EnvVar.ENV_PATH)
+    subject = EnvVar.get_required_env("BANK_EMAIL_SUBJECT")
+    from_user = EnvVar.get_required_env("BANK_EMAIL_FROM")
 
     if not subject:
         message = "Missing required environment variable: BANK_EMAIL_SUBJECT"

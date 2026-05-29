@@ -1,6 +1,6 @@
 import pytest
 
-from src.services.bank import fill
+from src.services.bank import bank_fill as fill
 from src.utils import Utils
 
 

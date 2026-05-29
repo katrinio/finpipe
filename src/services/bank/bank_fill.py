@@ -1,5 +1,4 @@
 import logging
-import os
 from io import BytesIO
 from pathlib import Path
 
@@ -7,8 +6,14 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 
 from src.services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
+from src.services.document.pdf_get_page_size import PdfGetPageSize
+from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
+
+
+def get_required_env(name: str) -> str:
+    return EnvVar.get_required_env(name)
 
 
 def fill_bank_pdf(
@@ -23,7 +28,7 @@ def fill_bank_pdf(
     page = reader.pages[0]
 
     packet = BytesIO()
-    overlay = canvas.Canvas(packet, pagesize=get_page_size(page))
+    overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
     draw_form_fields(overlay, build_bank_form_data(amount, date))
     draw_signature(overlay, signature)
     overlay.save()
@@ -66,15 +71,6 @@ def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
     }
 
 
-def get_required_env(name: str) -> str:
-    value = os.getenv(name)
-    if not value:
-        msg = f"Missing required environment variable: {name}"
-        raise RuntimeError(msg)
-
-    return value
-
-
 def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:
     if not signature.exists():
         LOGGER.warning("Signature image does not exist: %s", signature)
@@ -98,7 +94,3 @@ def draw_form_fields(pdf_canvas: canvas.Canvas, values: dict[str, str]) -> None:
         if value is not None:
             field = PDF_FIELDS[field_name]
             pdf_canvas.drawString(field["x"], field["y"], str(value))
-
-
-def get_page_size(page: object) -> tuple[float, float]:
-    return float(page.mediabox.width), float(page.mediabox.height)

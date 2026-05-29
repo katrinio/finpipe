@@ -7,27 +7,27 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from src.constants import Format, Invoice
+from src.constants import Format, TransferRequest
 from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
-from src.services.invoice.invoice_generator import generate_invoice
+from src.services.transfer_request.transfer_request_generator import generate_transfer_request
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
-class InvoiceTemplateDetails:
+class TransferRequestTemplateDetails:
     placeholder_aliases: dict[str, tuple[str, ...]]
 
 
-INVOICE_TEMPLATE_DETAILS = InvoiceTemplateDetails(
+TRANSFER_REQUEST_TEMPLATE_DETAILS = TransferRequestTemplateDetails(
     placeholder_aliases={
-        "invoice_number": ("invoiceId",),
-        "date": ("invoiceDate",),
-        "period_from": ("dateFrom",),
-        "period_to": ("dateTo",),
+        "account_number": ("accountNumber",),
         "amount": ("amount",),
+        "city": ("city",),
+        "date": ("date",),
+        "name": ("name",),
     },
 )
 
@@ -44,7 +44,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("Pass --amount or set INVOICE_AMOUNT in .env")
 
     if not args.template.exists():
-        LOGGER.error("Invoice template not found: %s", args.template)
+        LOGGER.error("Transfer Request template not found: %s", args.template)
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
@@ -58,14 +58,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_period.period_from,
         invoice_period.period_to,
     )
-    generate_invoice(
+    generate_transfer_request(
         template_path=args.template,
         output_pdf_path=output_pdf_path,
         data=data,
-        invoice_details=INVOICE_TEMPLATE_DETAILS,
+        invoice_details=TRANSFER_REQUEST_TEMPLATE_DETAILS,
     )
 
-    LOGGER.info("Invoice saved to %s", output_pdf_path)
+    LOGGER.info("Transfer Request saved to %s", output_pdf_path)
     return 0
 
 
@@ -75,26 +75,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--amount",
-        help="Invoice amount in EUR. Defaults to INVOICE_AMOUNT from .env.",
+        help="Transfer Request amount in EUR. Defaults to INVOICE_AMOUNT from .env.",
     )
     parser.add_argument(
         "--date",
         dest="invoice_date",
         type=parse_invoice_date,
         default=None,
-        help="Invoice date in YYYY-MM-DD format. Defaults to today.",
+        help="Transfer Request date in YYYY-MM-DD format. Defaults to today.",
     )
     parser.add_argument(
         "--template",
         type=Path,
-        default=Invoice.TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {Invoice.TEMPLATE_PATH}.",
+        default=TransferRequest.TEMPLATE_PATH,
+        help=f"Path to invoice DOCX template. Defaults to {TransferRequest.TEMPLATE_PATH}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Invoice.OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {Invoice.OUTPUT_DIR}.",
+        default=TransferRequest.OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {TransferRequest.OUTPUT_DIR}.",
     )
     return parser
 
