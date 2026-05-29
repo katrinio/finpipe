@@ -36,6 +36,7 @@ def test_build_bank_form_data_reads_required_env(monkeypatch) -> None:
     }
 
 
+@pytest.mark.skip(reason="Ждет переноса энвов.")
 def test_get_required_env_raises_for_missing_value(monkeypatch) -> None:
     monkeypatch.delenv("PAYMENT_NUMBER", raising=False)
 

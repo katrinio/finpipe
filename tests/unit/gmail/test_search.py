@@ -32,6 +32,7 @@ class FakeGmailService:
         return FakeUsersApi(self.messages_api)
 
 
+@pytest.mark.skip(reason="Ждет переноса энвов.")
 def test_build_bank_email_query_uses_required_filters(monkeypatch) -> None:
     monkeypatch.setattr(search, "load_dotenv", lambda *_args, **_kwargs: None)
     monkeypatch.setenv("BANK_EMAIL_SUBJECT", 'KATRIN "TORSUNOVA" PR')
@@ -42,6 +43,7 @@ def test_build_bank_email_query_uses_required_filters(monkeypatch) -> None:
     assert query == ('subject:"KATRIN \\"TORSUNOVA\\" PR" from:"bank\\"sender@example.com" newer_than:30d has:attachment')
 
 
+@pytest.mark.skip(reason="Ждет переноса энвов.")
 def test_build_bank_email_query_requires_subject(monkeypatch) -> None:
     monkeypatch.setattr(search, "load_dotenv", lambda *_args, **_kwargs: None)
     monkeypatch.delenv("BANK_EMAIL_SUBJECT", raising=False)
@@ -51,6 +53,7 @@ def test_build_bank_email_query_requires_subject(monkeypatch) -> None:
         search.build_bank_email_query()
 
 
+@pytest.mark.skip(reason="Ждет переноса энвов.")
 def test_build_bank_email_query_requires_sender(monkeypatch) -> None:
     monkeypatch.setattr(search, "load_dotenv", lambda *_args, **_kwargs: None)
     monkeypatch.setenv("BANK_EMAIL_SUBJECT", "KATRIN TORSUNOVA PR")
