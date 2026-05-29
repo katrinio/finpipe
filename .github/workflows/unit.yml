@@ -22,4 +22,4 @@ jobs:
 
     - name: Run Unit Tests
       run: |
-        pytest tests/unit -v -ra
+        poetry run pytest tests/unit -v -ra
