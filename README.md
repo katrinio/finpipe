@@ -33,29 +33,9 @@ poetry run process_bank_email
 ```
 
 ### Тесты:
-Unit-тесты лежат в папке ```tests/unit``` и не требуют внешних сервисов.
+Unit-тесты лежат в папке ```tests/unit```, подключены в GitHub Actions и не требуют внешних сервисов.
 
 1. Запустить только unit-тесты:
 ```bash
 pytest tests/unit
 ```
-
-### Pre-commit:
-Pre-commit запускается только локально при коммите после установки git hook.
-
-1. Установить pre-commit, если он еще не установлен:
-```bash
-poetry add --group dev pre-commit
-```
-
-2. Установить git hook:
-```bash
-poetry run pre-commit install
-```
-
-3. Проверить весь проект вручную:
-```bash
-poetry run pre-commit run --all-files
-```
-
-Если pre-commit автоматически исправил файлы, нужно добавить эти изменения в git и повторить commit.
