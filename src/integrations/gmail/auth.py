@@ -15,7 +15,7 @@ GMAIL_SCOPES = ("https://www.googleapis.com/auth/gmail.readonly",)
 
 def get_gmail_service() -> Any:
     token_path = EnvVar.get_env_path("GMAIL_TOKEN_PATH")
-    credentials = EnvVar.load_credentials(token_path)
+    credentials = EnvVar.load_credentials(token_path, GMAIL_SCOPES)
 
     if credentials and credentials.valid:
         LOGGER.info("Loaded valid Gmail OAuth token from %s", token_path)

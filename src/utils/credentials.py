@@ -1,11 +1,10 @@
 import logging
 import os
+from collections.abc import Sequence
 from pathlib import Path
 
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
-
-from src.integrations.gmail.auth import GMAIL_SCOPES
 
 LOGGER = logging.getLogger(__name__)
 
@@ -40,13 +39,13 @@ class EnvVar:
         return path
 
     @classmethod
-    def load_credentials(cls, token_path: Path) -> Credentials | None:
+    def load_credentials(cls, token_path: Path, scopes: Sequence[str] | None = None) -> Credentials | None:
         if not token_path.exists():
             LOGGER.info("Gmail OAuth token not found at %s", token_path)
             return None
 
         try:
-            return Credentials.from_authorized_user_file(str(token_path), GMAIL_SCOPES)
+            return Credentials.from_authorized_user_file(str(token_path), scopes)
         except ValueError as error:
             LOGGER.warning(
                 "Ignoring invalid Gmail OAuth token at %s: %s",
