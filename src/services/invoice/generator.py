@@ -27,6 +27,7 @@ def generate_invoice(
     data: dict[str, str],
     invoice_details,
 ) -> None:
+    LOGGER.info("Rendering invoice from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
@@ -57,6 +58,7 @@ def render_docx_template(
     data: dict[str, str],
     invoice_details,
 ) -> None:
+    LOGGER.info("Rendering invoice DOCX: %s", output_path)
     replacements = build_replacements(
         data=data,
         invoice_details=invoice_details,
@@ -113,6 +115,7 @@ def render_invoice_pdf_with_pages(
     if output_path.exists():
         output_path.unlink()
 
+    LOGGER.info("Exporting invoice PDF with Pages: %s", output_path)
     subprocess.run(
         ["open", "-a", "Pages", str(rendered_docx_path)],
         check=True,
@@ -173,6 +176,7 @@ def render_invoice_pdf_fallback(
     output_path: Path,
     data: dict[str, str],
 ) -> None:
+    LOGGER.info("Rendering fallback invoice PDF: %s", output_path)
     pdf = canvas.Canvas(str(output_path), pagesize=A4)
 
     _, height = A4

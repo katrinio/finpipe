@@ -6,6 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.constants import Bank, Format
+from src.logging_config import configure_logging
 from src.services.bank.extract import extract_amount
 from src.services.bank.fill import fill_bank_pdf
 from src.services.invoice.context import build_invoice_period
@@ -28,10 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(levelname)s:%(name)s:%(message)s",
-    )
+    configure_logging()
     load_dotenv()
 
     parser = build_parser()
@@ -48,6 +46,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 def run(bank_template: Path, signature: Path, output_dir: Path) -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    LOGGER.info("Preparing bank PDF from %s", bank_template)
     amount = extract_amount(bank_template)
     invoice_period = build_invoice_period()
     period_suffix = Utils.today()
@@ -75,6 +74,7 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
             msg = f"Bank template is not a PDF: {bank_template}"
             raise ValueError(msg)
 
+        LOGGER.info("Using bank PDF from --bank-template: %s", bank_template)
         return bank_template
 
     if not Bank.ATTACHMENTS_DIR.exists():
@@ -86,7 +86,9 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
         msg = f"No bank PDF found in {Bank.ATTACHMENTS_DIR}. Pass --bank-template."
         raise FileNotFoundError(msg)
 
-    return max(candidates, key=lambda path: path.stat().st_mtime)
+    newest_pdf = max(candidates, key=lambda path: path.stat().st_mtime)
+    LOGGER.info("Using newest bank PDF from %s: %s", Bank.ATTACHMENTS_DIR, newest_pdf)
+    return newest_pdf
 
 
 def is_pdf_file(path: Path) -> bool:

@@ -11,6 +11,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.constants import Format, Invoice
+from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generator import generate_invoice
 
@@ -34,10 +35,7 @@ INVOICE_TEMPLATE_DETAILS = InvoiceTemplateDetails(
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(levelname)s:%(name)s:%(message)s",
-    )
+    configure_logging()
     load_dotenv()
 
     parser = build_parser()
@@ -56,6 +54,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     data = invoice_period.as_template_data() | {"amount": amount}
 
+    LOGGER.info(
+        "Generating invoice %s for period %s - %s",
+        invoice_period.invoice_number,
+        invoice_period.period_from,
+        invoice_period.period_to,
+    )
     generate_invoice(
         template_path=args.template,
         output_pdf_path=output_pdf_path,

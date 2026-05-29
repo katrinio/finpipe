@@ -18,6 +18,7 @@ def fill_bank_pdf(
     date: str,
     signature: Path,
 ) -> None:
+    LOGGER.info("Filling bank PDF: input=%s output=%s", input_pdf, output_pdf)
     reader = PdfReader(str(input_pdf))
     page = reader.pages[0]
 

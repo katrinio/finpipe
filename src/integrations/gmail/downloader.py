@@ -1,7 +1,7 @@
 import base64
 import logging
-import os
 
+from src.constants import Bank
 from src.integrations.gmail import BankEmail, get_gmail_service
 from src.utils import Utils
 
@@ -9,18 +9,19 @@ LOGGER = logging.getLogger(__name__)
 
 
 def download_attachments(bank_email: BankEmail) -> None:
-    LOGGER.info("Start downloading attachment process from: %s", bank_email.message_id)
+    LOGGER.info("Downloading PDF attachments from Gmail message: %s", bank_email.message_id)
 
     service = get_gmail_service()
     user_id = "me"
     new_filename = f"bank-form-{Utils.today()}"
 
-    os.makedirs("attachments", exist_ok=True)
+    Bank.ATTACHMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
     message = service.users().messages().get(userId=user_id, id=bank_email.message_id).execute()
 
     payload = message.get("payload", {})
     parts = payload.get("parts", [])
+    saved_count = 0
 
     for part in parts:
         if part.get("filename") and part["body"].get("attachmentId"):
@@ -43,10 +44,14 @@ def download_attachments(bank_email: BankEmail) -> None:
 
                 file_data = base64.urlsafe_b64decode(attachment["data"].encode("UTF-8"))
 
-                LOGGER.info("Saving attach: %s", filename)
+                LOGGER.info("Saving Gmail PDF attachment: %s", filename)
 
-                filepath = os.path.join("attachments", new_filename)
-                with open(filepath, "wb") as f:
-                    f.write(file_data)
+                filepath = Bank.ATTACHMENTS_DIR / new_filename
+                with filepath.open("wb") as file_handle:
+                    file_handle.write(file_data)
 
-                LOGGER.info("Attach saved: %s", new_filename)
+                saved_count += 1
+                LOGGER.info("Saved Gmail PDF attachment to %s", filepath)
+
+    if saved_count == 0:
+        LOGGER.warning("No PDF attachments found in Gmail message: %s", bank_email.message_id)

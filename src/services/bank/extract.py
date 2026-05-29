@@ -9,6 +9,7 @@ AMOUNT_PATTERN = re.compile(r"Iznos\s+EUR\s+([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})
 
 
 def extract_amount(pdf_path: Path) -> float:
+    LOGGER.info("Extracting amount from bank PDF: %s", pdf_path)
     text = extract_text(pdf_path)
     match = AMOUNT_PATTERN.search(text)
     if match is None:

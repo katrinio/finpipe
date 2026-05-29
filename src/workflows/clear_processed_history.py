@@ -3,20 +3,22 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 
+from src.logging_config import configure_logging
 from src.storage.processed_messages import clear_processed_history
 
 LOGGER = logging.getLogger(__name__)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(levelname)s:%(name)s:%(message)s",
-    )
+    configure_logging()
 
-    clear_processed_history()
+    try:
+        clear_processed_history()
+    except Exception:
+        LOGGER.exception("Failed to clear processed bank email history")
+        return 1
 
-    LOGGER.info("Processed History cleared")
+    LOGGER.info("Cleared processed bank email history")
     return 0
 
 
