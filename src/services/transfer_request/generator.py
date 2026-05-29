@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from src.constants import Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
 from src.services.document.docx_to_pdf_converter import PdfConverter
-from src.workflows.generate_transfer_request import TransferRequestTemplateDetails
+
+if TYPE_CHECKING:
+    from src.workflows.generate_transfer_request import TransferRequestTemplateDetails
 
 LOGGER = logging.getLogger(__name__)
 

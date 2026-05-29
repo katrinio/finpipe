@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from src.constants import Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
 from src.services.document.docx_to_pdf_converter import PdfConverter
-from src.workflows.generate_invoice import InvoiceTemplateDetails
+
+if TYPE_CHECKING:
+    from src.workflows.generate_invoice import InvoiceTemplateDetails
 
 LOGGER = logging.getLogger(__name__)
 
@@ -52,3 +57,7 @@ def build_replacements(data: dict[str, str], invoice_details) -> dict[str, str]:
             replacements[placeholder] = value
 
     return replacements
+
+
+def build_osascript_command(script_lines: list[str]) -> list[str]:
+    return PdfConverter.build_osascript_command(script_lines)
