@@ -1,10 +1,7 @@
-# finpipe
-Pet project for accounting workflow automation.
+# FINPIPE 🚧 In progress! 🚧
+Automates invoice generation and accounting workflows based on bank emails.
 
-# Настройка локального окружения
-
-### Репозиторий (или просто создать Project From Version Control):
-1. Выполнить команду ```git init``` - создает новый репозиторий Git или преобразует существующий каталог в репозиторий Git
+## Настройка локального окружения
 
 ### Виртуальное окружение:
 1. Выполнить команду ```python -m venv .venv``` - создание виртуального окружения
@@ -14,17 +11,18 @@ Pet project for accounting workflow automation.
 1. Выполнить команду ```pip install poetry==2.2.1``` - установка пакета poetry, который управляет зависимостями
 2. Выполнить команды для установки зависимостей ```poetry install --no-interaction --no-ansi --no-cache```
 
+### Pre-commit:
+
+1. Установить pre-commit, если он еще не установлен ```poetry add --group dev pre-commit```
+2. Установить git hook ```poetry run pre-commit install```
+
 ### Генерация инвойса:
 1. Выполнить команду:
 ```bash
 poetry run generate-invoice --amount 1000
 ```
 
-2. Готовые файлы сохраняются в папку ```output/invoices```:
-```text
-output/invoices/invoice-YYYY-MM.docx
-output/invoices/invoice-YYYY-MM.pdf
-```
+2. Готовые файлы сохраняются в папку ```output/invoice```:
 
 ### Обработка банковского письма:
 1. Заполнить в ```.env``` переменные ```GMAIL_CREDENTIALS_PATH```, ```GMAIL_TOKEN_PATH```, ```BANK_EMAIL_SUBJECT``` и ```BANK_EMAIL_FROM```.
