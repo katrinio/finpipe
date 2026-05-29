@@ -1,9 +1,10 @@
 import logging
 from pathlib import Path
-from zipfile import ZIP_DEFLATED, ZipFile
 
 from src.constants import Format
+from src.services.document.docx_template_renderer import DocxTemplateRenderer
 from src.services.document.docx_to_pdf_converter import PdfConverter
+from src.workflows.generate_invoice import InvoiceTemplateDetails
 
 LOGGER = logging.getLogger(__name__)
 
@@ -12,18 +13,18 @@ def generate_invoice(
     template_path: Path,
     output_pdf_path: Path,
     data: dict[str, str],
-    invoice_details,
+    invoice_details: InvoiceTemplateDetails,
 ) -> None:
     LOGGER.info("Rendering invoice from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
-
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
-    render_docx_template(
+    replacements = build_replacements(data=data, invoice_details=invoice_details)
+
+    DocxTemplateRenderer.render(
         template_path=template_path,
         output_path=rendered_docx_path,
-        data=data,
-        invoice_details=invoice_details,
+        replacements=replacements,
     )
 
     PdfConverter.render_invoice_pdf(
@@ -39,40 +40,7 @@ def generate_invoice(
     )
 
 
-def render_docx_template(
-    template_path: Path,
-    output_path: Path,
-    data: dict[str, str],
-    invoice_details,
-) -> None:
-    LOGGER.info("Rendering invoice DOCX: %s", output_path)
-    replacements = build_replacements(
-        data=data,
-        invoice_details=invoice_details,
-    )
-
-    with (
-        ZipFile(template_path, "r") as source,
-        ZipFile(output_path, "w", compression=ZIP_DEFLATED) as target,
-    ):
-        for name in source.namelist():
-            content = source.read(name)
-
-            if name.endswith(".xml"):
-                text = content.decode("utf-8")
-
-                for placeholder, value in replacements.items():
-                    text = text.replace(placeholder, value)
-
-                content = text.encode("utf-8")
-
-            target.writestr(name, content)
-
-
-def build_replacements(
-    data: dict[str, str],
-    invoice_details,
-) -> dict[str, str]:
+def build_replacements(data: dict[str, str], invoice_details) -> dict[str, str]:
     replacements: dict[str, str] = {}
 
     for field_name, placeholder_names in invoice_details.placeholder_aliases.items():
