@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from src.constants import Format, TransferRequest
 from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
-from src.services.invoice.generator import generate_invoice
+from src.services.transfer_request.generator import generate_transfer_request
 
 LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_period.period_from,
         invoice_period.period_to,
     )
-    generate_invoice(
+    generate_transfer_request(
         template_path=args.template,
         output_pdf_path=output_pdf_path,
         data=data,
