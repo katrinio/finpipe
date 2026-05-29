@@ -10,13 +10,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from services.constants import InvoiceConstants
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generator import generate_invoice
 
 LOGGER = logging.getLogger(__name__)
-
-DEFAULT_TEMPLATE_PATH = Path("templates/invoice_template.docx")
-DEFAULT_OUTPUT_DIR = Path("output/invoices")
 
 
 @dataclass(frozen=True)
@@ -87,14 +85,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--template",
         type=Path,
-        default=DEFAULT_TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {DEFAULT_TEMPLATE_PATH}.",
+        default=InvoiceConstants.DEFAULT_TEMPLATE_PATH,
+        help=f"Path to invoice DOCX template. Defaults to {InvoiceConstants.DEFAULT_TEMPLATE_PATH}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=DEFAULT_OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {DEFAULT_OUTPUT_DIR}.",
+        default=InvoiceConstants.DEFAULT_OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {InvoiceConstants.DEFAULT_OUTPUT_DIR}.",
     )
     return parser
 
