@@ -34,6 +34,14 @@ output/invoices/invoice-YYYY-MM.pdf
 poetry run process_bank_email
 ```
 
+### Тесты:
+Unit-тесты лежат в папке ```tests/unit``` и не требуют внешних сервисов.
+
+1. Запустить только unit-тесты:
+```bash
+pytest tests/unit
+```
+
 ### Pre-commit:
 Pre-commit запускается только локально при коммите после установки git hook.
 
