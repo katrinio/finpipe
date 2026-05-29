@@ -3,7 +3,7 @@ name: Unit Tests
 on: [push]
 
 jobs:
-  ruff:
+  units:
     runs-on: ubuntu-latest
 
     steps:
