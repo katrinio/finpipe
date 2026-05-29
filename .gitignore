@@ -209,6 +209,7 @@ __marimo__/
 *.iml
 
 # Sensitive
+attachments/
 templates/
 credentials.json
 token.json

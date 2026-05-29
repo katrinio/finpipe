@@ -3,9 +3,7 @@ import json
 from src.storage import processed_messages
 
 
-def test_load_processed_messages_returns_empty_set_when_file_missing(
-    tmp_path, monkeypatch
-) -> None:
+def test_load_processed_messages_returns_empty_set_when_file_missing(tmp_path, monkeypatch) -> None:
     storage_file = tmp_path / "processed_messages.json"
 
     monkeypatch.setattr(
@@ -60,3 +58,23 @@ def test_is_processed_returns_true_for_saved_message(tmp_path, monkeypatch) -> N
 
     assert processed_messages.is_processed("message-123") is True
     assert processed_messages.is_processed("message-999") is False
+
+
+def test_is_processed_list_clean(tmp_path, monkeypatch) -> None:
+    storage_file = tmp_path / "processed_messages.json"
+
+    monkeypatch.setattr(
+        processed_messages,
+        "FILE_PATH",
+        storage_file,
+    )
+
+    processed_messages.mark_as_processed("message-123")
+    assert storage_file.exists()
+
+    processed_messages.clear_processed_history()
+
+    with open(storage_file, encoding="utf-8") as file:
+        data = json.load(file)
+
+    assert data == {"processed_messages": []}

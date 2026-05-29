@@ -10,13 +10,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from src.constants import Format, Invoice
+from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generator import generate_invoice
 
 LOGGER = logging.getLogger(__name__)
-
-DEFAULT_TEMPLATE_PATH = Path("templates/invoice_template.docx")
-DEFAULT_OUTPUT_DIR = Path("output/invoices")
 
 
 @dataclass(frozen=True)
@@ -26,7 +25,7 @@ class InvoiceTemplateDetails:
 
 INVOICE_TEMPLATE_DETAILS = InvoiceTemplateDetails(
     placeholder_aliases={
-        "invoice_number": ("invoiceId", "{{invoiceId)", "{{invoiceId}}"),
+        "invoice_number": ("invoiceId",),
         "date": ("invoiceDate",),
         "period_from": ("dateFrom",),
         "period_to": ("dateTo",),
@@ -36,10 +35,7 @@ INVOICE_TEMPLATE_DETAILS = InvoiceTemplateDetails(
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(levelname)s:%(name)s:%(message)s",
-    )
+    configure_logging()
     load_dotenv()
 
     parser = build_parser()
@@ -54,10 +50,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
-    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.pdf"
+    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
     data = invoice_period.as_template_data() | {"amount": amount}
 
+    LOGGER.info(
+        "Generating invoice %s for period %s - %s",
+        invoice_period.invoice_number,
+        invoice_period.period_from,
+        invoice_period.period_to,
+    )
     generate_invoice(
         template_path=args.template,
         output_pdf_path=output_pdf_path,
@@ -87,14 +89,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--template",
         type=Path,
-        default=DEFAULT_TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {DEFAULT_TEMPLATE_PATH}.",
+        default=Invoice.TEMPLATE_PATH,
+        help=f"Path to invoice DOCX template. Defaults to {Invoice.TEMPLATE_PATH}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=DEFAULT_OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {DEFAULT_OUTPUT_DIR}.",
+        default=Invoice.OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {Invoice.OUTPUT_DIR}.",
     )
     return parser
 

@@ -16,23 +16,25 @@ METADATA_HEADERS = ("Subject", "From", "Date")
 def find_bank_email(service: Any) -> BankEmail | None:
     LOGGER.info("Searching Gmail for bank email from the last %s", LOOKBACK_WINDOW)
 
-    response = (
-        service.users()
-        .messages()
-        .list(userId=USER_ID, q=build_bank_email_query(), maxResults=10)
-        .execute()
-    )
+    response = service.users().messages().list(userId=USER_ID, q=build_bank_email_query(), maxResults=10).execute()
     messages = response.get("messages", [])
     if not messages:
         LOGGER.info("No Gmail messages matched the configured bank email subject")
         return None
 
+    LOGGER.info("Found %s matching Gmail messages", len(messages))
     newest_message = max(
         (fetch_message_metadata(service, message["id"]) for message in messages),
         key=lambda message: int(message.get("internalDate", "0")),
     )
 
-    return build_bank_email_result(newest_message)
+    bank_email = build_bank_email_result(newest_message)
+    LOGGER.info(
+        "Selected newest bank email: message_id=%s date=%s",
+        bank_email.message_id,
+        bank_email.date,
+    )
+    return bank_email
 
 
 def build_bank_email_query() -> str:
@@ -50,12 +52,7 @@ def build_bank_email_query() -> str:
 
     subject = subject.replace('"', r"\"")
     from_user = from_user.replace('"', r"\"")
-    return (
-        f'subject:"{subject}" '
-        f'from:"{from_user}" '
-        f"newer_than:{LOOKBACK_WINDOW} "
-        f"has:attachment"
-    )
+    return f'subject:"{subject}" from:"{from_user}" newer_than:{LOOKBACK_WINDOW} has:attachment'
 
 
 def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:
@@ -84,8 +81,4 @@ def build_bank_email_result(message: dict[str, Any]) -> BankEmail:
 
 
 def extract_headers(message: dict[str, Any]) -> dict[str, str]:
-    return {
-        header.get("name", "").lower(): header.get("value", "")
-        for header in message.get("payload", {}).get("headers", [])
-        if header.get("name")
-    }
+    return {header.get("name", "").lower(): header.get("value", "") for header in message.get("payload", {}).get("headers", []) if header.get("name")}

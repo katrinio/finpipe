@@ -6,6 +6,8 @@ from zipfile import ZIP_DEFLATED, ZipFile
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
+from src.constants import Format
+
 LOGGER = logging.getLogger(__name__)
 
 PAGES_APP_PATH = Path("/Applications/Pages.app")
@@ -25,9 +27,10 @@ def generate_invoice(
     data: dict[str, str],
     invoice_details,
 ) -> None:
+    LOGGER.info("Rendering invoice from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
-    rendered_docx_path = output_pdf_path.with_suffix(".docx")
+    rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
     render_docx_template(
         template_path=template_path,
@@ -55,6 +58,7 @@ def render_docx_template(
     data: dict[str, str],
     invoice_details,
 ) -> None:
+    LOGGER.info("Rendering invoice DOCX: %s", output_path)
     replacements = build_replacements(
         data=data,
         invoice_details=invoice_details,
@@ -111,6 +115,7 @@ def render_invoice_pdf_with_pages(
     if output_path.exists():
         output_path.unlink()
 
+    LOGGER.info("Exporting invoice PDF with Pages: %s", output_path)
     subprocess.run(
         ["open", "-a", "Pages", str(rendered_docx_path)],
         check=True,
@@ -171,6 +176,7 @@ def render_invoice_pdf_fallback(
     output_path: Path,
     data: dict[str, str],
 ) -> None:
+    LOGGER.info("Rendering fallback invoice PDF: %s", output_path)
     pdf = canvas.Canvas(str(output_path), pagesize=A4)
 
     _, height = A4
@@ -215,11 +221,7 @@ def build_replacements(
         value = str(data[field_name])
 
         for placeholder_name in placeholder_names:
-            placeholder = (
-                placeholder_name
-                if placeholder_name.startswith("{{")
-                else f"{{{{{placeholder_name}}}}}"
-            )
+            placeholder = placeholder_name if placeholder_name.startswith("{{") else f"{{{{{placeholder_name}}}}}"
 
             replacements[placeholder] = value
 

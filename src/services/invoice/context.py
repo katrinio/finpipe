@@ -1,6 +1,8 @@
 from calendar import monthrange
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import date
+
+from src.utils import Utils
 
 
 @dataclass(frozen=True)
@@ -20,7 +22,7 @@ class InvoicePeriod:
 
 
 def build_invoice_period(today: date | None = None) -> InvoicePeriod:
-    current_day = today or datetime.now(UTC).date()
+    current_day = today or Utils.today()
 
     period_from = current_day.replace(day=1)
 

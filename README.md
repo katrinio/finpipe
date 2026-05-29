@@ -31,3 +31,21 @@ poetry run generate-invoice --amount 1000
 ```bash
 poetry run process_bank_email
 ```
+
+### Подготовка банковского PDF:
+1. Банковский PDF находится в папке ```attachments```.
+
+2. Выполнить команду:
+```bash
+poetry run prepare_bank_pdf
+```
+
+Команда берет самый новый PDF из ```attachments```, извлекает сумму и сохраняет заполненный файл в ```output/bank```.
+
+### Тесты:
+Unit-тесты лежат в папке ```tests/unit```, подключены в GitHub Actions и не требуют внешних сервисов.
+
+1. Запустить только unit-тесты:
+```bash
+pytest tests/unit
+```
