@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from services.constants import InvoiceConstants
+from services.constants import Invoice
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generator import generate_invoice
 
@@ -24,7 +24,7 @@ class InvoiceTemplateDetails:
 
 INVOICE_TEMPLATE_DETAILS = InvoiceTemplateDetails(
     placeholder_aliases={
-        "invoice_number": ("invoiceId", "{{invoiceId)", "{{invoiceId}}"),
+        "invoice_number": ("invoiceId",),
         "date": ("invoiceDate",),
         "period_from": ("dateFrom",),
         "period_to": ("dateTo",),
@@ -85,14 +85,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--template",
         type=Path,
-        default=InvoiceConstants.DEFAULT_TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {InvoiceConstants.DEFAULT_TEMPLATE_PATH}.",
+        default=Invoice.TEMPLATE_PATH,
+        help=f"Path to invoice DOCX template. Defaults to {Invoice.TEMPLATE_PATH}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=InvoiceConstants.DEFAULT_OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {InvoiceConstants.DEFAULT_OUTPUT_DIR}.",
+        default=Invoice.OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {Invoice.OUTPUT_DIR}.",
     )
     return parser
 
