@@ -1,6 +1,6 @@
 """Storage helper modules."""
 
-from .processed import (
+from .processed_messages import (
     is_processed,
     load_processed_messages,
     mark_as_processed,
