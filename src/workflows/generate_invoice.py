@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import logging
 from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -11,25 +10,10 @@ from src.constants import Format, Invoice
 from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.invoice.invoice_generator import generate_invoice
+from src.services.invoice.invoice_models import INVOICE_TEMPLATE_DETAILS
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class InvoiceTemplateDetails:
-    placeholder_aliases: dict[str, tuple[str, ...]]
-
-
-INVOICE_TEMPLATE_DETAILS = InvoiceTemplateDetails(
-    placeholder_aliases={
-        "invoice_number": ("invoiceId",),
-        "date": ("invoiceDate",),
-        "period_from": ("dateFrom",),
-        "period_to": ("dateTo",),
-        "amount": ("amount",),
-    },
-)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
