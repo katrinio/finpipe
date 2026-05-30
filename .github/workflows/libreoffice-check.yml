@@ -1,0 +1,39 @@
+name: LibreOffice Check
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  libreoffice:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LibreOffice
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice
+
+      - name: Verify installation
+        run: |
+          which soffice
+          soffice --version
+
+      - name: Create test document
+        run: |
+          echo "LibreOffice test" > test_convert_to_pdf.docx
+
+      - name: Convert document to PDF
+        run: |
+          soffice \
+            --headless \
+            --convert-to pdf \
+            tests_resources/test_convert_to_pdf.docx \
+            --outdir .
+
+      - name: Verify PDF created
+        run: |
+          ls -la
+          test -f test_convert_to_pdf.pdf
