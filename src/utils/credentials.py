@@ -27,6 +27,10 @@ class EnvVar:
         return value
 
     @classmethod
+    def get_optional_env(cls, name: str, default: str) -> str:
+        return os.getenv(name) or default
+
+    @classmethod
     def get_env_path(cls, name: str) -> Path:
         value = EnvVar.get_required_env(name)
         if not value:

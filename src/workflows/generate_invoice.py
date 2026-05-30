@@ -14,6 +14,7 @@ from src.services.invoice.invoice_models import InvoiceData
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
+DEFAULT_SERVICE_AGREEMENT_DATE = "01.05.2025"
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -35,11 +36,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
     data = InvoiceData(
-        invoice_number=invoice_period.invoice_number,
-        date=invoice_period.invoice_date,
-        period_from=invoice_period.period_from,
-        period_to=invoice_period.period_to,
+        account_holder=EnvVar.get_required_env("ACCOUNT_HOLDER"),
+        account_holder_address=EnvVar.get_required_env("ACCOUNT_HOLDER_ADDRESS"),
+        account_bic=EnvVar.get_required_env("ACCOUNT_BIC"),
+        account_iban=EnvVar.get_required_env("ACCOUNT_IBAN"),
+        account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
         amount=amount,
+        bank_name=EnvVar.get_required_env("BANK_NAME"),
+        company_address=EnvVar.get_required_env("COMPANY_ADDRESS"),
+        company_name=EnvVar.get_required_env("COMPANY_NAME"),
+        date_from=invoice_period.period_from,
+        date_to=invoice_period.period_to,
+        invoice_date=invoice_period.invoice_date,
+        invoice_number=invoice_period.invoice_number,
+        service_agreement_date=EnvVar.get_optional_env(
+            "SERVICE_AGREEMENT_DATE",
+            DEFAULT_SERVICE_AGREEMENT_DATE,
+        ),
     )
 
     LOGGER.info(

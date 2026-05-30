@@ -25,6 +25,9 @@ class PdfConverter:
             msg = "Pages.app not found"
             raise FileNotFoundError(msg)
 
+        rendered_docx_path = rendered_docx_path.resolve()
+        output_path = output_path.resolve()
+
         if output_path.exists():
             output_path.unlink()
 
@@ -81,10 +84,19 @@ class PdfConverter:
         pdf.setFont("Helvetica", 12)
 
         lines = [
+            f"From: {data['account_holder']}",
+            f"From address: {data['account_holder_address']}",
+            f"To: {data['company_name']}",
+            f"To address: {data['company_address']}",
             f"Invoice number: {data['invoice_number']}",
-            f"Date: {data['date']}",
-            f"Period: {data['period_from']} - {data['period_to']}",
+            f"Invoice date: {data['invoice_date']}",
+            f"Period: {data['date_from']} - {data['date_to']}",
+            f"Service agreement date: {data['service_agreement_date']}",
             f"Amount: EUR {data['amount']}",
+            f"Bank name: {data['bank_name']}",
+            f"Account number: {data['account_number']}",
+            f"SWIFT/BIC: {data['account_bic']}",
+            f"IBAN: {data['account_iban']}",
         ]
 
         y_position = height - cls.FALLBACK_BODY_START_Y
@@ -93,13 +105,6 @@ class PdfConverter:
             pdf.drawString(40, y_position, line)
             y_position -= cls.FALLBACK_LINE_STEP
 
-        pdf.setFont("Helvetica", 10)
-
-        pdf.drawString(
-            40,
-            y_position - 20,
-            "Generated automatically from invoice template.",
-        )
         pdf.save()
 
     @classmethod
