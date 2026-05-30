@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
-from src.services.invoice.invoice_generator import build_osascript_command, build_replacements
+from src.services.document.replacement import Replacement
+from src.services.invoice.invoice_generator import build_osascript_command
 
 
 def test_build_replacements_wraps_plain_placeholder_names() -> None:
@@ -15,7 +16,7 @@ def test_build_replacements_wraps_plain_placeholder_names() -> None:
         "date": "29.05.2026",
     }
 
-    replacements = build_replacements(data, invoice_details)
+    replacements = Replacement.build_replacements(data, details=invoice_details)
 
     assert replacements == {
         "{{invoiceId}}": "2026-05",
