@@ -27,7 +27,7 @@ def test_resolve_bank_template_picks_newest_pdf_from_attachments(
     os.utime(old_pdf, (1, 1))
     os.utime(new_pdf, (2, 2))
 
-    monkeypatch.setattr(prepare_bank_pdf.Bank, "ATTACHMENTS_DIR", tmp_path)
+    monkeypatch.setattr(prepare_bank_pdf.Dir, "ATTACHMENTS", tmp_path)
 
     assert prepare_bank_pdf.resolve_bank_template(None) == new_pdf
 

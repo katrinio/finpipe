@@ -7,25 +7,20 @@ class Format:
     PNG = "png"
 
 
-class Common:
+class Dir:
     TEMPLATE_PATH = Path("templates")
     OUTPUT_DIR = Path("output")
+    # invoice
+    INVOICE_TEMPLATE = TEMPLATE_PATH / f"invoice_template.{Format.DOCX}"
+    INVOICE_OUTPUT_DIR = OUTPUT_DIR / "invoices"
+    # bank
+    BANK_OUTPUT_DIR = OUTPUT_DIR / "bank"
 
+    ATTACHMENTS = Path("attachments")
+    SIGNATURE_PATH = TEMPLATE_PATH / f"signature.{Format.PNG}"
 
-class Invoice:
-    TEMPLATE_PATH = Common.TEMPLATE_PATH / f"invoice_template.{Format.DOCX}"
-    OUTPUT_DIR = Common.OUTPUT_DIR / "invoices"
-
-
-class Bank:
-    ATTACHMENTS_DIR = Path("attachments")
-    SIGNATURE_PATH = Common.TEMPLATE_PATH / f"signature.{Format.PNG}"
-    OUTPUT_DIR = Path("output/bank")
-
-
-class TransferRequest:
-    TEMPLATE_PATH = Common.TEMPLATE_PATH / f"transfer_request_template.{Format.DOCX}"
-    OUTPUT_DIR = Path("output/transfer_request")
+    TRANSFER_REQUEST_TEMPLATE = TEMPLATE_PATH / f"transfer_request_template.{Format.DOCX}"
+    TRANSFER_REQUEST_OUTPUT_DIR = OUTPUT_DIR / "transfer_request"
 
 
 class TestData:

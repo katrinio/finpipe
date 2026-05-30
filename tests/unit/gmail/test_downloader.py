@@ -76,7 +76,7 @@ def test_download_attachments_saves_pdf_attachment(tmp_path, monkeypatch) -> Non
     service = FakeGmailService(message_response, attachment_response)
 
     monkeypatch.setattr(downloader, "get_gmail_service", lambda: service)
-    monkeypatch.setattr(downloader.Bank, "ATTACHMENTS_DIR", tmp_path)
+    monkeypatch.setattr(downloader.Dir, "ATTACHMENTS", tmp_path)
     monkeypatch.setattr(downloader.Utils, "today", lambda: "2026-05-29")
 
     downloader.download_attachments(build_bank_email())

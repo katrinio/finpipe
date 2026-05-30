@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 
-from src.constants import Format, TransferRequest
+from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.transfer_request.transfer_request_generator import generate_transfer_request
@@ -77,14 +77,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--template",
         type=Path,
-        default=TransferRequest.TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {TransferRequest.TEMPLATE_PATH}.",
+        default=Dir.TRANSFER_REQUEST_TEMPLATE,
+        help=f"Path to invoice DOCX template. Defaults to {Dir.TRANSFER_REQUEST_TEMPLATE}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=TransferRequest.OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {TransferRequest.OUTPUT_DIR}.",
+        default=Dir.TRANSFER_REQUEST_OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {Dir.TRANSFER_REQUEST_OUTPUT_DIR}.",
     )
     return parser
 

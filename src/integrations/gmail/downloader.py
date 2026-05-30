@@ -1,7 +1,7 @@
 import base64
 import logging
 
-from src.constants import Bank
+from src.constants import Dir
 from src.integrations.gmail import BankEmail, get_gmail_service
 from src.utils import Utils
 
@@ -15,7 +15,7 @@ def download_attachments(bank_email: BankEmail) -> None:
     user_id = "me"
     new_filename = f"bank-form-{Utils.today()}"
 
-    Bank.ATTACHMENTS_DIR.mkdir(parents=True, exist_ok=True)
+    Dir.ATTACHMENTS.mkdir(parents=True, exist_ok=True)
 
     message = service.users().messages().get(userId=user_id, id=bank_email.message_id).execute()
 
@@ -46,7 +46,7 @@ def download_attachments(bank_email: BankEmail) -> None:
 
                 LOGGER.info("Saving Gmail PDF attachment: %s", filename)
 
-                filepath = Bank.ATTACHMENTS_DIR / new_filename
+                filepath = Dir.ATTACHMENTS / new_filename
                 with filepath.open("wb") as file_handle:
                     file_handle.write(file_data)
 
