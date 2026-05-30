@@ -1,5 +1,6 @@
 import datetime
 
+import arrow
 from faker import Faker
 
 fake = Faker()
@@ -27,3 +28,11 @@ class Utils:
     @staticmethod
     def generate_random_sentence() -> str:
         return fake.sentence()
+
+    @staticmethod
+    def generate_iban():
+        return fake.iban()
+
+    @classmethod
+    def now(cls) -> arrow.Arrow:
+        return arrow.now()
