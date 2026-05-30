@@ -16,7 +16,7 @@ def test_build_bank_form_data_reads_required_env(monkeypatch) -> None:
     monkeypatch.setenv("PAYMENT_NUMBER", payment_number)
     monkeypatch.setenv("PAYMENT_CODE", payment_code)
     monkeypatch.setenv("PAYMENT_DESCRIPTION", payment_description)
-    monkeypatch.setenv("RECIPIENT", recipient)
+    monkeypatch.setenv("ACCOUNT_HOLDER", recipient)
     monkeypatch.setenv("REGISTRATION_NUMBER", registration_number)
     monkeypatch.setenv("ACCOUNT_NUMBER", account_number)
     monkeypatch.setenv("CITY", city)
