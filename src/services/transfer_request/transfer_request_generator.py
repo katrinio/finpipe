@@ -6,9 +6,10 @@ from pathlib import Path
 
 from src.constants import Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
-from src.services.document.docx_to_pdf_converter import PdfConverter
+from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
 from src.services.document.replacement import Replacement
 from src.services.transfer_request.transfer_request_models import TransferRequestData
+from src.services.transfer_request.transfer_request_pdf_renderer import TransferRequestFallbackPdfRenderer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ def generate_transfer_request(
         replacements=replacements,
     )
 
-    PdfConverter.render_transfer_pdf(
+    render_pdf(
         rendered_docx_path=rendered_docx_path,
         output_path=output_pdf_path,
         data=pdf_data,
@@ -43,3 +44,17 @@ def generate_transfer_request(
         rendered_docx_path,
         output_pdf_path,
     )
+
+
+def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
+    try:
+        DocxToPdfConverter.convert(
+            rendered_docx_path=rendered_docx_path,
+            output_path=output_path,
+        )
+    except Exception as error:
+        LOGGER.warning(
+            "Pages transfer request PDF conversion failed, using fallback renderer: %s",
+            error,
+        )
+        TransferRequestFallbackPdfRenderer.render(output_path, data)

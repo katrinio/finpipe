@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 from src.services.document.replacement import Replacement
-from src.services.invoice.invoice_generator import build_osascript_command
 
 
 def test_build_replacements_uses_mapping_field_names() -> None:
@@ -35,23 +34,3 @@ def test_build_replacements_uses_dataclass_field_names() -> None:
         "{{account_number}}": "190-128270-73",
         "{{city}}": "Beograd",
     }
-
-
-def test_build_osascript_command_flattens_script_lines() -> None:
-    command = build_osascript_command(
-        [
-            'tell application "Pages"',
-            "activate",
-            "end tell",
-        ]
-    )
-
-    assert command == [
-        "osascript",
-        "-e",
-        'tell application "Pages"',
-        "-e",
-        "activate",
-        "-e",
-        "end tell",
-    ]

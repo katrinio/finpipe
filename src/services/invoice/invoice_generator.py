@@ -6,9 +6,10 @@ from pathlib import Path
 
 from src.constants import Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
-from src.services.document.docx_to_pdf_converter import PdfConverter
+from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
 from src.services.document.replacement import Replacement
 from src.services.invoice.invoice_models import InvoiceData
+from src.services.invoice.invoice_pdf_renderer import InvoiceFallbackPdfRenderer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ def generate_invoice(
         replacements=replacements,
     )
 
-    PdfConverter.render_invoice_pdf(
+    render_pdf(
         rendered_docx_path=rendered_docx_path,
         output_path=output_pdf_path,
         data=pdf_data,
@@ -45,5 +46,15 @@ def generate_invoice(
     )
 
 
-def build_osascript_command(script_lines: list[str]) -> list[str]:
-    return PdfConverter.build_osascript_command(script_lines)
+def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
+    try:
+        DocxToPdfConverter.convert(
+            rendered_docx_path=rendered_docx_path,
+            output_path=output_path,
+        )
+    except Exception as error:
+        LOGGER.warning(
+            "Pages invoice PDF conversion failed, using fallback renderer: %s",
+            error,
+        )
+        InvoiceFallbackPdfRenderer.render(output_path, data)
