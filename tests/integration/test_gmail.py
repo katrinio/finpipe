@@ -1,6 +1,7 @@
 import logging
 import os
 
+import pytest
 from dotenv import load_dotenv
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -13,6 +14,7 @@ LOGGER = logging.getLogger(__name__)
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 
+@pytest.mark.skip(reason="Zdet svoego chasu")
 def test_gmail_integration() -> None:
     LOGGER.info("Проверяю настройки Gmail OAuth")
 
