@@ -10,7 +10,7 @@ from src.constants import Format, Invoice
 from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.invoice.invoice_generator import generate_invoice
-from src.services.invoice.invoice_models import INVOICE_TEMPLATE_DETAILS
+from src.services.invoice.invoice_models import InvoiceData
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -34,7 +34,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     invoice_period = build_invoice_period(args.invoice_date)
     output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
-    data = invoice_period.as_template_data() | {"amount": amount}
+    data = InvoiceData(
+        invoice_number=invoice_period.invoice_number,
+        date=invoice_period.invoice_date,
+        period_from=invoice_period.period_from,
+        period_to=invoice_period.period_to,
+        amount=amount,
+    )
 
     LOGGER.info(
         "Generating invoice %s for period %s - %s",
@@ -46,7 +52,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         template_path=args.template,
         output_pdf_path=output_pdf_path,
         data=data,
-        invoice_details=INVOICE_TEMPLATE_DETAILS,
     )
 
     LOGGER.info("Invoice saved to %s", output_pdf_path)

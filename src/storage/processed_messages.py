@@ -37,7 +37,7 @@ def mark_as_processed(message_id: str) -> None:
 
 
 def clear_processed_history() -> None:
-    data = {"processed_messages": []}
+    data: dict[str, list[str]] = {"processed_messages": []}
 
     with open(FILE_PATH, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)

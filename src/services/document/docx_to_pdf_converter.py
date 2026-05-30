@@ -20,7 +20,7 @@ class PdfConverter:
     FALLBACK_LINE_STEP = 24
 
     @classmethod
-    def render_invoice_pdf_with_pages(cls, rendered_docx_path: Path, output_path: Path) -> None:
+    def render_pdf_with_pages(cls, rendered_docx_path: Path, output_path: Path) -> None:
         if not cls.PAGES_APP_PATH.exists():
             msg = "Pages.app not found"
             raise FileNotFoundError(msg)
@@ -28,7 +28,7 @@ class PdfConverter:
         if output_path.exists():
             output_path.unlink()
 
-        LOGGER.info("Exporting invoice PDF with Pages: %s", output_path)
+        LOGGER.info("Exporting PDF with Pages: %s", output_path)
         subprocess.run(
             ["open", "-a", "Pages", str(rendered_docx_path)],
             check=True,
@@ -58,6 +58,13 @@ class PdfConverter:
         if output_path.stat().st_size == 0:
             msg = "Generated PDF is empty"
             raise RuntimeError(msg)
+
+    @classmethod
+    def render_invoice_pdf_with_pages(cls, rendered_docx_path: Path, output_path: Path) -> None:
+        cls.render_pdf_with_pages(
+            rendered_docx_path=rendered_docx_path,
+            output_path=output_path,
+        )
 
     @classmethod
     def render_invoice_pdf_fallback(cls, output_path: Path, data: dict[str, str]) -> None:
@@ -98,7 +105,7 @@ class PdfConverter:
     @classmethod
     def render_invoice_pdf(cls, rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
         try:
-            cls.render_invoice_pdf_with_pages(
+            cls.render_pdf_with_pages(
                 rendered_docx_path=rendered_docx_path,
                 output_path=output_path,
             )
@@ -109,6 +116,54 @@ class PdfConverter:
                 e,
             )
             cls.render_invoice_pdf_fallback(
+                output_path=output_path,
+                data=data,
+            )
+
+    @classmethod
+    def render_transfer_pdf_fallback(cls, output_path: Path, data: dict[str, str]) -> None:
+        LOGGER.info("Rendering fallback transfer request PDF: %s", output_path)
+        pdf = canvas.Canvas(str(output_path), pagesize=A4)
+
+        _, height = A4
+
+        pdf.setTitle("Transfer request")
+
+        pdf.setFont("Helvetica-Bold", 24)
+        pdf.drawString(40, height - cls.FALLBACK_TITLE_Y, "TRANSFER REQUEST")
+
+        pdf.setFont("Helvetica", 12)
+
+        lines = [
+            f"Account number: {data['account_number']}",
+            f"Date: {data['date']}",
+            f"City: {data['city']}",
+            f"Name: {data['name']}",
+            f"Amount: EUR {data['amount']}",
+        ]
+
+        y_position = height - cls.FALLBACK_BODY_START_Y
+
+        for line in lines:
+            pdf.drawString(40, y_position, line)
+            y_position -= cls.FALLBACK_LINE_STEP
+
+        pdf.save()
+
+    @classmethod
+    def render_transfer_pdf(cls, rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
+        try:
+            cls.render_pdf_with_pages(
+                rendered_docx_path=rendered_docx_path,
+                output_path=output_path,
+            )
+        except Exception as error:
+            e = error
+            LOGGER.warning(
+                "Pages export failed, using fallback transfer request PDF renderer: %s",
+                e,
+            )
+            cls.render_transfer_pdf_fallback(
                 output_path=output_path,
                 data=data,
             )

@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class EnvVar:
-    PROJECT_ROOT = Path(__file__).resolve().parents[3]
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
     ENV_PATH = PROJECT_ROOT / ".env"
 
     @classmethod

@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from src.constants import Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
 from src.services.document.docx_to_pdf_converter import PdfConverter
 from src.services.document.replacement import Replacement
-
-if TYPE_CHECKING:
-    from src.workflows.generate_transfer_request import TransferRequestTemplateDetails
+from src.services.transfer_request.transfer_request_models import TransferRequestData
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,14 +16,15 @@ LOGGER = logging.getLogger(__name__)
 def generate_transfer_request(
     template_path: Path,
     output_pdf_path: Path,
-    data: dict[str, str],
-    transfer_request_details: TransferRequestTemplateDetails,
+    data: TransferRequestData | Mapping[str, object],
 ) -> None:
     LOGGER.info("Rendering transfer request from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
-    replacements = Replacement.build_replacements(data=data, details=transfer_request_details)
+    template_data = Replacement.to_template_data(data)
+    replacements = Replacement.build_replacements(template_data)
+    pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
 
     DocxTemplateRenderer.render(
         template_path=template_path,
@@ -36,7 +35,7 @@ def generate_transfer_request(
     PdfConverter.render_transfer_pdf(
         rendered_docx_path=rendered_docx_path,
         output_path=output_pdf_path,
-        data=data,
+        data=pdf_data,
     )
 
     LOGGER.info(
