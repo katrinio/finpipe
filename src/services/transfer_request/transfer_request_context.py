@@ -12,14 +12,6 @@ class InvoicePeriod:
     period_from: str
     period_to: str
 
-    def as_template_data(self) -> dict[str, str]:
-        return {
-            "invoice_number": self.invoice_number,
-            "date": self.invoice_date,
-            "period_from": self.period_from,
-            "period_to": self.period_to,
-        }
-
 
 def build_invoice_period(today: date | None = None) -> InvoicePeriod:
     current_day = today or Utils.today()

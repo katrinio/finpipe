@@ -53,7 +53,7 @@ def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
     payment_number = get_required_env("PAYMENT_NUMBER")
     payment_code = get_required_env("PAYMENT_CODE")
     payment_description = get_required_env("PAYMENT_DESCRIPTION")
-    recipient = get_required_env("RECIPIENT")
+    recipient = get_required_env("ACCOUNT_HOLDER")
     registration_number = get_required_env("REGISTRATION_NUMBER")
     account_number = get_required_env("ACCOUNT_NUMBER")
     city = get_required_env("CITY")

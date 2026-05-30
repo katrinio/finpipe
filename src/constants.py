@@ -20,4 +20,4 @@ class Bank:
 
 class TransferRequest:
     TEMPLATE_PATH = Path(f"templates/transfer_request_template.{Format.DOCX}")
-    OUTPUT_DIR = Path("output/invoices")
+    OUTPUT_DIR = Path("output/transfer_request")

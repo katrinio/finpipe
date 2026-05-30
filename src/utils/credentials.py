@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class EnvVar:
-    PROJECT_ROOT = Path(__file__).resolve().parents[3]
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
     ENV_PATH = PROJECT_ROOT / ".env"
 
     @classmethod
@@ -25,6 +25,10 @@ class EnvVar:
             raise RuntimeError(msg)
 
         return value
+
+    @classmethod
+    def get_optional_env(cls, name: str, default: str) -> str:
+        return os.getenv(name) or default
 
     @classmethod
     def get_env_path(cls, name: str) -> Path:

@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
 
-@dataclass
-class TransferData:
+@dataclass(frozen=True)
+class TransferRequestData:
     account_number: str
-    invoice_date: str
-    amount_eur: str
-    client_name: str
+    amount: str
+    city: str
+    date: str
+    name: str

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from src.constants import Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
-from src.services.document.docx_to_pdf_converter import PdfConverter
-
-if TYPE_CHECKING:
-    from src.workflows.generate_invoice import InvoiceTemplateDetails
+from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
+from src.services.document.replacement import Replacement
+from src.services.invoice.invoice_models import InvoiceData
+from src.services.invoice.invoice_pdf_renderer import InvoiceFallbackPdfRenderer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,14 +17,15 @@ LOGGER = logging.getLogger(__name__)
 def generate_invoice(
     template_path: Path,
     output_pdf_path: Path,
-    data: dict[str, str],
-    invoice_details: InvoiceTemplateDetails,
+    data: InvoiceData | Mapping[str, object],
 ) -> None:
     LOGGER.info("Rendering invoice from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
-    replacements = build_replacements(data=data, invoice_details=invoice_details)
+    template_data = Replacement.to_template_data(data)
+    replacements = Replacement.build_replacements(template_data)
+    pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
 
     DocxTemplateRenderer.render(
         template_path=template_path,
@@ -32,10 +33,10 @@ def generate_invoice(
         replacements=replacements,
     )
 
-    PdfConverter.render_invoice_pdf(
+    render_pdf(
         rendered_docx_path=rendered_docx_path,
         output_path=output_pdf_path,
-        data=data,
+        data=pdf_data,
     )
 
     LOGGER.info(
@@ -45,19 +46,15 @@ def generate_invoice(
     )
 
 
-def build_replacements(data: dict[str, str], invoice_details) -> dict[str, str]:
-    replacements: dict[str, str] = {}
-
-    for field_name, placeholder_names in invoice_details.placeholder_aliases.items():
-        value = str(data[field_name])
-
-        for placeholder_name in placeholder_names:
-            placeholder = placeholder_name if placeholder_name.startswith("{{") else f"{{{{{placeholder_name}}}}}"
-
-            replacements[placeholder] = value
-
-    return replacements
-
-
-def build_osascript_command(script_lines: list[str]) -> list[str]:
-    return PdfConverter.build_osascript_command(script_lines)
+def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
+    try:
+        DocxToPdfConverter.convert(
+            rendered_docx_path=rendered_docx_path,
+            output_path=output_path,
+        )
+    except Exception as error:
+        LOGGER.warning(
+            "Pages invoice PDF conversion failed, using fallback renderer: %s",
+            error,
+        )
+        InvoiceFallbackPdfRenderer.render(output_path, data)

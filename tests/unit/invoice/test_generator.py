@@ -1,43 +1,36 @@
-from types import SimpleNamespace
+from dataclasses import dataclass
 
-from src.services.invoice.invoice_generator import build_osascript_command, build_replacements
+from src.services.document.replacement import Replacement
 
 
-def test_build_replacements_wraps_plain_placeholder_names() -> None:
-    invoice_details = SimpleNamespace(
-        placeholder_aliases={
-            "invoice_number": ("invoiceId", "{{invoiceId}}"),
-            "date": ("invoiceDate",),
-        }
-    )
+def test_build_replacements_uses_mapping_field_names() -> None:
     data = {
         "invoice_number": "2026-05",
-        "date": "29.05.2026",
+        "amount": 1_000,
     }
 
-    replacements = build_replacements(data, invoice_details)
+    replacements = Replacement.build_replacements(data)
 
     assert replacements == {
-        "{{invoiceId}}": "2026-05",
-        "{{invoiceDate}}": "29.05.2026",
+        "{{invoice_number}}": "2026-05",
+        "{{amount}}": "1000",
     }
 
 
-def test_build_osascript_command_flattens_script_lines() -> None:
-    command = build_osascript_command(
-        [
-            'tell application "Pages"',
-            "activate",
-            "end tell",
-        ]
+def test_build_replacements_uses_dataclass_field_names() -> None:
+    @dataclass(frozen=True)
+    class TemplateData:
+        account_number: str
+        city: str
+
+    replacements = Replacement.build_replacements(
+        TemplateData(
+            account_number="190-128270-73",
+            city="Beograd",
+        )
     )
 
-    assert command == [
-        "osascript",
-        "-e",
-        'tell application "Pages"',
-        "-e",
-        "activate",
-        "-e",
-        "end tell",
-    ]
+    assert replacements == {
+        "{{account_number}}": "190-128270-73",
+        "{{city}}": "Beograd",
+    }

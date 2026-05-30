@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import logging
 from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -11,25 +10,10 @@ from src.constants import Format, TransferRequest
 from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.transfer_request.transfer_request_generator import generate_transfer_request
+from src.services.transfer_request.transfer_request_models import TransferRequestData
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class TransferRequestTemplateDetails:
-    placeholder_aliases: dict[str, tuple[str, ...]]
-
-
-TRANSFER_REQUEST_TEMPLATE_DETAILS = TransferRequestTemplateDetails(
-    placeholder_aliases={
-        "account_number": ("accountNumber",),
-        "amount": ("amount",),
-        "city": ("city",),
-        "date": ("date",),
-        "name": ("name",),
-    },
-)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -39,6 +23,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    # TODO: брать вместо AMOUNT актуальную сумму из письма банка
     amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
     if not amount:
         parser.error("Pass --amount or set INVOICE_AMOUNT in .env")
@@ -50,7 +35,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     invoice_period = build_invoice_period(args.invoice_date)
     output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
-    data = invoice_period.as_template_data() | {"amount": amount}
+    data = TransferRequestData(
+        account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
+        amount=amount,
+        city=EnvVar.get_required_env("CITY"),
+        date=invoice_period.invoice_date,
+        name=EnvVar.get_required_env("ACCOUNT_HOLDER"),
+    )
 
     LOGGER.info(
         "Generating invoice %s for period %s - %s",
@@ -62,7 +53,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         template_path=args.template,
         output_pdf_path=output_pdf_path,
         data=data,
-        invoice_details=TRANSFER_REQUEST_TEMPLATE_DETAILS,
     )
 
     LOGGER.info("Transfer Request saved to %s", output_pdf_path)

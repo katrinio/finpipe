@@ -2,33 +2,56 @@ import logging
 import subprocess
 from pathlib import Path
 
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-
 LOGGER = logging.getLogger(__name__)
 
 
-class PdfConverter:
+class DocxToPdfConverter:
     PAGES_APP_PATH = Path("/Applications/Pages.app")
-
-    PAGES_OPEN_WAIT_ATTEMPTS = 120
-    PAGES_OPEN_WAIT_SECONDS = 0.5
     PAGES_EXPORT_TIMEOUT_SECONDS = 90
 
-    FALLBACK_TITLE_Y = 60
-    FALLBACK_BODY_START_Y = 120
-    FALLBACK_LINE_STEP = 24
+    @classmethod
+    def convert(cls, rendered_docx_path: Path, output_path: Path) -> None:
+        cls.ensure_pages_installed()
+
+        rendered_docx_path = rendered_docx_path.resolve()
+        output_path = output_path.resolve()
+
+        LOGGER.info(
+            "Starting DOCX to PDF conversion with Pages: docx=%s pdf=%s",
+            rendered_docx_path,
+            output_path,
+        )
+        cls.remove_existing_output(output_path)
+        cls.open_with_pages(rendered_docx_path)
+        cls.export_front_pages_document(rendered_docx_path, output_path)
+        cls.validate_output(output_path)
+        LOGGER.info(
+            "Finished DOCX to PDF conversion with Pages: pdf=%s size=%s",
+            output_path,
+            output_path.stat().st_size,
+        )
 
     @classmethod
-    def render_invoice_pdf_with_pages(cls, rendered_docx_path: Path, output_path: Path) -> None:
-        if not cls.PAGES_APP_PATH.exists():
-            msg = "Pages.app not found"
-            raise FileNotFoundError(msg)
+    def ensure_pages_installed(cls) -> None:
+        if cls.PAGES_APP_PATH.exists():
+            LOGGER.debug("Pages.app found at %s", cls.PAGES_APP_PATH)
+            return
 
-        if output_path.exists():
-            output_path.unlink()
+        msg = "Pages.app not found"
+        LOGGER.error("%s: %s", msg, cls.PAGES_APP_PATH)
+        raise FileNotFoundError(msg)
 
-        LOGGER.info("Exporting invoice PDF with Pages: %s", output_path)
+    @classmethod
+    def remove_existing_output(cls, output_path: Path) -> None:
+        if not output_path.exists():
+            return
+
+        LOGGER.debug("Removing existing PDF before conversion: %s", output_path)
+        output_path.unlink()
+
+    @classmethod
+    def open_with_pages(cls, rendered_docx_path: Path) -> None:
+        LOGGER.debug("Opening DOCX with Pages: %s", rendered_docx_path)
         subprocess.run(
             ["open", "-a", "Pages", str(rendered_docx_path)],
             check=True,
@@ -36,82 +59,33 @@ class PdfConverter:
             text=True,
         )
 
-        script_lines = cls.build_pages_export_script(
-            rendered_docx_path=rendered_docx_path,
-            output_path=output_path,
-        )
-
-        osascript_command = cls.build_osascript_command(script_lines)
-
+    @classmethod
+    def export_front_pages_document(cls, rendered_docx_path: Path, output_path: Path) -> None:
+        LOGGER.debug("Exporting front Pages document to PDF: %s", output_path)
         subprocess.run(
-            osascript_command,
+            cls.build_osascript_command(
+                cls.build_pages_export_script(
+                    rendered_docx_path=rendered_docx_path,
+                    output_path=output_path,
+                )
+            ),
             check=True,
             capture_output=True,
             text=True,
             timeout=cls.PAGES_EXPORT_TIMEOUT_SECONDS,
         )
 
+    @classmethod
+    def validate_output(cls, output_path: Path) -> None:
         if not output_path.exists():
             msg = "Pages did not create PDF"
+            LOGGER.error("%s: %s", msg, output_path)
             raise RuntimeError(msg)
 
         if output_path.stat().st_size == 0:
             msg = "Generated PDF is empty"
+            LOGGER.error("%s: %s", msg, output_path)
             raise RuntimeError(msg)
-
-    @classmethod
-    def render_invoice_pdf_fallback(cls, output_path: Path, data: dict[str, str]) -> None:
-        LOGGER.info("Rendering fallback invoice PDF: %s", output_path)
-        pdf = canvas.Canvas(str(output_path), pagesize=A4)
-
-        _, height = A4
-
-        pdf.setTitle(f"Invoice {data['invoice_number']}")
-
-        pdf.setFont("Helvetica-Bold", 24)
-        pdf.drawString(40, height - cls.FALLBACK_TITLE_Y, "INVOICE")
-
-        pdf.setFont("Helvetica", 12)
-
-        lines = [
-            f"Invoice number: {data['invoice_number']}",
-            f"Date: {data['date']}",
-            f"Period: {data['period_from']} - {data['period_to']}",
-            f"Amount: EUR {data['amount']}",
-        ]
-
-        y_position = height - cls.FALLBACK_BODY_START_Y
-
-        for line in lines:
-            pdf.drawString(40, y_position, line)
-            y_position -= cls.FALLBACK_LINE_STEP
-
-        pdf.setFont("Helvetica", 10)
-
-        pdf.drawString(
-            40,
-            y_position - 20,
-            "Generated automatically from invoice template.",
-        )
-        pdf.save()
-
-    @classmethod
-    def render_invoice_pdf(cls, rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
-        try:
-            cls.render_invoice_pdf_with_pages(
-                rendered_docx_path=rendered_docx_path,
-                output_path=output_path,
-            )
-        except Exception as error:
-            e = error
-            LOGGER.warning(
-                "Pages export failed, using fallback PDF renderer: %s",
-                e,
-            )
-            cls.render_invoice_pdf_fallback(
-                output_path=output_path,
-                data=data,
-            )
 
     @classmethod
     def build_pages_export_script(cls, rendered_docx_path: Path, output_path: Path) -> list[str]:

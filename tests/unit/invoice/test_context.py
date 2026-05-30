@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.services.invoice.invoice_context import InvoicePeriod, build_invoice_period
+from src.services.invoice.invoice_context import build_invoice_period
 
 
 def test_build_invoice_period_for_may_2026() -> None:
@@ -23,19 +23,3 @@ def test_build_invoice_period_for_february_2024() -> None:
     assert invoice_period.invoice_date == "10.02.2024"
     assert invoice_period.period_from == "01.02.2024"
     assert invoice_period.period_to == "29.02.2024"
-
-
-def test_invoice_period_as_template_data() -> None:
-    invoice_period = InvoicePeriod(
-        invoice_number="2026-05",
-        invoice_date="15.05.2026",
-        period_from="01.05.2026",
-        period_to="31.05.2026",
-    )
-
-    assert invoice_period.as_template_data() == {
-        "invoice_number": "2026-05",
-        "date": "15.05.2026",
-        "period_from": "01.05.2026",
-        "period_to": "31.05.2026",
-    }

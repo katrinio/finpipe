@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from src.constants import Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
-from src.services.document.docx_to_pdf_converter import PdfConverter
-
-if TYPE_CHECKING:
-    from src.workflows.generate_transfer_request import TransferRequestTemplateDetails
+from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
+from src.services.document.replacement import Replacement
+from src.services.transfer_request.transfer_request_models import TransferRequestData
+from src.services.transfer_request.transfer_request_pdf_renderer import TransferRequestFallbackPdfRenderer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,14 +17,15 @@ LOGGER = logging.getLogger(__name__)
 def generate_transfer_request(
     template_path: Path,
     output_pdf_path: Path,
-    data: dict[str, str],
-    transfer_request_details: TransferRequestTemplateDetails,
+    data: TransferRequestData | Mapping[str, object],
 ) -> None:
     LOGGER.info("Rendering transfer request from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
-    replacements = build_replacements(data=data, transfer_request_details=transfer_request_details)
+    template_data = Replacement.to_template_data(data)
+    replacements = Replacement.build_replacements(template_data)
+    pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
 
     DocxTemplateRenderer.render(
         template_path=template_path,
@@ -32,10 +33,10 @@ def generate_transfer_request(
         replacements=replacements,
     )
 
-    PdfConverter.render_transfer_pdf(
+    render_pdf(
         rendered_docx_path=rendered_docx_path,
         output_path=output_pdf_path,
-        data=data,
+        data=pdf_data,
     )
 
     LOGGER.info(
@@ -45,15 +46,15 @@ def generate_transfer_request(
     )
 
 
-def build_replacements(data: dict[str, str], transfer_request_details: TransferRequestTemplateDetails) -> dict[str, str]:
-    replacements: dict[str, str] = {}
-
-    for field_name, placeholder_names in transfer_request_details.placeholder_aliases.items():
-        value = str(data[field_name])
-
-        for placeholder_name in placeholder_names:
-            placeholder = placeholder_name if placeholder_name.startswith("{{") else f"{{{{{placeholder_name}}}}}"
-
-            replacements[placeholder] = value
-
-    return replacements
+def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
+    try:
+        DocxToPdfConverter.convert(
+            rendered_docx_path=rendered_docx_path,
+            output_path=output_path,
+        )
+    except Exception as error:
+        LOGGER.warning(
+            "Pages transfer request PDF conversion failed, using fallback renderer: %s",
+            error,
+        )
+        TransferRequestFallbackPdfRenderer.render(output_path, data)
