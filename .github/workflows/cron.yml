@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  telegram-healthcheck:
+  daily-healthcheck:
     runs-on: ubuntu-latest
 
     env:
@@ -14,11 +14,14 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+
+      - name: Record start time
+        run: echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -26,28 +29,40 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Run Unit Tests
+        id: units
+        continue-on-error: true
+        run: |
+          poetry run pytest tests/unit -vv -ra
+
+      - name: Install LibreOffice
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice
+
+      - name: Run Integration Tests
+        id: integration
+        continue-on-error: true
+        run: |
+          poetry run pytest tests/integration -vv -ra
+
       - name: Run Telegram Health Check
         id: telegram
         continue-on-error: true
         run: |
           poetry run pytest tests/external/test_external_telegram.py -vv
 
-      - name: Send Health Report
+      - name: Calculate duration
         if: always()
         run: |
-          poetry run python -c "
-            from datetime import UTC, datetime
-            from src.integrations.telegram.client import TelegramClient
+          echo "DURATION=$(( $(date +%s) - $START_TIME ))" >> $GITHUB_ENV
 
-            status = '${{ steps.telegram.outcome }}'
-
-            icon = '✅' if status == 'success' else '❌'
-
-            message = (
-                f'{icon} Finpipe daily check\n\n'
-                f'Telegram bot: {status.upper()}\n\n'
-                f'{datetime.now(UTC).strftime(\"%Y-%m-%d %H:%M UTC\")}'
-            )
-
-            TelegramClient().send_message(message)
-          "
+      - name: Send Health Report
+        if: always()
+        env:
+          UNIT_STATUS: ${{ steps.units.outcome }}
+          INTEGRATION_STATUS: ${{ steps.integration.outcome }}
+          TELEGRAM_STATUS: ${{ steps.telegram.outcome }}
+          DURATION: ${{ env.DURATION }}
+        run: |
+            poetry run python -m src.workflows.send_daily_healthcheck

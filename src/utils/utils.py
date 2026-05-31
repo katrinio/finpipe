@@ -36,3 +36,7 @@ class Utils:
     @classmethod
     def now(cls) -> arrow.Arrow:
         return arrow.now()
+
+    @classmethod
+    def format_status(cls, value: str) -> str:
+        return "SUCCESS" if value == "success" else "FAILURE"
