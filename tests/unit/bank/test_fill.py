@@ -2,6 +2,7 @@ import pytest
 
 from src.services.bank import bank_fill as fill
 from src.utils import Utils
+from src.utils.credentials import ENV_PATH_OVERRIDE, EnvVar
 
 
 def test_build_bank_form_data_reads_required_env(monkeypatch) -> None:
@@ -36,8 +37,10 @@ def test_build_bank_form_data_reads_required_env(monkeypatch) -> None:
     }
 
 
-def test_get_required_env_raises_for_missing_value(monkeypatch) -> None:
+def test_get_required_env_raises_for_missing_value(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv(ENV_PATH_OVERRIDE, str(tmp_path / "missing.env"))
     monkeypatch.delenv("PAYMENT_NUMBER", raising=False)
+    EnvVar.reset_dotenv_cache()
 
     with pytest.raises(RuntimeError, match="PAYMENT_NUMBER"):
         fill.get_required_env("PAYMENT_NUMBER")

@@ -1,8 +1,6 @@
 import logging
 from typing import Any
 
-from dotenv import load_dotenv
-
 from src.utils.credentials import EnvVar
 
 from .gmail_models import BankEmail
@@ -38,7 +36,6 @@ def find_bank_email(service: Any) -> BankEmail | None:
 
 
 def build_bank_email_query() -> str:
-    load_dotenv(EnvVar.ENV_PATH)
     subject = EnvVar.get_required_env("BANK_EMAIL_SUBJECT")
     from_user = EnvVar.get_required_env("BANK_EMAIL_FROM")
 
