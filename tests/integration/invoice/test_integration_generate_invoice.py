@@ -28,7 +28,7 @@ def test_generate_invoice_creates_pdf(tmp_path):
     data = InvoiceData(**invoice_data)
 
     generate_invoice(
-        template_path=TestData.TEMPLATE_PATH,
+        template_path=TestData.TRANSFER_TEMPLATE_PATH,
         output_pdf_path=output_pdf,
         data=data,
     )

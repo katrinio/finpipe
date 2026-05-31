@@ -26,4 +26,5 @@ class Dir:
 class TestData:
     RESOURCES_DIR = Path("tests/resources")
 
-    TEMPLATE_PATH = RESOURCES_DIR / f"test_convert_to_pdf.{Format.DOCX}"
+    INVOICE_TEMPLATE_PATH = RESOURCES_DIR / f"test_invoice_template.{Format.DOCX}"
+    TRANSFER_TEMPLATE_PATH = RESOURCES_DIR / f"test_transfer_request_template.{Format.DOCX}"
