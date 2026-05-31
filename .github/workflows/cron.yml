@@ -1,0 +1,53 @@
+name: Daily Health Check
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+jobs:
+  telegram-healthcheck:
+    runs-on: ubuntu-latest
+
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run Telegram Health Check
+        id: telegram
+        continue-on-error: true
+        run: |
+          poetry run pytest tests/external/test_external_telegram.py -vv
+
+      - name: Send Health Report
+        if: always()
+        run: |
+          poetry run python -c "
+            from datetime import UTC, datetime
+            from src.integrations.telegram.client import TelegramClient
+
+            status = '${{ steps.telegram.outcome }}'
+
+            icon = '✅' if status == 'success' else '❌'
+
+            message = (
+                f'{icon} Finpipe daily check\n\n'
+                f'Telegram bot: {status.upper()}\n\n'
+                f'{datetime.now(UTC).strftime(\"%Y-%m-%d %H:%M UTC\")}'
+            )
+
+            TelegramClient().send_message(message)
+          "
