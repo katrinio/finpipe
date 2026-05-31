@@ -1,6 +1,7 @@
 import pytest
 
 from src.integrations.gmail import search
+from src.utils.credentials import ENV_PATH_OVERRIDE, EnvVar
 
 
 class FakeMessagesApi:
@@ -33,28 +34,30 @@ class FakeGmailService:
 
 
 def test_build_bank_email_query_uses_required_filters(monkeypatch) -> None:
-    monkeypatch.setattr(search, "load_dotenv", lambda *_args, **_kwargs: None)
     monkeypatch.setenv("BANK_EMAIL_SUBJECT", 'KATRIN "TORSUNOVA" PR')
     monkeypatch.setenv("BANK_EMAIL_FROM", 'bank"sender@example.com')
+    EnvVar.reset_dotenv_cache()
 
     query = search.build_bank_email_query()
 
     assert query == ('subject:"KATRIN \\"TORSUNOVA\\" PR" from:"bank\\"sender@example.com" newer_than:30d has:attachment')
 
 
-def test_build_bank_email_query_requires_subject(monkeypatch) -> None:
-    monkeypatch.setattr(search, "load_dotenv", lambda *_args, **_kwargs: None)
+def test_build_bank_email_query_requires_subject(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv(ENV_PATH_OVERRIDE, str(tmp_path / "missing.env"))
     monkeypatch.delenv("BANK_EMAIL_SUBJECT", raising=False)
     monkeypatch.setenv("BANK_EMAIL_FROM", "bank@example.com")
+    EnvVar.reset_dotenv_cache()
 
     with pytest.raises(RuntimeError, match="BANK_EMAIL_SUBJECT"):
         search.build_bank_email_query()
 
 
-def test_build_bank_email_query_requires_sender(monkeypatch) -> None:
-    monkeypatch.setattr(search, "load_dotenv", lambda *_args, **_kwargs: None)
+def test_build_bank_email_query_requires_sender(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv(ENV_PATH_OVERRIDE, str(tmp_path / "missing.env"))
     monkeypatch.setenv("BANK_EMAIL_SUBJECT", "KATRIN TORSUNOVA PR")
     monkeypatch.delenv("BANK_EMAIL_FROM", raising=False)
+    EnvVar.reset_dotenv_cache()
 
     with pytest.raises(RuntimeError, match="BANK_EMAIL_FROM"):
         search.build_bank_email_query()
