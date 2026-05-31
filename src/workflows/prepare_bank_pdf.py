@@ -3,7 +3,7 @@ import logging
 from collections.abc import Sequence
 from pathlib import Path
 
-from src.constants import Bank, Format
+from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.services.bank.bank_fill import fill_bank_pdf
@@ -20,10 +20,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--bank-template",
         type=Path,
         default=None,
-        help=f"Path to source bank PDF. Defaults to the newest PDF in {Bank.ATTACHMENTS_DIR}.",
+        help=f"Path to source bank PDF. Defaults to the newest PDF in {Dir.ATTACHMENTS}.",
     )
-    parser.add_argument("--signature", type=Path, default=Bank.SIGNATURE_PATH)
-    parser.add_argument("--output-dir", type=Path, default=Bank.OUTPUT_DIR)
+    parser.add_argument("--signature", type=Path, default=Dir.SIGNATURE_PATH)
+    parser.add_argument("--output-dir", type=Path, default=Dir.BANK_OUTPUT_DIR)
     return parser
 
 
@@ -76,17 +76,17 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
         LOGGER.info("Using bank PDF from --bank-template: %s", bank_template)
         return bank_template
 
-    if not Bank.ATTACHMENTS_DIR.exists():
-        msg = f"Attachments directory not found: {Bank.ATTACHMENTS_DIR}"
+    if not Dir.ATTACHMENTS.exists():
+        msg = f"Attachments directory not found: {Dir.ATTACHMENTS}"
         raise FileNotFoundError(msg)
 
-    candidates = [path for path in Bank.ATTACHMENTS_DIR.iterdir() if path.is_file() and is_pdf_file(path)]
+    candidates = [path for path in Dir.ATTACHMENTS.iterdir() if path.is_file() and is_pdf_file(path)]
     if not candidates:
-        msg = f"No bank PDF found in {Bank.ATTACHMENTS_DIR}. Pass --bank-template."
+        msg = f"No bank PDF found in {Dir.ATTACHMENTS}. Pass --bank-template."
         raise FileNotFoundError(msg)
 
     newest_pdf = max(candidates, key=lambda path: path.stat().st_mtime)
-    LOGGER.info("Using newest bank PDF from %s: %s", Bank.ATTACHMENTS_DIR, newest_pdf)
+    LOGGER.info("Using newest bank PDF from %s: %s", Dir.ATTACHMENTS, newest_pdf)
     return newest_pdf
 
 

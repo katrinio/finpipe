@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 
-from src.constants import Format, Invoice
+from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.invoice.invoice_generator import generate_invoice
@@ -89,14 +89,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--template",
         type=Path,
-        default=Invoice.TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {Invoice.TEMPLATE_PATH}.",
+        default=Dir.TEMPLATE_PATH,
+        help=f"Path to invoice DOCX template. Defaults to {Dir.TEMPLATE_PATH}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Invoice.OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {Invoice.OUTPUT_DIR}.",
+        default=Dir.OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {Dir.OUTPUT_DIR}.",
     )
     return parser
 
