@@ -5,7 +5,7 @@ from src.logging_config import configure_logging
 from src.utils.credentials import LOGGER
 
 
-def main() -> int:
+def main() -> int | None:
     configure_logging()
 
     try:
