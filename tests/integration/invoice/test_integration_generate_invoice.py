@@ -1,8 +1,15 @@
+from zipfile import ZipFile
+
 from pypdf import PdfReader
 
 from src.constants import TestData
 from src.services.invoice.invoice_generator import generate_invoice
 from src.services.invoice.invoice_models import InvoiceData
+
+
+def read_docx_xml_text(docx_path):
+    with ZipFile(docx_path) as docx:
+        return "\n".join(docx.read(name).decode("utf-8", errors="ignore") for name in docx.namelist() if name.endswith(".xml"))
 
 
 def test_generate_invoice_creates_pdf(tmp_path):
@@ -28,7 +35,7 @@ def test_generate_invoice_creates_pdf(tmp_path):
     data = InvoiceData(**invoice_data)
 
     generate_invoice(
-        template_path=TestData.TRANSFER_TEMPLATE_PATH,
+        template_path=TestData.INVOICE_TEMPLATE_PATH,
         output_pdf_path=output_pdf,
         data=data,
     )
@@ -39,6 +46,10 @@ def test_generate_invoice_creates_pdf(tmp_path):
     assert output_pdf.exists()
     assert generated_docx.stat().st_size > 0
     assert output_pdf.stat().st_size > 0
+
+    docx_xml_text = read_docx_xml_text(generated_docx)
+    assert "{{" not in docx_xml_text
+    assert "}}" not in docx_xml_text
 
     reader = PdfReader(output_pdf)
 

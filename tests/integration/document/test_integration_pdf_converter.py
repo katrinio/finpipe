@@ -1,0 +1,31 @@
+import sys
+
+import pytest
+from pypdf import PdfReader
+
+from src.constants import TestData
+from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
+
+
+@pytest.mark.skipif(
+    sys.platform != "darwin" or not DocxToPdfConverter.PAGES_APP_PATH.exists(),
+    reason="Pages.app on macOS is required for DOCX to PDF conversion integration test.",
+)
+def test_docx_to_pdf_converter_exports_docx_with_pages(tmp_path):
+    rendered_docx_path = tmp_path / "transfer_request.docx"
+    output_pdf_path = tmp_path / "transfer_request.pdf"
+    rendered_docx_path.write_bytes(TestData.TRANSFER_TEMPLATE_PATH.read_bytes())
+
+    DocxToPdfConverter.convert(
+        rendered_docx_path=rendered_docx_path,
+        output_path=output_pdf_path,
+    )
+
+    assert output_pdf_path.exists()
+    assert output_pdf_path.stat().st_size > 0
+
+    reader = PdfReader(output_pdf_path)
+    text = "\n".join(page.extract_text() or "" for page in reader.pages)
+
+    assert "ALTA BANKA" in text
+    assert "deviznog računa" in text
