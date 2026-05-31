@@ -1,17 +1,21 @@
-name: Run TG Bot Tests
+name: External Tests
 
 on:
-  push:
+  workflow_dispatch:
 
 jobs:
-  tests-tg:
+  external:
     runs-on: ubuntu-latest
+
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
       - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
 
@@ -21,10 +25,6 @@ jobs:
           pip install poetry
           poetry install
 
-
-      - name: Run TG Bot Tests
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Run External Tests
         run: |
-          poetry run pytest tests/external -vv -ra
+          poetry run pytest tests/external -vv
