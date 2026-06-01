@@ -11,6 +11,7 @@ from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.invoice.invoice_generator import generate_invoice
 from src.services.invoice.invoice_models import InvoiceData
+from src.storage.history import HistoryStorage
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -46,11 +47,20 @@ def generate_invoice_pdf(
         ),
     )
 
+    invoice_number = invoice_period.invoice_number
+
+    if HistoryStorage.invoice_exists(invoice_number):
+        LOGGER.warning("Invoice %s already exists", invoice_number)
+        msg = f"Invoice {invoice_number} already exists."
+        raise ValueError(msg)
+
     generate_invoice(
         template_path=template_path,
         output_pdf_path=output_pdf_path,
         data=data,
     )
+
+    HistoryStorage.add_invoice(invoice_number)
 
     return output_pdf_path
 
