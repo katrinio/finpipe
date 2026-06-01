@@ -1,8 +1,7 @@
-name: Daily Health Check
+name: gh workflow listgh workflow list
 
-'on':
-  schedule:
-    - cron: '*/15 * * * *'
+on:
+  workflow_dispatch:
 
 
 jobs:
