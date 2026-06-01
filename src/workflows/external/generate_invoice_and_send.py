@@ -11,9 +11,9 @@ def main() -> int:
     pdf_path = generate_invoice_pdf()
     telegram_client = TelegramClient()
 
-    telegram_client.send_document(
-        document_path=pdf_path,
-    )
+    telegram_client.send_document(document_path=pdf_path)
+    docx_path = pdf_path.with_suffix(".docx")
+    telegram_client.send_document(document_path=docx_path)
 
     return 0
 
