@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 from pypdf import PdfReader
 
@@ -8,10 +6,10 @@ from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
 
 
 @pytest.mark.skipif(
-    sys.platform != "darwin" or not DocxToPdfConverter.PAGES_APP_PATH.exists(),
-    reason="Pages.app on macOS is required for DOCX to PDF conversion integration test.",
+    not DocxToPdfConverter.has_available_converter(),
+    reason="Pages.app on macOS or LibreOffice is required for DOCX to PDF conversion integration test.",
 )
-def test_docx_to_pdf_converter_exports_docx_with_pages(tmp_path):
+def test_docx_to_pdf_converter_exports_docx(tmp_path):
     rendered_docx_path = tmp_path / "transfer_request.docx"
     output_pdf_path = tmp_path / "transfer_request.pdf"
     rendered_docx_path.write_bytes(TestData.TRANSFER_TEMPLATE_PATH.read_bytes())

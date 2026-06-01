@@ -54,7 +54,7 @@ def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]
         )
     except Exception as error:
         LOGGER.warning(
-            "Pages invoice PDF conversion failed, using fallback renderer: %s",
+            "DOCX invoice PDF conversion failed, using fallback renderer: %s",
             error,
         )
         InvoiceFallbackPdfRenderer.render(output_path, data)

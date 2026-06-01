@@ -1,4 +1,4 @@
-name: Daily Health Check
+name: Healthcheck
 
 on:
   workflow_dispatch:
