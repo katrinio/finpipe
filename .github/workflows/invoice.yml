@@ -7,6 +7,19 @@ jobs:
   invoice:
     runs-on: ubuntu-latest
 
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      ACCOUNT_HOLDER: ${{ secrets.ACCOUNT_HOLDER }}
+      ACCOUNT_HOLDER_ADDRESS: ${{ secrets.ACCOUNT_HOLDER_ADDRESS }}
+      ACCOUNT_BIC: ${{ secrets.ACCOUNT_BIC }}
+      ACCOUNT_IBAN: ${{ secrets.ACCOUNT_IBAN }}
+      ACCOUNT_NUMBER: ${{ secrets.ACCOUNT_NUMBER }}
+      BANK_NAME: ${{ secrets.BANK_NAME }}
+      COMPANY_NAME: ${{ secrets.COMPANY_NAME }}
+      COMPANY_ADDRESS: ${{ secrets.COMPANY_ADDRESS }}
+      INVOICE_AMOUNT: ${{ secrets.INVOICE_AMOUNT }}
+      SERVICE_AGREEMENT_DATE: ${{ secrets.SERVICE_AGREEMENT_DATE }}
     steps:
       - uses: actions/checkout@v5
 
@@ -16,6 +29,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install poetry
           poetry install
 
@@ -34,4 +48,4 @@ jobs:
           curl -X POST \
             "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d text="❌ Invoice workflow failed"
+            -d text="❌ Finpipe invoice generation failed"
