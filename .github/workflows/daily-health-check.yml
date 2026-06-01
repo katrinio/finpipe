@@ -1,7 +1,6 @@
 name: Daily Health Check
 
 'on':
-  workflow_dispatch:
   schedule:
     - cron: '*/15 * * * *'
 
