@@ -17,6 +17,44 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_SERVICE_AGREEMENT_DATE = "01.05.2025"
 
 
+def generate_invoice_pdf(
+    invoice_date: date | None = None,
+    template_path: Path = Dir.INVOICE_TEMPLATE,
+    output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
+) -> Path:
+    invoice_period = build_invoice_period(invoice_date)
+
+    output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
+
+    data = InvoiceData(
+        account_holder=EnvVar.get_required_env("ACCOUNT_HOLDER"),
+        account_holder_address=EnvVar.get_required_env("ACCOUNT_HOLDER_ADDRESS"),
+        account_bic=EnvVar.get_required_env("ACCOUNT_BIC"),
+        account_iban=EnvVar.get_required_env("ACCOUNT_IBAN"),
+        account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
+        amount=EnvVar.get_required_env("INVOICE_AMOUNT"),
+        bank_name=EnvVar.get_required_env("BANK_NAME"),
+        company_address=EnvVar.get_required_env("COMPANY_ADDRESS"),
+        company_name=EnvVar.get_required_env("COMPANY_NAME"),
+        date_from=invoice_period.period_from,
+        date_to=invoice_period.period_to,
+        invoice_date=invoice_period.invoice_date,
+        invoice_number=invoice_period.invoice_number,
+        service_agreement_date=EnvVar.get_optional_env(
+            "SERVICE_AGREEMENT_DATE",
+            DEFAULT_SERVICE_AGREEMENT_DATE,
+        ),
+    )
+
+    generate_invoice(
+        template_path=template_path,
+        output_pdf_path=output_pdf_path,
+        data=data,
+    )
+
+    return output_pdf_path
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     configure_logging()
     EnvVar.get_dotenv()
@@ -33,27 +71,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
-    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
-
-    data = InvoiceData(
-        account_holder=EnvVar.get_required_env("ACCOUNT_HOLDER"),
-        account_holder_address=EnvVar.get_required_env("ACCOUNT_HOLDER_ADDRESS"),
-        account_bic=EnvVar.get_required_env("ACCOUNT_BIC"),
-        account_iban=EnvVar.get_required_env("ACCOUNT_IBAN"),
-        account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
-        amount=amount,
-        bank_name=EnvVar.get_required_env("BANK_NAME"),
-        company_address=EnvVar.get_required_env("COMPANY_ADDRESS"),
-        company_name=EnvVar.get_required_env("COMPANY_NAME"),
-        date_from=invoice_period.period_from,
-        date_to=invoice_period.period_to,
-        invoice_date=invoice_period.invoice_date,
-        invoice_number=invoice_period.invoice_number,
-        service_agreement_date=EnvVar.get_optional_env(
-            "SERVICE_AGREEMENT_DATE",
-            DEFAULT_SERVICE_AGREEMENT_DATE,
-        ),
-    )
 
     LOGGER.info(
         "Generating invoice %s for period %s - %s",
@@ -61,13 +78,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_period.period_from,
         invoice_period.period_to,
     )
-    generate_invoice(
+    pdf_path = generate_invoice_pdf(
+        invoice_date=args.invoice_date,
         template_path=args.template,
-        output_pdf_path=output_pdf_path,
-        data=data,
+        output_dir=args.output_dir,
     )
 
-    LOGGER.info("Invoice saved to %s", output_pdf_path)
+    LOGGER.info("Invoice saved to %s", pdf_path)
     return 0
 
 

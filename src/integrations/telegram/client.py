@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from pathlib import Path
 
 import requests
 
@@ -33,6 +34,22 @@ class TelegramClient:
             },
             timeout=10,
         ).raise_for_status()
+
+    def send_document(self, document_path: Path) -> None:
+        with open(document_path, "rb") as document:
+            response = requests.post(
+                f"https://api.telegram.org/bot{self.token}/sendDocument",
+                data={"chat_id": self.chat_id},
+                files={
+                    "document": (
+                        document_path.name,
+                        document,
+                        "application/pdf",
+                    )
+                },
+                timeout=30,
+            )
+        response.raise_for_status()
 
     def send_daily_report(
         self,
