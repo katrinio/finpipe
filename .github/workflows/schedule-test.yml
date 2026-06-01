@@ -1,12 +1,13 @@
 name: Schedule Test
 
-on:
+'on':
+  workflow_dispatch:
   schedule:
     - cron: '*/15 * * * *'
-  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - run: echo "hello"
