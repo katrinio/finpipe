@@ -1,4 +1,4 @@
-name: gh workflow listgh workflow list
+name: Daily Health Check
 
 on:
   workflow_dispatch:
