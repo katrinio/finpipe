@@ -4,7 +4,7 @@ import logging
 from collections.abc import Mapping
 from pathlib import Path
 
-from src.constants import Format
+from src.constants import Dir, Format
 from src.services.document.docx_template_renderer import DocxTemplateRenderer
 from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
 from src.services.document.replacement import Replacement
@@ -15,10 +15,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 def generate_transfer_request(
-    template_path: Path,
-    output_pdf_path: Path,
     data: TransferRequestData | Mapping[str, object],
-) -> None:
+    template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
+    output_pdf_path: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
+) -> Path:
     LOGGER.info("Rendering transfer request from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
@@ -44,6 +44,8 @@ def generate_transfer_request(
         rendered_docx_path,
         output_pdf_path,
     )
+
+    return output_pdf_path
 
 
 def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:

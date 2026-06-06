@@ -40,7 +40,7 @@ jobs:
 
       - name: Generate and send invoice
         run: |
-          poetry run python -m src.workflows.generate_invoice_and_send
+          poetry run python -m src.workflows.process_bank_request
           curl -X POST \
             "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
