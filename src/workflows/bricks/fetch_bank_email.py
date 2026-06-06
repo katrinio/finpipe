@@ -13,7 +13,7 @@ def main() -> int:
     configure_logging()
 
     try:
-        process_bank_email_workflow()
+        fetch_bank_email_workflow()
     except Exception:
         LOGGER.exception("Bank email workflow failed")
         return 1
@@ -21,7 +21,7 @@ def main() -> int:
     return 0
 
 
-def process_bank_email_workflow() -> None:
+def fetch_bank_email_workflow() -> None:
     LOGGER.info("Starting bank email workflow")
     service = get_gmail_service()
     bank_email = find_bank_email(service)

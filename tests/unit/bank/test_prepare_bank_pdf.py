@@ -2,14 +2,14 @@ import os
 
 import pytest
 
-from src.workflows import prepare_bank_pdf
+from src.workflows.bricks import fill_bank_pdf
 
 
 def test_resolve_bank_template_returns_explicit_pdf(tmp_path) -> None:
     bank_pdf = tmp_path / "bank-form"
     bank_pdf.write_bytes(b"%PDF-1.7\n")
 
-    assert prepare_bank_pdf.resolve_bank_template(bank_pdf) == bank_pdf
+    assert fill_bank_pdf.resolve_bank_template(bank_pdf) == bank_pdf
 
 
 def test_resolve_bank_template_picks_newest_pdf_from_attachments(
@@ -27,9 +27,9 @@ def test_resolve_bank_template_picks_newest_pdf_from_attachments(
     os.utime(old_pdf, (1, 1))
     os.utime(new_pdf, (2, 2))
 
-    monkeypatch.setattr(prepare_bank_pdf.Dir, "ATTACHMENTS", tmp_path)
+    monkeypatch.setattr(fill_bank_pdf.Dir, "ATTACHMENTS", tmp_path)
 
-    assert prepare_bank_pdf.resolve_bank_template(None) == new_pdf
+    assert fill_bank_pdf.resolve_bank_template(None) == new_pdf
 
 
 def test_resolve_bank_template_raises_when_explicit_file_is_not_pdf(tmp_path) -> None:
@@ -37,4 +37,4 @@ def test_resolve_bank_template_raises_when_explicit_file_is_not_pdf(tmp_path) ->
     text_file.write_text("not a pdf", encoding="utf-8")
 
     with pytest.raises(ValueError, match="not a PDF"):
-        prepare_bank_pdf.resolve_bank_template(text_file)
+        fill_bank_pdf.resolve_bank_template(text_file)
