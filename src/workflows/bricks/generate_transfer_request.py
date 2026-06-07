@@ -1,3 +1,5 @@
+"""Шаг workflow для генерации transfer request."""
+
 from __future__ import annotations
 
 import argparse
@@ -22,6 +24,11 @@ def generate_transfer_request_pdf(
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
 ) -> Path:
+    """
+    Генерирует transfer request на указанную сумму
+    и возвращает путь к PDF.
+    """
+
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
 
@@ -42,6 +49,8 @@ def generate_transfer_request_pdf(
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """CLI-точка входа для генерации transfer request."""
+
     configure_logging()
     EnvVar.get_dotenv()
 
@@ -73,6 +82,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Создаёт CLI-парсер для генерации transfer request."""
+
     parser = argparse.ArgumentParser(
         description="Generate salary invoice PDF and DOCX files.",
     )
@@ -103,6 +114,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_invoice_date(value: str) -> date:
+    """Преобразует строку CLI в дату документа."""
+
     try:
         return date.fromisoformat(value)
     except ValueError as error:

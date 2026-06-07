@@ -1,8 +1,12 @@
+"""Модели данных для подстановки в инвойс."""
+
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class InvoiceData:
+    """Полный набор полей, который нужен шаблону инвойса."""
+
     account_holder: str
     account_holder_address: str
     account_bic: str

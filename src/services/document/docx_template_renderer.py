@@ -1,3 +1,5 @@
+"""Подстановка плейсхолдеров в DOCX-шаблон без внешних зависимостей."""
+
 import logging
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -8,6 +10,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DocxTemplateRenderer:
+    """Пересобирает DOCX, заменяя текстовые шаблонные поля."""
+
     @classmethod
     def render(
         cls,
@@ -15,6 +19,8 @@ class DocxTemplateRenderer:
         output_path: Path,
         replacements: dict[str, str],
     ) -> None:
+        """Рендерит новый DOCX-файл на основе шаблона и замен."""
+
         template_path = cls.resolve_project_path(template_path)
         output_path = cls.resolve_project_path(output_path)
 
@@ -47,6 +53,8 @@ class DocxTemplateRenderer:
 
     @staticmethod
     def resolve_project_path(path: Path) -> Path:
+        """Резолвит относительный путь от корня проекта."""
+
         if path.is_absolute():
             return path
 

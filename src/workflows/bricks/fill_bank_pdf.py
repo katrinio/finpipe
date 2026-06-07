@@ -1,3 +1,5 @@
+"""Шаг workflow для подготовки заполненного PDF банка."""
+
 import argparse
 import logging
 from collections.abc import Sequence
@@ -15,6 +17,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Создаёт CLI-парсер для генерации bank PDF."""
+
     parser = argparse.ArgumentParser(description="Extract amount and fill bank PDF.")
     parser.add_argument(
         "--bank-template",
@@ -33,6 +37,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """CLI-точка входа для заполнения банковского PDF."""
+
     configure_logging()
     EnvVar.get_dotenv()
 
@@ -60,6 +66,11 @@ def fill_bank_pdf_with_data(
     include_signature: bool | None = None,
     amount: float | None = None,
 ) -> Path:
+    """
+    Заполняет банковский PDF и возвращает путь
+    к созданному файлу.
+    """
+
     bank_template = resolve_bank_template(bank_template)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -84,6 +95,8 @@ def fill_bank_pdf_with_data(
 
 
 def resolve_bank_template(bank_template: Path | None) -> Path:
+    """Определяет, какой исходный bank PDF использовать в workflow."""
+
     if bank_template is not None:
         if not bank_template.exists():
             msg = f"Bank PDF not found: {bank_template}"
@@ -111,11 +124,15 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
 
 
 def is_pdf_file(path: Path) -> bool:
+    """Проверяет PDF по сигнатуре файла, а не только по расширению."""
+
     with path.open("rb") as file_handle:
         return file_handle.read(5) == b"%PDF-"
 
 
 def resolve_signature(signature: Path | None, include_signature: bool | None) -> Path | None:
+    """Возвращает путь к подписи или `None`, если подпись отключена."""
+
     if include_signature is None:
         include_signature = is_signature_enabled()
 
@@ -127,6 +144,8 @@ def resolve_signature(signature: Path | None, include_signature: bool | None) ->
 
 
 def is_signature_enabled() -> bool:
+    """Читает feature toggle подписи из окружения."""
+
     value = EnvVar.get_optional_env("BANK_PDF_WITH_SIGNATURE", "false").strip().lower()
     return value not in {"0", "false", "no", "off"}
 

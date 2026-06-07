@@ -1,3 +1,5 @@
+"""Загрузка PDF-вложений из письма банка."""
+
 import base64
 import logging
 from pathlib import Path
@@ -10,6 +12,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 def download_attachments(bank_email: BankEmail) -> Path | None:
+    """
+    Скачивает первое PDF-вложение из письма банка
+    и возвращает путь к сохранённому файлу.
+    """
+
     LOGGER.info("Downloading PDF attachments from Gmail message: %s", bank_email.message_id)
 
     service = get_gmail_service()
@@ -29,6 +36,7 @@ def download_attachments(bank_email: BankEmail) -> Path | None:
             filename = part["filename"]
 
             if filename.endswith(".pdf"):
+                # Для bank flow достаточно первого PDF-вложения из письма.
                 attachment_id = part["body"]["attachmentId"]
                 LOGGER.info("Downloading file: %s", filename)
                 attachment = (

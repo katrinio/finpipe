@@ -1,3 +1,5 @@
+"""Расчёт периода и номера инвойса на текущий месяц."""
+
 from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date
@@ -7,6 +9,8 @@ from src.utils import Utils
 
 @dataclass(frozen=True)
 class InvoicePeriod:
+    """Данные периода, которые используются при генерации инвойса."""
+
     invoice_number: str
     invoice_date: str
     period_from: str
@@ -14,6 +18,8 @@ class InvoicePeriod:
 
 
 def build_invoice_period(today: date | None = None) -> InvoicePeriod:
+    """Строит период инвойса для указанной даты или сегодняшнего дня."""
+
     current_day = today or Utils.today()
 
     period_from = current_day.replace(day=1)
@@ -34,4 +40,6 @@ def build_invoice_period(today: date | None = None) -> InvoicePeriod:
 
 
 def build_invoice_number(current_day: date) -> str:
+    """Формирует номер инвойса в формате `YYYY-MM`."""
+
     return current_day.strftime("%Y-%m")

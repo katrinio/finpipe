@@ -1,3 +1,5 @@
+"""Генерация инвойса из шаблона с fallback на простой PDF."""
+
 from __future__ import annotations
 
 import logging
@@ -19,6 +21,8 @@ def generate_invoice(
     output_pdf_path: Path,
     data: InvoiceData | Mapping[str, object],
 ) -> None:
+    """Генерирует DOCX и PDF инвойса из переданных данных."""
+
     LOGGER.info("Rendering invoice from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
@@ -40,6 +44,7 @@ def generate_invoice(
             data=pdf_data,
         )
     except FileNotFoundError as error:
+        # При отсутствии шаблона сохраняем workflow рабочим через fallback PDF.
         LOGGER.warning(
             "Invoice template not found, using fallback PDF renderer: %s",
             error,
@@ -54,6 +59,8 @@ def generate_invoice(
 
 
 def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
+    """Пытается сконвертировать DOCX в PDF, иначе использует fallback."""
+
     try:
         DocxToPdfConverter.convert(
             rendered_docx_path=rendered_docx_path,

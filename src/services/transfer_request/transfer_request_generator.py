@@ -1,3 +1,5 @@
+"""Генерация transfer request из DOCX-шаблона с fallback на простой PDF."""
+
 from __future__ import annotations
 
 import logging
@@ -20,6 +22,8 @@ def generate_transfer_request(
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_pdf_path: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
 ) -> Path:
+    """Генерирует transfer request и возвращает путь к PDF."""
+
     template_path = resolve_project_path(template_path)
     output_pdf_path = resolve_project_path(output_pdf_path)
     LOGGER.info("Rendering transfer request from template: %s", template_path)
@@ -31,6 +35,7 @@ def generate_transfer_request(
     pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
 
     if not template_path.exists():
+        # В CI шаблон может отсутствовать, но сам workflow должен завершаться успешно.
         LOGGER.warning(
             "Transfer request template not found before DOCX render, using fallback PDF renderer: %s",
             template_path,
@@ -71,6 +76,8 @@ def generate_transfer_request(
 
 
 def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]) -> None:
+    """Пытается сконвертировать DOCX в PDF, иначе включает fallback."""
+
     try:
         DocxToPdfConverter.convert(
             rendered_docx_path=rendered_docx_path,
@@ -85,6 +92,8 @@ def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]
 
 
 def resolve_project_path(path: Path) -> Path:
+    """Резолвит относительный путь от корня проекта."""
+
     if path.is_absolute():
         return path
 

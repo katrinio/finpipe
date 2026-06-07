@@ -1,13 +1,19 @@
+"""Общие константы проекта: форматы, пути и текстовые сообщения."""
+
 from pathlib import Path
 
 
 class Format:
+    """Поддерживаемые расширения файлов для шаблонов и артефактов."""
+
     PDF = "pdf"
     DOCX = "docx"
     PNG = "png"
 
 
 class Dir:
+    """Ключевые директории и файлы, вычисляемые от корня проекта."""
+
     PROJECT_ROOT = Path(__file__).resolve().parents[1]
     TEMPLATE_PATH = PROJECT_ROOT / "templates"
     OUTPUT_DIR = PROJECT_ROOT / "output"
@@ -25,6 +31,8 @@ class Dir:
 
 
 class TestData:
+    """Пути к тестовым шаблонам и фикстурам."""
+
     RESOURCES_DIR = Dir.PROJECT_ROOT / "tests/resources"
 
     INVOICE_TEMPLATE_PATH = RESOURCES_DIR / f"test_invoice_template.{Format.DOCX}"
@@ -33,6 +41,8 @@ class TestData:
 
 
 class Message:
+    """Сообщения, которые workflow отправляет в Telegram."""
+
     START = "⚡ Magic is starting 🤞"
     NO_NEW_BANK_EMAIL = "ℹ️ No new bank email found."
     EMAIL_FETCHING_COMPLETED = "✔️ Email fetching completed"

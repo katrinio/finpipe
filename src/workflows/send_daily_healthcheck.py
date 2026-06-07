@@ -1,3 +1,5 @@
+"""Workflow отправки ежедневного healthcheck-отчёта в Telegram."""
+
 import os
 
 from src.integrations.telegram.client import TelegramClient
@@ -6,6 +8,8 @@ from src.utils.credentials import LOGGER
 
 
 def main() -> int | None:
+    """Собирает статусы из окружения и отправляет сводный отчёт."""
+
     configure_logging()
 
     try:

@@ -1,4 +1,4 @@
-"""Gmail integration modules."""
+"""Интеграция с Gmail для поиска и загрузки писем банка."""
 
 from .auth import get_gmail_service
 from .gmail_models import BankEmail

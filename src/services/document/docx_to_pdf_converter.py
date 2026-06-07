@@ -1,3 +1,5 @@
+"""Конвертация DOCX в PDF через Pages на macOS или LibreOffice в CI."""
+
 import logging
 import shutil
 import subprocess
@@ -8,6 +10,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DocxToPdfConverter:
+    """Выбирает доступный backend и конвертирует DOCX в PDF."""
+
     PAGES_BACKEND_NAME = "Pages"
     LIBREOFFICE_BACKEND_NAME = "LibreOffice"
     PAGES_APP_PATH = Path("/Applications/Pages.app")
@@ -17,6 +21,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def convert(cls, rendered_docx_path: Path, output_path: Path) -> None:
+        """Конвертирует DOCX-файл в PDF и проверяет результат."""
+
         rendered_docx_path = rendered_docx_path.resolve()
         output_path = output_path.resolve()
         converter_backend = cls.get_converter_backend()
@@ -44,6 +50,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def get_converter_backend(cls) -> str:
+        """Возвращает доступный backend конвертации для текущей ОС."""
+
         if cls.should_use_pages():
             cls.ensure_pages_installed()
             return cls.PAGES_BACKEND_NAME
@@ -53,10 +61,14 @@ class DocxToPdfConverter:
 
     @classmethod
     def should_use_pages(cls) -> bool:
+        """Определяет, следует ли использовать Pages вместо LibreOffice."""
+
         return sys.platform == "darwin"
 
     @classmethod
     def export_pdf(cls, converter_backend: str, rendered_docx_path: Path, output_path: Path) -> None:
+        """Запускает экспорт через выбранный backend."""
+
         if converter_backend == cls.PAGES_BACKEND_NAME:
             cls.open_with_pages(rendered_docx_path)
             cls.export_front_pages_document(rendered_docx_path, output_path)
@@ -71,6 +83,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def ensure_pages_installed(cls) -> None:
+        """Проверяет наличие Pages.app на macOS."""
+
         if cls.PAGES_APP_PATH.exists():
             LOGGER.debug("Pages.app found at %s", cls.PAGES_APP_PATH)
             return
@@ -81,10 +95,14 @@ class DocxToPdfConverter:
 
     @classmethod
     def ensure_libreoffice_installed(cls) -> None:
+        """Проверяет, что LibreOffice доступен в PATH."""
+
         cls.resolve_libreoffice_command()
 
     @classmethod
     def resolve_libreoffice_command(cls) -> str:
+        """Находит исполняемый файл LibreOffice среди известных имён."""
+
         for command in cls.LIBREOFFICE_COMMANDS:
             executable_path = shutil.which(command)
             if executable_path is not None:
@@ -97,6 +115,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def has_available_converter(cls) -> bool:
+        """Возвращает True, если в среде есть хотя бы один backend."""
+
         if cls.should_use_pages():
             return cls.PAGES_APP_PATH.exists()
 
@@ -104,6 +124,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def remove_existing_output(cls, output_path: Path) -> None:
+        """Удаляет старый PDF перед новой конвертацией."""
+
         if not output_path.exists():
             return
 
@@ -112,6 +134,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def open_with_pages(cls, rendered_docx_path: Path) -> None:
+        """Открывает DOCX в Pages перед экспортом."""
+
         LOGGER.debug("Opening DOCX with Pages: %s", rendered_docx_path)
         subprocess.run(
             ["open", "-a", "Pages", str(rendered_docx_path)],
@@ -122,6 +146,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def export_front_pages_document(cls, rendered_docx_path: Path, output_path: Path) -> None:
+        """Экспортирует активный документ Pages в PDF через AppleScript."""
+
         LOGGER.debug("Exporting front Pages document to PDF: %s", output_path)
         subprocess.run(
             cls.build_osascript_command(
@@ -138,6 +164,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def export_with_libreoffice(cls, rendered_docx_path: Path, output_path: Path) -> None:
+        """Конвертирует DOCX в PDF через headless LibreOffice."""
+
         LOGGER.debug("Exporting DOCX to PDF with LibreOffice: %s", output_path)
         generated_output_path = output_path.parent / f"{rendered_docx_path.stem}.pdf"
         if generated_output_path != output_path:
@@ -160,6 +188,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def validate_output(cls, output_path: Path, converter_backend: str = "DOCX to PDF converter") -> None:
+        """Проверяет, что конвертер действительно создал непустой PDF."""
+
         if not output_path.exists():
             msg = f"{converter_backend} did not create PDF"
             LOGGER.error("%s: %s", msg, output_path)
@@ -172,6 +202,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def build_pages_export_script(cls, rendered_docx_path: Path, output_path: Path) -> list[str]:
+        """Собирает AppleScript для экспорта текущего документа Pages."""
+
         return [
             'tell application "Pages"',
             "activate",
@@ -185,6 +217,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def build_libreoffice_export_command(cls, libreoffice_command: str, rendered_docx_path: Path, output_path: Path) -> list[str]:
+        """Собирает команду запуска LibreOffice в headless-режиме."""
+
         return [
             libreoffice_command,
             "--headless",
@@ -199,6 +233,8 @@ class DocxToPdfConverter:
 
     @classmethod
     def build_osascript_command(cls, script_lines: list[str]) -> list[str]:
+        """Преобразует список строк AppleScript в команду `osascript`."""
+
         command = ["osascript"]
 
         for line in script_lines:

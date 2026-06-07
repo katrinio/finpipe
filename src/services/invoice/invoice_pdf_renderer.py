@@ -1,3 +1,5 @@
+"""Fallback-рендерер инвойса без использования DOCX-шаблона."""
+
 import logging
 from pathlib import Path
 
@@ -8,8 +10,12 @@ PdfData = dict[str, str]
 
 
 class InvoiceFallbackPdfRenderer(FallbackPdfRenderer):
+    """Строит упрощённый PDF-инвойс из набора строк."""
+
     @classmethod
     def render(cls, output_path: Path, data: PdfData) -> None:
+        """Рендерит запасной PDF-инвойс."""
+
         LOGGER.info("Rendering fallback invoice PDF: %s", output_path)
         cls.render_lines(
             output_path=output_path,
@@ -20,6 +26,8 @@ class InvoiceFallbackPdfRenderer(FallbackPdfRenderer):
 
     @classmethod
     def build_lines(cls, data: PdfData) -> list[str]:
+        """Преобразует поля инвойса в строки для fallback PDF."""
+
         return [
             f"From: {data['account_holder']}",
             f"From address: {data['account_holder_address']}",

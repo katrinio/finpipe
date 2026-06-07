@@ -1,3 +1,5 @@
+"""Основной workflow обработки письма банка и подготовки документов."""
+
 from pathlib import Path
 
 from src.constants import Message
@@ -12,6 +14,8 @@ from src.workflows.bricks.generate_transfer_request import generate_transfer_req
 
 
 def main() -> int:
+    """Запускает полный bank flow: Gmail, bank PDF, transfer request и invoice."""
+
     configure_logging()
     EnvVar.get_dotenv()
     telegram_client = TelegramClient()
@@ -19,6 +23,7 @@ def main() -> int:
 
     bank_template_path = fetch_bank_email_workflow()
     if bank_template_path is None:
+        # Без нового письма workflow ничего не генерирует и завершаетcя штатно.
         telegram_client.send_message(Message.NO_NEW_BANK_EMAIL)
         return 0
 
@@ -47,6 +52,8 @@ def main() -> int:
 
 
 def send_bank_response(telegram_client: TelegramClient, *document_paths: Path) -> None:
+    """Отправляет итоговый ответ банку и все подготовленные документы."""
+
     telegram_client.send_message(Message.BANK_RESPONSE)
     for document_path in document_paths:
         telegram_client.send_document(document_path=document_path)

@@ -1,3 +1,5 @@
+"""Авторизация в Gmail API и создание клиентского сервиса."""
+
 import logging
 from pathlib import Path
 from typing import Any
@@ -14,6 +16,8 @@ GMAIL_SCOPES = ("https://www.googleapis.com/auth/gmail.readonly",)
 
 
 def get_gmail_service() -> Any:
+    """Возвращает готовый Gmail API service с валидным OAuth-токеном."""
+
     token_path = EnvVar.get_env_path("GMAIL_TOKEN_PATH")
     credentials = EnvVar.load_credentials(token_path, GMAIL_SCOPES)
 
@@ -33,6 +37,8 @@ def refresh_or_create_credentials(
     credentials: Credentials | None,
     credentials_path: Path,
 ) -> Credentials:
+    """Обновляет истёкший токен или запускает первичную OAuth-авторизацию."""
+
     if credentials and credentials.expired and credentials.refresh_token:
         LOGGER.info("Refreshing expired Gmail OAuth token")
         credentials.refresh(Request())
@@ -51,6 +57,8 @@ def refresh_or_create_credentials(
 
 
 def save_credentials(credentials: Credentials, token_path: Path) -> None:
+    """Сохраняет OAuth-токен в файл для следующих запусков."""
+
     token_path.parent.mkdir(parents=True, exist_ok=True)
     token_path.write_text(credentials.to_json(), encoding="utf-8")
     LOGGER.info("Saved Gmail OAuth token to %s", token_path)

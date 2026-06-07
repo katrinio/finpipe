@@ -1,4 +1,4 @@
-"""Storage helper modules."""
+"""Хранилища локального состояния и истории запусков."""
 
 from .processed_messages import (
     is_processed,
