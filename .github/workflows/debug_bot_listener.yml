@@ -28,4 +28,4 @@ jobs:
         id: telegram
         continue-on-error: true
         run: |
-          poetry run python -m src.workflows.telegram.bot
+          poetry run python -m src.integrations.telegram.bot

@@ -1,6 +1,7 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import Cmd
 from src.storage.state import load_last_update_id, save_last_update_id
+from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
 
 def handle_message(text: str) -> None:
@@ -17,6 +18,13 @@ def handle_message(text: str) -> None:
                 telegram.send_message("✅ Telegram API OK")
             except Exception:
                 telegram.send_message("❌ Telegram API ERROR")
+        case Cmd.INVOICE:
+            telegram.send_message("⏳ Generating invoice...")
+            try:
+                generate_and_send_invoice()
+                telegram.send_message("✅ Invoice sent")
+            except Exception as error:
+                telegram.send_message(f"❌ Invoice generation failed:\n{error}")
         case _:
             telegram.send_message("... try another command")
 
