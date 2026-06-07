@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from src.constants import Message
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
@@ -25,7 +27,7 @@ def main() -> int:
     bank_amount = extract_amount(bank_template_path)
     amount_text = f"{bank_amount:.2f}"
 
-    bank_pdf_path = fill_bank_pdf_with_data(bank_template_path)
+    bank_pdf_path = fill_bank_pdf_with_data(bank_template_path, amount=bank_amount)
     telegram_client.send_message(Message.BANK_PDF_FILLED)
 
     transfer_request_pdf_path = generate_transfer_request_pdf(amount=amount_text)
@@ -34,13 +36,20 @@ def main() -> int:
     invoice_pdf_path = generate_invoice_pdf(amount=amount_text)
     telegram_client.send_message(Message.INVOICE_GENERATED)
 
-    telegram_client.send_message(Message.BANK_RESPONSE)
-
-    telegram_client.send_document(document_path=invoice_pdf_path)
-    telegram_client.send_document(document_path=transfer_request_pdf_path)
-    telegram_client.send_document(document_path=bank_pdf_path)
+    send_bank_response(
+        telegram_client,
+        invoice_pdf_path,
+        transfer_request_pdf_path,
+        bank_pdf_path,
+    )
 
     return 0
+
+
+def send_bank_response(telegram_client: TelegramClient, *document_paths: Path) -> None:
+    telegram_client.send_message(Message.BANK_RESPONSE)
+    for document_path in document_paths:
+        telegram_client.send_document(document_path=document_path)
 
 
 if __name__ == "__main__":

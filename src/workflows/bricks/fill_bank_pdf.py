@@ -58,12 +58,13 @@ def fill_bank_pdf_with_data(
     signature: Path | None = Dir.SIGNATURE_PATH,
     output_dir: Path = Dir.BANK_OUTPUT_DIR,
     include_signature: bool | None = None,
+    amount: float | None = None,
 ) -> Path:
     bank_template = resolve_bank_template(bank_template)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     LOGGER.info("Preparing bank PDF from %s", bank_template)
-    amount = extract_amount(bank_template)
+    amount = amount or extract_amount(bank_template)
     invoice_period = build_invoice_period()
     period_suffix = Utils.today()
     bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"

@@ -210,7 +210,6 @@ __marimo__/
 
 # Sensitive
 attachments/
-templates/signature.png
 credentials.json
 token.json
 output/
