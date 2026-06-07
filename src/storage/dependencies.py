@@ -7,7 +7,6 @@ from pathlib import Path
 
 from src.constants import Dir
 from src.storage.database import Database, build_sqlite_url
-from src.storage.migration import JsonToSQLiteMigrator
 from src.storage.repositories import InvoiceHistoryRepository, ProcessedMessageRepository
 from src.storage.sqlalchemy_repositories import (
     SQLAlchemyInvoiceHistoryRepository,
@@ -24,14 +23,10 @@ class StorageDependencies:
 
 
 DEFAULT_DB_PATH = Dir.STORAGE_DB
-DEFAULT_HISTORY_JSON_PATH = Dir.STORAGE_HISTORY_JSON
-DEFAULT_PROCESSED_MESSAGES_JSON_PATH = Dir.STORAGE_PROCESSED_MESSAGES_JSON
 
 
 def build_storage_dependencies(
     db_path: Path = DEFAULT_DB_PATH,
-    history_json_path: Path = DEFAULT_HISTORY_JSON_PATH,
-    processed_messages_json_path: Path = DEFAULT_PROCESSED_MESSAGES_JSON_PATH,
 ) -> StorageDependencies:
     """Инициализирует БД и возвращает репозитории для workflow-композиции."""
 
@@ -40,14 +35,6 @@ def build_storage_dependencies(
 
     invoice_history = SQLAlchemyInvoiceHistoryRepository(database.session)
     processed_messages = SQLAlchemyProcessedMessageRepository(database.session)
-
-    JsonToSQLiteMigrator(
-        database=database,
-        invoice_history_path=history_json_path,
-        processed_messages_path=processed_messages_json_path,
-        invoice_repository=invoice_history,
-        processed_message_repository=processed_messages,
-    ).migrate()
 
     return StorageDependencies(
         invoice_history=invoice_history,
