@@ -2,19 +2,6 @@ name: Send Test Email
 
 on:
   workflow_dispatch:
-    inputs:
-      test_email:
-        description: Email address to send the test message to
-        required: true
-        type: string
-      email_dry_run:
-        description: Set to true to skip real Gmail sending
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 jobs:
   send-test-email:
@@ -23,8 +10,9 @@ jobs:
     env:
       GMAIL_CREDENTIALS_PATH: ${{ github.workspace }}/credentials.json
       GMAIL_TOKEN_PATH: ${{ github.workspace }}/token.json
-      TEST_EMAIL: ${{ inputs.test_email }}
-      EMAIL_DRY_RUN: ${{ inputs.email_dry_run }}
+
+      TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+      EMAIL_DRY_RUN: false
       EMAIL_DRY_RUN_RECIPIENT: ${{ vars.EMAIL_DRY_RUN_RECIPIENT }}
 
     steps:
