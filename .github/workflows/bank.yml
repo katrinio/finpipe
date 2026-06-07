@@ -47,16 +47,6 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Debug checkout
-        run: |
-          git rev-parse HEAD
-          git branch
-          git log --oneline -5
-
-      - name: Debug template
-        run: |
-          find . -name "transfer_request_template.docx"
-
       - name: Create Google credentials files
         run: |
           printf '%s' '${{ secrets.GMAIL_CREDENTIALS_JSON }}' > "${GMAIL_CREDENTIALS_PATH}"
