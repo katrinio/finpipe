@@ -9,6 +9,14 @@ def handle_message(text: str) -> None:
     match text:
         case Cmd.STATUS:
             telegram.send_message("Finpipe is running")
+        case Cmd.HELP:
+            telegram.send_message("/status - bot status\n/help - available commands/health - bot health")
+        case Cmd.HEALTH:
+            try:
+                telegram.healthcheck()
+                telegram.send_message("✅ Telegram API OK")
+            except Exception:
+                telegram.send_message("❌ Telegram API ERROR")
         case _:
             telegram.send_message("... try another command")
 
