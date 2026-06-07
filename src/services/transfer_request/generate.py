@@ -7,11 +7,11 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from src.constants import Dir, Format
-from src.services.document.docx_template_renderer import DocxTemplateRenderer
-from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
-from src.services.document.replacement import Replacement
-from src.services.transfer_request.transfer_request_models import TransferRequestData
-from src.services.transfer_request.transfer_request_pdf_renderer import TransferRequestFallbackPdfRenderer
+from src.infrastructure.document.docx_template_renderer import DocxTemplateRenderer
+from src.infrastructure.document.docx_to_pdf_converter import DocxToPdfConverter
+from src.infrastructure.document.replacement import Replacement
+from src.services.transfer_request.models import TransferRequestData
+from src.services.transfer_request.render_pdf import TransferRequestFallbackPdfRenderer
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)

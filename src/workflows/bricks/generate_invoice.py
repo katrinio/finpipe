@@ -10,11 +10,11 @@ from pathlib import Path
 
 from src.constants import Dir, Format
 from src.logging_config import configure_logging
-from src.services.invoice.invoice_context import build_invoice_period
-from src.services.invoice.invoice_generator import generate_invoice
-from src.services.invoice.invoice_models import InvoiceData
+from src.services.invoice.context import build_invoice_period
+from src.services.invoice.generate import generate_invoice
+from src.services.invoice.models import InvoiceData
 from src.storage.dependencies import build_storage_dependencies
-from src.storage.repositories import InvoiceHistoryRepository
+from src.storage.repositories.history_repository import InvoiceHistoryRepository
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)

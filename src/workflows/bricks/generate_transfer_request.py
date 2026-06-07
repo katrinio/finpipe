@@ -10,9 +10,9 @@ from pathlib import Path
 
 from src.constants import Dir, Format
 from src.logging_config import configure_logging
-from src.services.invoice.invoice_context import build_invoice_period
-from src.services.transfer_request.transfer_request_generator import generate_transfer_request
-from src.services.transfer_request.transfer_request_models import TransferRequestData
+from src.services.invoice.context import build_invoice_period
+from src.services.transfer_request.generate import generate_transfer_request
+from src.services.transfer_request.models import TransferRequestData
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)

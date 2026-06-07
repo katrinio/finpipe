@@ -9,7 +9,7 @@ from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
-from src.services.invoice.invoice_context import build_invoice_period
+from src.services.invoice.context import build_invoice_period
 from src.utils.credentials import EnvVar
 from src.utils.utils import Utils
 

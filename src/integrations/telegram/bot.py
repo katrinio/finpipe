@@ -1,23 +1,28 @@
+from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import Cmd
-from src.storage.state import load_last_update_id, save_last_update_id
+from src.storage.repositories.telegram_update_repository import build_telegram_update_storage
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
 
-def handle_message(text: str) -> None:
+def handle_message(text: str) -> bool:
     telegram = TelegramClient()
 
     match text:
         case Cmd.STATUS:
             telegram.send_message("Finpipe is running")
+            return True
         case Cmd.HELP:
             telegram.send_message("/status - bot status\n/help - available commands/health - bot health")
+            return True
         case Cmd.HEALTH:
             try:
                 telegram.healthcheck()
                 telegram.send_message("✅ Telegram API OK")
             except Exception:
                 telegram.send_message("❌ Telegram API ERROR")
+                return False
+            return True
         case Cmd.INVOICE:
             telegram.send_message("⏳ Generating invoice...")
             try:
@@ -25,39 +30,53 @@ def handle_message(text: str) -> None:
                 telegram.send_message("✅ Invoice sent")
             except Exception as error:
                 telegram.send_message(f"❌ Invoice generation failed:\n{error}")
+                return False
+            return True
         case _:
             telegram.send_message("... try another command")
+            return True
 
 
 def poll() -> None:
     telegram = TelegramClient()
-    last_update_id = load_last_update_id()
-    offset = last_update_id + 1 if last_update_id is not None else None
+    storage = build_telegram_update_storage(Dir.STORAGE_DB)
+    last_processed_update_id = storage.get_last_processed_update_id()
+    offset = last_processed_update_id + 1 if last_processed_update_id is not None else None
     updates = telegram.get_updates(offset=offset)
 
     result = updates.get("result", [])
     if not result:
         return
 
-    max_update_id = last_update_id
+    if last_processed_update_id is None:
+        for update in result:
+            mark_update_as_processed(storage, update)
+        return
 
     for update in result:
-        update_id = update.get("update_id")
-        if isinstance(update_id, int) and (max_update_id is None or update_id > max_update_id):
-            max_update_id = update_id
+        mark_update_as_processed(storage, update)
 
-        message = update.get("message")
-        if not message:
-            continue
 
-        text = message.get("text")
-        if not text:
-            continue
+def mark_update_as_processed(storage, update: dict) -> None:
+    """Обрабатывает один update и помечает его только после успеха."""
 
-        handle_message(text)
+    update_id = update.get("update_id")
+    if not isinstance(update_id, int):
+        return
 
-    if max_update_id is not None:
-        save_last_update_id(max_update_id)
+    if storage.is_processed(update_id):
+        return
+
+    message = update.get("message")
+    if not message:
+        return
+
+    text = message.get("text")
+    if not text:
+        return
+
+    if handle_message(text):
+        storage.mark_processed(update_id)
 
 
 # TODO: убрать после отладки

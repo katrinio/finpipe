@@ -1,53 +1,34 @@
-"""SQLAlchemy-реализация локальных репозиториев."""
+"""Репозиторий обработанных банковских писем."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Protocol
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from src.storage.orm import HistoryRecord, ProcessedMessage
-from src.storage.repositories import InvoiceHistoryRepository, ProcessedMessageRepository
+from src.storage.orm import ProcessedMessage
 
 
-class SQLAlchemyInvoiceHistoryRepository(InvoiceHistoryRepository):
-    """Работает с ORM-моделью истории инвойсов и скрывает SQLAlchemy от приложения."""
+class ProcessedMessageRepository(Protocol):
+    """Репозиторий истории обработанных банковских писем."""
 
-    def __init__(self, session_factory: Callable[[], Session]) -> None:
-        self._session_factory = session_factory
+    def list_message_ids(self) -> list[str]:
+        """Возвращает все обработанные message id в отсортированном виде."""
 
-    def list_invoices(self) -> list[str]:
-        """Возвращает номера инвойсов в лексикографическом порядке."""
+    def is_processed(self, message_id: str) -> bool:
+        """Проверяет, было ли письмо уже обработано."""
 
-        with self._session_factory() as session:
-            statement = select(HistoryRecord.invoice_number).order_by(HistoryRecord.invoice_number)
-            return list(session.scalars(statement))
+    def mark_as_processed(self, message_id: str) -> None:
+        """Помечает письмо как обработанное без создания дубликатов."""
 
-    def invoice_exists(self, invoice_number: str) -> bool:
-        """Проверяет существование номера инвойса."""
+    def replace_all(self, message_ids: set[str]) -> None:
+        """Полностью заменяет набор обработанных писем новым значением."""
 
-        with self._session_factory() as session:
-            statement = select(HistoryRecord.invoice_number).where(HistoryRecord.invoice_number == invoice_number).limit(1)
-            return session.scalar(statement) is not None
-
-    def add_invoice(self, invoice_number: str) -> None:
-        """Сохраняет номер инвойса без дублирования."""
-
-        with self._session_factory() as session:
-            session.add(HistoryRecord(invoice_number=invoice_number))
-            try:
-                session.commit()
-            except IntegrityError:
-                session.rollback()
-
-    def get_last_invoice(self) -> str | None:
-        """Возвращает последний номер инвойса согласно текущему бизнес-порядку."""
-
-        with self._session_factory() as session:
-            statement = select(HistoryRecord.invoice_number).order_by(HistoryRecord.invoice_number.desc()).limit(1)
-            return session.scalar(statement)
+    def clear(self) -> None:
+        """Очищает историю обработанных писем."""
 
 
 class SQLAlchemyProcessedMessageRepository(ProcessedMessageRepository):

@@ -1,4 +1,4 @@
-from src.services.invoice.invoice_pdf_renderer import InvoiceFallbackPdfRenderer
+from src.services.invoice.render_pdf import InvoiceFallbackPdfRenderer
 
 
 def test_invoice_fallback_lines_include_all_invoice_fields() -> None:
