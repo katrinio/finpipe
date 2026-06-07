@@ -1,3 +1,5 @@
+"""Клиент Telegram Bot API для уведомлений workflow."""
+
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -8,11 +10,15 @@ from src.utils.credentials import EnvVar
 
 
 class TelegramClient:
+    """Отправляет сообщения и PDF-документы в настроенный чат."""
+
     def __init__(self) -> None:
         self.token = EnvVar.get_required_env("TELEGRAM_BOT_TOKEN")
         self.chat_id = EnvVar.get_required_env("TELEGRAM_CHAT_ID")
 
     def healthcheck(self) -> None:
+        """Проверяет, что токен Telegram-бота валиден."""
+
         response = requests.get(
             f"https://api.telegram.org/bot{self.token}/getMe",
             timeout=10,
@@ -26,6 +32,8 @@ class TelegramClient:
             raise RuntimeError(msg)
 
     def send_message(self, text: str) -> None:
+        """Отправляет текстовое сообщение в целевой Telegram-чат."""
+
         requests.post(
             f"https://api.telegram.org/bot{self.token}/sendMessage",
             json={
@@ -36,6 +44,8 @@ class TelegramClient:
         ).raise_for_status()
 
     def send_document(self, document_path: Path) -> None:
+        """Отправляет PDF-файл в Telegram как документ."""
+
         with open(document_path, "rb") as document:
             response = requests.post(
                 f"https://api.telegram.org/bot{self.token}/sendDocument",
@@ -58,6 +68,7 @@ class TelegramClient:
         telegram_status: str,
         duration_seconds: int,
     ) -> None:
+        """Отправляет итоговый отчёт по ежедневной проверке проекта."""
 
         overall_success = all(
             status == "success"

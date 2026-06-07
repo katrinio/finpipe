@@ -1,3 +1,5 @@
+"""Поиск последнего подходящего письма банка в Gmail."""
+
 import logging
 from typing import Any
 
@@ -12,6 +14,8 @@ METADATA_HEADERS = ("Subject", "From", "Date")
 
 
 def find_bank_email(service: Any) -> BankEmail | None:
+    """Находит самое новое письмо банка в пределах окна поиска."""
+
     LOGGER.info("Searching Gmail for bank email from the last %s", LOOKBACK_WINDOW)
 
     response = service.users().messages().list(userId=USER_ID, q=build_bank_email_query(), maxResults=10).execute()
@@ -36,16 +40,10 @@ def find_bank_email(service: Any) -> BankEmail | None:
 
 
 def build_bank_email_query() -> str:
+    """Собирает Gmail query из обязательных параметров окружения."""
+
     subject = EnvVar.get_required_env("BANK_EMAIL_SUBJECT")
     from_user = EnvVar.get_required_env("BANK_EMAIL_FROM")
-
-    if not subject:
-        message = "Missing required environment variable: BANK_EMAIL_SUBJECT"
-        raise RuntimeError(message)
-
-    if not from_user:
-        message = "Missing required environment variable: BANK_EMAIL_FROM"
-        raise RuntimeError(message)
 
     subject = subject.replace('"', r"\"")
     from_user = from_user.replace('"', r"\"")
@@ -53,6 +51,8 @@ def build_bank_email_query() -> str:
 
 
 def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:
+    """Читает только метаданные письма, без загрузки тела и вложений."""
+
     return (
         service.users()
         .messages()
@@ -67,6 +67,8 @@ def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:
 
 
 def build_bank_email_result(message: dict[str, Any]) -> BankEmail:
+    """Преобразует Gmail API-ответ в внутреннюю модель письма."""
+
     headers = extract_headers(message)
     return BankEmail(
         subject=headers.get("subject", ""),
@@ -78,4 +80,6 @@ def build_bank_email_result(message: dict[str, Any]) -> BankEmail:
 
 
 def extract_headers(message: dict[str, Any]) -> dict[str, str]:
+    """Извлекает заголовки письма в нормализованный словарь."""
+
     return {header.get("name", "").lower(): header.get("value", "") for header in message.get("payload", {}).get("headers", []) if header.get("name")}

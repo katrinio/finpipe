@@ -39,6 +39,23 @@ log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(levelname)s:%(name)s:%(message)s"
 testpaths = ["tests"]
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = true
+omit = [
+    "src/constants.py",
+    "src/**/__init__.py",
+]
+
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "raise SystemExit",
+]
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -143,5 +160,6 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [dependency-groups]
 dev = [
-    "pre-commit (>=4.6.0,<5.0.0)"
+    "pre-commit (>=4.6.0,<5.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)"
 ]

@@ -60,4 +60,13 @@ jobs:
 
       - name: Run tests
         run: |
-          poetry run pytest tests/${{ matrix.suite }} -vv -ra
+          if [ "${{ matrix.suite }}" = "unit" ]; then
+            poetry run pytest tests/unit \
+              --cov=src \
+              --cov-report=term-missing \
+              --cov-report=xml \
+              --cov-fail-under=50 \
+              -ra
+          else
+            poetry run pytest tests/integration -ra
+          fi

@@ -1,3 +1,5 @@
+"""CLI-шаг для очистки истории уже обработанных писем банка."""
+
 from __future__ import annotations
 
 import logging
@@ -10,6 +12,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Точка входа для очистки локальной истории processed messages."""
+
     configure_logging()
 
     try:

@@ -1,10 +1,14 @@
+"""Workflow для генерации инвойса и отправки его в Telegram."""
+
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.utils.credentials import EnvVar
-from src.workflows.generate_invoice import generate_invoice_pdf
+from src.workflows.bricks.generate_invoice import generate_invoice_pdf
 
 
 def main() -> int:
+    """Генерирует инвойс и отправляет связанные файлы в Telegram."""
+
     configure_logging()
     EnvVar.get_dotenv()
 

@@ -1,3 +1,5 @@
+"""Шаг workflow для генерации transfer request."""
+
 from __future__ import annotations
 
 import argparse
@@ -16,24 +18,19 @@ from src.utils.credentials import EnvVar
 LOGGER = logging.getLogger(__name__)
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    configure_logging()
-    EnvVar.get_dotenv()
+def generate_transfer_request_pdf(
+    amount: str,
+    invoice_date: date | None = None,
+    template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
+    output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
+) -> Path:
+    """
+    Генерирует transfer request на указанную сумму
+    и возвращает путь к PDF.
+    """
 
-    parser = build_parser()
-    args = parser.parse_args(argv)
-
-    # TODO: брать вместо AMOUNT актуальную сумму из письма банка
-    amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
-    if not amount:
-        parser.error("Pass --amount or set INVOICE_AMOUNT in .env")
-
-    if not args.template.exists():
-        LOGGER.error("Transfer Request template not found: %s", args.template)
-        return 1
-
-    invoice_period = build_invoice_period(args.invoice_date)
-    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
+    invoice_period = build_invoice_period(invoice_date)
+    output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
 
     data = TransferRequestData(
         account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
@@ -43,16 +40,41 @@ def main(argv: Sequence[str] | None = None) -> int:
         name=EnvVar.get_required_env("ACCOUNT_HOLDER"),
     )
 
+    generate_transfer_request(
+        template_path=template_path,
+        output_pdf_path=output_pdf_path,
+        data=data,
+    )
+    return output_pdf_path
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """CLI-точка входа для генерации transfer request."""
+
+    configure_logging()
+    EnvVar.get_dotenv()
+
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
+
+    if not args.template.exists():
+        LOGGER.error("Transfer Request template not found: %s", args.template)
+        return 1
+
+    invoice_period = build_invoice_period(args.invoice_date)
     LOGGER.info(
-        "Generating invoice %s for period %s - %s",
+        "Generating transfer request %s for period %s - %s",
         invoice_period.invoice_number,
         invoice_period.period_from,
         invoice_period.period_to,
     )
-    generate_transfer_request(
+    output_pdf_path = generate_transfer_request_pdf(
+        amount=amount,
+        invoice_date=args.invoice_date,
         template_path=args.template,
-        output_pdf_path=output_pdf_path,
-        data=data,
+        output_dir=args.output_dir,
     )
 
     LOGGER.info("Transfer Request saved to %s", output_pdf_path)
@@ -60,6 +82,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Создаёт CLI-парсер для генерации transfer request."""
+
     parser = argparse.ArgumentParser(
         description="Generate salary invoice PDF and DOCX files.",
     )
@@ -90,6 +114,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_invoice_date(value: str) -> date:
+    """Преобразует строку CLI в дату документа."""
+
     try:
         return date.fromisoformat(value)
     except ValueError as error:

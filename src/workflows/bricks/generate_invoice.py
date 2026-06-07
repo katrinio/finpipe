@@ -1,3 +1,5 @@
+"""Шаг workflow для генерации инвойса."""
+
 from __future__ import annotations
 
 import argparse
@@ -19,10 +21,16 @@ DEFAULT_SERVICE_AGREEMENT_DATE = "01.05.2025"
 
 
 def generate_invoice_pdf(
+    amount: str | None = None,
     invoice_date: date | None = None,
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
 ) -> Path:
+    """
+    Генерирует PDF-инвойс на указанную сумму
+    и возвращает путь к файлу.
+    """
+
     invoice_period = build_invoice_period(invoice_date)
 
     output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
@@ -33,7 +41,7 @@ def generate_invoice_pdf(
         account_bic=EnvVar.get_required_env("ACCOUNT_BIC"),
         account_iban=EnvVar.get_required_env("ACCOUNT_IBAN"),
         account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
-        amount=EnvVar.get_required_env("INVOICE_AMOUNT"),
+        amount=amount or EnvVar.get_required_env("INVOICE_AMOUNT"),
         bank_name=EnvVar.get_required_env("BANK_NAME"),
         company_address=EnvVar.get_required_env("COMPANY_ADDRESS"),
         company_name=EnvVar.get_required_env("COMPANY_NAME"),
@@ -66,6 +74,8 @@ def generate_invoice_pdf(
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """CLI-точка входа для генерации инвойса."""
+
     configure_logging()
     EnvVar.get_dotenv()
 
@@ -73,8 +83,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
-    if not amount:
-        parser.error("Pass --amount or set INVOICE_AMOUNT in .env")
 
     if not args.template.exists():
         LOGGER.error("Invoice template not found: %s", args.template)
@@ -89,6 +97,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_period.period_to,
     )
     pdf_path = generate_invoice_pdf(
+        amount=amount,
         invoice_date=args.invoice_date,
         template_path=args.template,
         output_dir=args.output_dir,
@@ -99,6 +108,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Создаёт CLI-парсер для генерации инвойса."""
+
     parser = argparse.ArgumentParser(
         description="Generate salary invoice PDF and DOCX files.",
     )
@@ -116,19 +127,21 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--template",
         type=Path,
-        default=Dir.TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {Dir.TEMPLATE_PATH}.",
+        default=Dir.INVOICE_TEMPLATE,
+        help=f"Path to invoice DOCX template. Defaults to {Dir.INVOICE_TEMPLATE}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Dir.OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {Dir.OUTPUT_DIR}.",
+        default=Dir.INVOICE_OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {Dir.INVOICE_OUTPUT_DIR}.",
     )
     return parser
 
 
 def parse_invoice_date(value: str) -> date:
+    """Преобразует строку CLI в дату инвойса."""
+
     try:
         return date.fromisoformat(value)
     except ValueError as error:

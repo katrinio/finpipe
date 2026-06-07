@@ -1,1 +1,1 @@
-"""Telegram integration modules."""
+"""Интеграция с Telegram для уведомлений и отправки документов."""

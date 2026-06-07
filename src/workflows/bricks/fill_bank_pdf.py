@@ -1,3 +1,5 @@
+"""Шаг workflow для подготовки заполненного PDF банка."""
+
 import argparse
 import logging
 from collections.abc import Sequence
@@ -6,7 +8,7 @@ from pathlib import Path
 from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
-from src.services.bank.bank_fill import fill_bank_pdf
+from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
 from src.services.invoice.invoice_context import build_invoice_period
 from src.utils.credentials import EnvVar
 from src.utils.utils import Utils
@@ -15,6 +17,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Создаёт CLI-парсер для генерации bank PDF."""
+
     parser = argparse.ArgumentParser(description="Extract amount and fill bank PDF.")
     parser.add_argument(
         "--bank-template",
@@ -23,11 +27,18 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"Path to source bank PDF. Defaults to the newest PDF in {Dir.ATTACHMENTS}.",
     )
     parser.add_argument("--signature", type=Path, default=Dir.SIGNATURE_PATH)
+    parser.add_argument(
+        "--without-signature",
+        action="store_true",
+        help="Generate bank PDF without signature image.",
+    )
     parser.add_argument("--output-dir", type=Path, default=Dir.BANK_OUTPUT_DIR)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """CLI-точка входа для заполнения банковского PDF."""
+
     configure_logging()
     EnvVar.get_dotenv()
 
@@ -35,35 +46,57 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        bank_template = resolve_bank_template(args.bank_template)
-        return run(bank_template, args.signature, args.output_dir)
+        fill_bank_pdf_with_data(
+            bank_template=args.bank_template,
+            signature=args.signature,
+            output_dir=args.output_dir,
+            include_signature=not args.without_signature,
+        )
     except Exception:
         LOGGER.exception("Bank PDF processing failed")
         return 1
+    else:
+        return 0
 
 
-def run(bank_template: Path, signature: Path, output_dir: Path) -> int:
+def fill_bank_pdf_with_data(
+    bank_template: Path | None = None,
+    signature: Path | None = Dir.SIGNATURE_PATH,
+    output_dir: Path = Dir.BANK_OUTPUT_DIR,
+    include_signature: bool | None = None,
+    amount: float | None = None,
+) -> Path:
+    """
+    Заполняет банковский PDF и возвращает путь
+    к созданному файлу.
+    """
+
+    bank_template = resolve_bank_template(bank_template)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     LOGGER.info("Preparing bank PDF from %s", bank_template)
-    amount = extract_amount(bank_template)
+    amount = amount or extract_amount(bank_template)
     invoice_period = build_invoice_period()
     period_suffix = Utils.today()
     bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
 
-    fill_bank_pdf(
+    resolved_signature = resolve_signature(signature, include_signature)
+
+    render_bank_pdf(
         input_pdf=bank_template,
         output_pdf=bank_output,
         amount=amount,
         date=invoice_period.invoice_date,
-        signature=signature,
+        signature=resolved_signature,
     )
 
-    LOGGER.info("Bank PDF processing finished successfully")
-    return 0
+    LOGGER.info("Bank PDF processing finished successfully: %s", bank_output)
+    return bank_output
 
 
 def resolve_bank_template(bank_template: Path | None) -> Path:
+    """Определяет, какой исходный bank PDF использовать в workflow."""
+
     if bank_template is not None:
         if not bank_template.exists():
             msg = f"Bank PDF not found: {bank_template}"
@@ -91,8 +124,30 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
 
 
 def is_pdf_file(path: Path) -> bool:
+    """Проверяет PDF по сигнатуре файла, а не только по расширению."""
+
     with path.open("rb") as file_handle:
         return file_handle.read(5) == b"%PDF-"
+
+
+def resolve_signature(signature: Path | None, include_signature: bool | None) -> Path | None:
+    """Возвращает путь к подписи или `None`, если подпись отключена."""
+
+    if include_signature is None:
+        include_signature = is_signature_enabled()
+
+    if not include_signature:
+        LOGGER.info("Bank PDF signature is disabled")
+        return None
+
+    return signature
+
+
+def is_signature_enabled() -> bool:
+    """Читает feature toggle подписи из окружения."""
+
+    value = EnvVar.get_optional_env("BANK_PDF_WITH_SIGNATURE", "false").strip().lower()
+    return value not in {"0", "false", "no", "off"}
 
 
 if __name__ == "__main__":

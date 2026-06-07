@@ -1,3 +1,5 @@
+"""Базовый рендерер простых fallback-PDF без DOCX-шаблонов."""
+
 from pathlib import Path
 
 from reportlab.lib.pagesizes import A4
@@ -5,6 +7,8 @@ from reportlab.pdfgen import canvas
 
 
 class FallbackPdfRenderer:
+    """Рисует простой PDF из заголовка и набора строк."""
+
     TITLE_Y = 60
     BODY_START_Y = 120
     LINE_STEP = 24
@@ -17,6 +21,8 @@ class FallbackPdfRenderer:
         lines: list[str],
         pdf_title: str,
     ) -> None:
+        """Создаёт PDF-документ из заранее подготовленных строк."""
+
         pdf = canvas.Canvas(str(output_path), pagesize=A4)
         _, height = A4
 

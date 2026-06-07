@@ -1,3 +1,5 @@
+"""Заполнение банковского PDF данными компании и суммой перевода."""
+
 import logging
 from io import BytesIO
 from pathlib import Path
@@ -13,6 +15,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_required_env(name: str) -> str:
+    """Короткий адаптер для обязательных переменных окружения."""
+
     return EnvVar.get_required_env(name)
 
 
@@ -21,8 +25,17 @@ def fill_bank_pdf(
     output_pdf: Path,
     amount: float,
     date: str,
-    signature: Path,
+    signature: Path | None = None,
 ) -> None:
+    """
+    Накладывает на шаблон банка реквизиты, сумму и подпись
+    и сохраняет новый PDF.
+    """
+
+    input_pdf = resolve_project_path(input_pdf)
+    output_pdf = resolve_project_path(output_pdf)
+    signature = resolve_project_path(signature) if signature is not None else None
+
     LOGGER.info("Filling bank PDF: input=%s output=%s", input_pdf, output_pdf)
     reader = PdfReader(str(input_pdf))
     page = reader.pages[0]
@@ -50,6 +63,8 @@ def fill_bank_pdf(
 
 
 def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
+    """Собирает значения полей для наложения на PDF банка."""
+
     payment_number = get_required_env("PAYMENT_NUMBER")
     payment_code = get_required_env("PAYMENT_CODE")
     payment_description = get_required_env("PAYMENT_DESCRIPTION")
@@ -71,7 +86,13 @@ def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
     }
 
 
-def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:
+def draw_signature(pdf_canvas: canvas.Canvas, signature: Path | None) -> None:
+    """Рисует подпись, если она включена и файл существует."""
+
+    if signature is None:
+        LOGGER.info("Skipping signature image rendering")
+        return
+
     if not signature.exists():
         LOGGER.warning("Signature image does not exist: %s", signature)
         return
@@ -88,9 +109,20 @@ def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:
 
 
 def draw_form_fields(pdf_canvas: canvas.Canvas, values: dict[str, str]) -> None:
+    """Рисует все текстовые поля банка в заданных координатах."""
+
     pdf_canvas.setFont("Helvetica", 9)
     for field_name in BANK_FIELD_ORDER:
         value = values.get(field_name)
         if value is not None:
             field = PDF_FIELDS[field_name]
             pdf_canvas.drawString(field["x"], field["y"], str(value))
+
+
+def resolve_project_path(path: Path) -> Path:
+    """Резолвит относительный путь от корня проекта."""
+
+    if path.is_absolute():
+        return path
+
+    return EnvVar.PROJECT_ROOT / path

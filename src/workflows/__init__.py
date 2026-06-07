@@ -1,1 +1,1 @@
-"""Automation workflow modules."""
+"""Входные workflow-скрипты и их переиспользуемые кирпичи."""

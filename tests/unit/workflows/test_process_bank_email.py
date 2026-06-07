@@ -1,5 +1,5 @@
 from src.integrations.gmail.gmail_models import BankEmail
-from src.workflows import process_bank_email
+from src.workflows.bricks import fetch_bank_email
 
 
 def build_bank_email(message_id: str = "message-123") -> BankEmail:
@@ -15,13 +15,14 @@ def build_bank_email(message_id: str = "message-123") -> BankEmail:
 def test_process_bank_email_workflow_returns_when_no_email(monkeypatch) -> None:
     calls = []
 
-    monkeypatch.setattr(process_bank_email, "get_gmail_service", lambda: object())
-    monkeypatch.setattr(process_bank_email, "find_bank_email", lambda _service: None)
-    monkeypatch.setattr(process_bank_email, "download_attachments", lambda _email: calls.append("download"))
-    monkeypatch.setattr(process_bank_email, "mark_as_processed", lambda _message_id: calls.append("mark"))
+    monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
+    monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service: None)
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: calls.append("download"))
+    monkeypatch.setattr(fetch_bank_email, "mark_as_processed", lambda _message_id: calls.append("mark"))
 
-    process_bank_email.process_bank_email_workflow()
+    result = fetch_bank_email.fetch_bank_email_workflow()
 
+    assert result is None
     assert calls == []
 
 
@@ -29,14 +30,15 @@ def test_process_bank_email_workflow_skips_processed_email(monkeypatch) -> None:
     calls = []
     bank_email = build_bank_email()
 
-    monkeypatch.setattr(process_bank_email, "get_gmail_service", lambda: object())
-    monkeypatch.setattr(process_bank_email, "find_bank_email", lambda _service: bank_email)
-    monkeypatch.setattr(process_bank_email, "is_processed", lambda _message_id: True)
-    monkeypatch.setattr(process_bank_email, "download_attachments", lambda _email: calls.append("download"))
-    monkeypatch.setattr(process_bank_email, "mark_as_processed", lambda _message_id: calls.append("mark"))
+    monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
+    monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service: bank_email)
+    monkeypatch.setattr(fetch_bank_email, "is_processed", lambda _message_id: True)
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: calls.append("download"))
+    monkeypatch.setattr(fetch_bank_email, "mark_as_processed", lambda _message_id: calls.append("mark"))
 
-    process_bank_email.process_bank_email_workflow()
+    result = fetch_bank_email.fetch_bank_email_workflow()
 
+    assert result is None
     assert calls == []
 
 
@@ -44,15 +46,36 @@ def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch) 
     calls = []
     bank_email = build_bank_email()
 
-    monkeypatch.setattr(process_bank_email, "get_gmail_service", lambda: object())
-    monkeypatch.setattr(process_bank_email, "find_bank_email", lambda _service: bank_email)
-    monkeypatch.setattr(process_bank_email, "is_processed", lambda _message_id: False)
-    monkeypatch.setattr(process_bank_email, "download_attachments", lambda email: calls.append(("download", email.message_id)))
-    monkeypatch.setattr(process_bank_email, "mark_as_processed", lambda message_id: calls.append(("mark", message_id)))
+    monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
+    monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service: bank_email)
+    monkeypatch.setattr(fetch_bank_email, "is_processed", lambda _message_id: False)
+    monkeypatch.setattr(
+        fetch_bank_email,
+        "download_attachments",
+        lambda email: calls.append(("download", email.message_id)) or "attachments/bank-form.pdf",
+    )
+    monkeypatch.setattr(fetch_bank_email, "mark_as_processed", lambda message_id: calls.append(("mark", message_id)))
 
-    process_bank_email.process_bank_email_workflow()
+    result = fetch_bank_email.fetch_bank_email_workflow()
 
+    assert result == "attachments/bank-form.pdf"
     assert calls == [
         ("download", "message-123"),
         ("mark", "message-123"),
     ]
+
+
+def test_process_bank_email_workflow_does_not_mark_without_pdf(monkeypatch) -> None:
+    calls = []
+    bank_email = build_bank_email()
+
+    monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
+    monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service: bank_email)
+    monkeypatch.setattr(fetch_bank_email, "is_processed", lambda _message_id: False)
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: None)
+    monkeypatch.setattr(fetch_bank_email, "mark_as_processed", lambda message_id: calls.append(("mark", message_id)))
+
+    result = fetch_bank_email.fetch_bank_email_workflow()
+
+    assert result is None
+    assert calls == []

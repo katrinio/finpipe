@@ -1,3 +1,5 @@
+"""Fallback-рендерер transfer request без DOCX-шаблона."""
+
 import logging
 from pathlib import Path
 
@@ -8,8 +10,12 @@ PdfData = dict[str, str]
 
 
 class TransferRequestFallbackPdfRenderer(FallbackPdfRenderer):
+    """Строит упрощённый PDF transfer request из строковых полей."""
+
     @classmethod
     def render(cls, output_path: Path, data: PdfData) -> None:
+        """Рендерит запасной PDF transfer request."""
+
         LOGGER.info("Rendering fallback transfer request PDF: %s", output_path)
         cls.render_lines(
             output_path=output_path,
@@ -20,6 +26,8 @@ class TransferRequestFallbackPdfRenderer(FallbackPdfRenderer):
 
     @classmethod
     def build_lines(cls, data: PdfData) -> list[str]:
+        """Преобразует поля transfer request в строки для PDF."""
+
         return [
             f"Account number: {data['account_number']}",
             f"Date: {data['date']}",
