@@ -12,7 +12,10 @@ from googleapiclient.discovery import build
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
-GMAIL_SCOPES = ("https://www.googleapis.com/auth/gmail.readonly",)
+GMAIL_SCOPES = (
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
+)
 
 
 def get_gmail_service() -> Any:
