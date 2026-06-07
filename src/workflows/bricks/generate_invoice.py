@@ -14,7 +14,7 @@ from src.services.invoice.invoice_context import build_invoice_period
 from src.services.invoice.invoice_generator import generate_invoice
 from src.services.invoice.invoice_models import InvoiceData
 from src.storage.dependencies import build_storage_dependencies
-from src.storage.repositories import InvoiceHistoryRepository
+from src.storage.repositories.repositories import InvoiceHistoryRepository
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)

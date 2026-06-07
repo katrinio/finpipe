@@ -10,7 +10,7 @@ from src.integrations.gmail.downloader import download_attachments
 from src.integrations.gmail.search import find_bank_email
 from src.logging_config import configure_logging
 from src.storage.dependencies import build_storage_dependencies
-from src.storage.repositories import ProcessedMessageRepository
+from src.storage.repositories.repositories import ProcessedMessageRepository
 
 LOGGER = logging.getLogger(__name__)
 

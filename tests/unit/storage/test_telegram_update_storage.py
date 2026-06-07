@@ -1,5 +1,5 @@
 from src.storage.database import Database, build_sqlite_url
-from src.storage.telegram_update_storage import TelegramUpdateStorage
+from src.storage.repositories.telegram_update_repository import TelegramUpdateStorage
 
 
 def test_telegram_update_storage_marks_and_checks_updates(tmp_path) -> None:

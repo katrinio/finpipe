@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from src.storage.orm import HistoryRecord, ProcessedMessage
-from src.storage.repositories import InvoiceHistoryRepository, ProcessedMessageRepository
+from src.storage.repositories.repositories import InvoiceHistoryRepository, ProcessedMessageRepository
 
 
 class SQLAlchemyInvoiceHistoryRepository(InvoiceHistoryRepository):

@@ -1,7 +1,7 @@
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import Cmd
-from src.storage.telegram_update_storage import build_telegram_update_storage
+from src.storage.repositories.telegram_update_repository import build_telegram_update_storage
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
 
