@@ -34,16 +34,16 @@ def main() -> int:
     telegram_client.send_message(Message.EMAIL_FETCHING_COMPLETED)
 
     bank_amount = extract_amount(bank_template_path)
-    amount_text = f"{bank_amount:.2f}"
+    transfer_amount_text = f"{bank_amount:.2f}"
 
     bank_pdf_path = fill_bank_pdf_with_data(bank_template_path, amount=bank_amount)
     telegram_client.send_message(Message.BANK_PDF_FILLED)
 
-    transfer_request_pdf_path = generate_transfer_request_pdf(amount=amount_text)
+    transfer_request_pdf_path = generate_transfer_request_pdf(amount=transfer_amount_text)
     telegram_client.send_message(Message.TRANSACTION_REQUEST_GENERATED)
 
     invoice_pdf_path = generate_invoice_pdf(
-        amount=amount_text,
+        amount=transfer_amount_text,
         invoice_history_repository=storage.invoice_history,
     )
     telegram_client.send_message(Message.INVOICE_GENERATED)

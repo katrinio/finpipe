@@ -36,7 +36,7 @@ def generate_invoice_pdf(
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
-    data = InvoiceData(
+    invoice_data = InvoiceData(
         account_holder=EnvVar.get_required_env("ACCOUNT_HOLDER"),
         account_holder_address=EnvVar.get_required_env("ACCOUNT_HOLDER_ADDRESS"),
         account_bic=EnvVar.get_required_env("ACCOUNT_BIC"),
@@ -67,7 +67,7 @@ def generate_invoice_pdf(
     generate_invoice(
         template_path=template_path,
         output_pdf_path=output_pdf_path,
-        data=data,
+        data=invoice_data,
     )
 
     repository.add_invoice(invoice_number)
