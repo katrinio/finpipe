@@ -2,44 +2,97 @@
 
 `src/storage/storage.sqlite3` хранит локальное состояние проекта.
 
-## ORM structure
+##  Structure
+```
+storage/
+├── database.py
+├── dependencies.py
+├── orm/
+├── repositories/
+└── storage.sqlite3
+```
+# Storage
 
-По аналогии с `permafor` ORM вынесен в отдельный пакет `src/storage/orm/`:
+src/storage/storage.sqlite3 хранит локальное состояние проекта.
 
-- `base.py` - общий `DeclarativeBase`
-- `history_record.py` - сущность истории инвойсов
-- `processed_message.py` - сущность обработанных писем
-- `__init__.py` - re-export ORM-сущностей
+## Structure
 
-## Схема
+text storage/ ├── database.py ├── dependencies.py ├── orm/ ├── repositories/ └── storage.sqlite3
 
-- `invoice_history`
-  - `invoice_number TEXT PRIMARY KEY`
-  - `created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`
-- `processed_messages`
-  - `message_id TEXT PRIMARY KEY`
-  - `created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`
+### database.py
 
-## ORM entities
+Создаёт SQLAlchemy engine, sessionmaker и инициализирует схему БД.
 
-- `HistoryRecord` -> `invoice_history`
-- `ProcessedMessage` -> `processed_messages`
+### dependencies.py
 
-Сейчас связей между сущностями нет. Новые сущности вроде `Invoice`, `BankRequest`, `EmailHistory` и `AuditLog`
-можно добавлять как отдельные ORM-модули внутри `src/storage/orm/` и отдельные explicit repositories.
+Composition root для storage-слоя. Создаёт и возвращает готовые repository-зависимости.
 
-## Поток инициализации
+### orm/
 
-1. Composition root вызывает `build_storage_dependencies()`.
-2. `Database` создаёт engine и `sessionmaker`.
-3. `Database.initialize_schema()` создаёт ORM-таблицы через `BaseStorage.metadata.create_all(...)`.
-4. Workflow получает готовые repository-абстракции и работает только через них.
+SQLAlchemy ORM-модели.
+
+- base.py — общий DeclarativeBase
+- history_record.py — история сгенерированных инвойсов
+- processed_message.py — обработанные письма банка
+- telegram_update.py — обработанные Telegram updates
+- user_config.py — пользовательские настройки
+
+Каждая ORM-модель располагается в отдельном файле.
+
+### repositories/
+
+Репозитории для доступа к данным.
+
+Репозитории скрывают SQLAlchemy от application-слоя и предоставляют высокоуровневые операции для workflow.
+
+## Database schema
+
+### invoice_history
+
+| Column | Type |
+|----------|----------|
+| invoice_number | TEXT PRIMARY KEY |
+| created_at | DATETIME NOT NULL |
+
+### processed_messages
+
+| Column | Type |
+|----------|----------|
+| message_id | TEXT PRIMARY KEY |
+| created_at | DATETIME NOT NULL |
+
+### telegram_updates
+
+| Column | Type |
+|----------|----------|
+| update_id | INTEGER PRIMARY KEY |
+| created_at | DATETIME NOT NULL |
+
+## Initialization flow
+
+1. Workflow вызывает build_storage_dependencies().
+2. Создаётся Database.
+3. Инициализируется SQLAlchemy engine.
+4. ORM-схема создаётся через Base.metadata.create_all(...).
+5. Workflow получает готовые repository-объекты.
 
 ## Session lifecycle
 
-Каждый repository-метод открывает короткоживущую `Session`, выполняет одну операцию и закрывает её.
-Commit/rollback управляется явно внутри infrastructure-слоя. В приложении и workflow `Session` не видна.
+Каждая repository-операция открывает собственную короткоживущую Session.
 
-## TODO
+Repository отвечает за:
 
-При появлении нескольких версий схемы заменить `create_all` на Alembic migration chain.
+- создание Session;
+- commit;
+- rollback;
+- закрытие Session.
+
+Workflow и сервисы не работают напрямую с SQLAlchemy Session.
+
+## Future improvements
+
+- Alembic migrations
+- User configuration storage
+- Audit log
+- Bank request history
+- Email history
