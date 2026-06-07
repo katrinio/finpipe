@@ -214,3 +214,4 @@ credentials.json
 token.json
 output/
 src/storage/processed_messages.json
+/templates/signature.png

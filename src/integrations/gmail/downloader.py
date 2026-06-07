@@ -21,13 +21,13 @@ def download_attachments(bank_email: BankEmail) -> Path | None:
 
     service = get_gmail_service()
     user_id = "me"
-    new_filename = f"bank-form-{Utils.today()}"
+    attachment_stem = f"bank-form-{Utils.today()}"
 
     Dir.ATTACHMENTS.mkdir(parents=True, exist_ok=True)
 
-    message = service.users().messages().get(userId=user_id, id=bank_email.message_id).execute()
+    gmail_message = service.users().messages().get(userId=user_id, id=bank_email.message_id).execute()
 
-    payload = message.get("payload", {})
+    payload = gmail_message.get("payload", {})
     parts = payload.get("parts", [])
     saved_path: Path | None = None
 
@@ -39,7 +39,7 @@ def download_attachments(bank_email: BankEmail) -> Path | None:
                 # Для bank flow достаточно первого PDF-вложения из письма.
                 attachment_id = part["body"]["attachmentId"]
                 LOGGER.info("Downloading file: %s", filename)
-                attachment = (
+                attachment_payload = (
                     service.users()
                     .messages()
                     .attachments()
@@ -51,16 +51,16 @@ def download_attachments(bank_email: BankEmail) -> Path | None:
                     .execute()
                 )
 
-                file_data = base64.urlsafe_b64decode(attachment["data"].encode("UTF-8"))
+                file_data = base64.urlsafe_b64decode(attachment_payload["data"].encode("UTF-8"))
 
                 LOGGER.info("Saving Gmail PDF attachment: %s", filename)
 
-                filepath = Dir.ATTACHMENTS / f"{new_filename}.pdf"
-                with filepath.open("wb") as file_handle:
+                attachment_path = Dir.ATTACHMENTS / f"{attachment_stem}.pdf"
+                with attachment_path.open("wb") as file_handle:
                     file_handle.write(file_data)
 
-                saved_path = filepath
-                LOGGER.info("Saved Gmail PDF attachment to %s", filepath)
+                saved_path = attachment_path
+                LOGGER.info("Saved Gmail PDF attachment to %s", attachment_path)
                 break
 
     if saved_path is None:

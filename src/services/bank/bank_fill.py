@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_required_env(name: str) -> str:
-    """Короткий адаптер для обязательных переменных окружения."""
+    """Возвращает обязательную переменную окружения для bank PDF."""
 
     return EnvVar.get_required_env(name)
 

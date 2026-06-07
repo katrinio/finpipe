@@ -28,6 +28,10 @@ class Dir:
 
     TRANSFER_REQUEST_TEMPLATE = TEMPLATE_PATH / f"transfer_request_template.{Format.DOCX}"
     TRANSFER_REQUEST_OUTPUT_DIR = OUTPUT_DIR / "transfer_request"
+    STORAGE_DIR = PROJECT_ROOT / "src" / "storage"
+    STORAGE_DB = STORAGE_DIR / "storage.sqlite3"
+    STORAGE_HISTORY_JSON = STORAGE_DIR / "history.json"
+    STORAGE_PROCESSED_MESSAGES_JSON = STORAGE_DIR / "processed_messages.json"
 
 
 class TestData:
