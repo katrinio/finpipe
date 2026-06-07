@@ -1,6 +1,7 @@
+from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import Cmd
-from src.storage.state import load_last_update_id, save_last_update_id
+from src.storage.telegram_update_storage import build_telegram_update_storage
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
 
@@ -31,20 +32,29 @@ def handle_message(text: str) -> None:
 
 def poll() -> None:
     telegram = TelegramClient()
-    last_update_id = load_last_update_id()
-    offset = last_update_id + 1 if last_update_id is not None else None
+    storage = build_telegram_update_storage(Dir.STORAGE_DB)
+    last_processed_update_id = storage.get_last_processed_update_id()
+    offset = last_processed_update_id + 1 if last_processed_update_id is not None else None
     updates = telegram.get_updates(offset=offset)
 
     result = updates.get("result", [])
     if not result:
         return
 
-    max_update_id = last_update_id
+    if last_processed_update_id is None:
+        for update in result:
+            update_id = update.get("update_id")
+            if isinstance(update_id, int):
+                storage.mark_processed(update_id)
+        return
 
     for update in result:
         update_id = update.get("update_id")
-        if isinstance(update_id, int) and (max_update_id is None or update_id > max_update_id):
-            max_update_id = update_id
+        if not isinstance(update_id, int):
+            continue
+
+        if storage.is_processed(update_id):
+            continue
 
         message = update.get("message")
         if not message:
@@ -56,8 +66,7 @@ def poll() -> None:
 
         handle_message(text)
 
-    if max_update_id is not None:
-        save_last_update_id(max_update_id)
+        storage.mark_processed(update_id)
 
 
 # TODO: убрать после отладки
