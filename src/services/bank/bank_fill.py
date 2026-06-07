@@ -21,7 +21,7 @@ def fill_bank_pdf(
     output_pdf: Path,
     amount: float,
     date: str,
-    signature: Path,
+    signature: Path | None = None,
 ) -> None:
     LOGGER.info("Filling bank PDF: input=%s output=%s", input_pdf, output_pdf)
     reader = PdfReader(str(input_pdf))
@@ -71,7 +71,11 @@ def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
     }
 
 
-def draw_signature(pdf_canvas: canvas.Canvas, signature: Path) -> None:
+def draw_signature(pdf_canvas: canvas.Canvas, signature: Path | None) -> None:
+    if signature is None:
+        LOGGER.info("Skipping signature image rendering")
+        return
+
     if not signature.exists():
         LOGGER.warning("Signature image does not exist: %s", signature)
         return

@@ -23,6 +23,11 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"Path to source bank PDF. Defaults to the newest PDF in {Dir.ATTACHMENTS}.",
     )
     parser.add_argument("--signature", type=Path, default=Dir.SIGNATURE_PATH)
+    parser.add_argument(
+        "--without-signature",
+        action="store_true",
+        help="Generate bank PDF without signature image.",
+    )
     parser.add_argument("--output-dir", type=Path, default=Dir.BANK_OUTPUT_DIR)
     return parser
 
@@ -35,7 +40,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        fill_bank_pdf_with_data(args.bank_template, args.signature, args.output_dir)
+        fill_bank_pdf_with_data(
+            bank_template=args.bank_template,
+            signature=args.signature,
+            output_dir=args.output_dir,
+            include_signature=not args.without_signature,
+        )
     except Exception:
         LOGGER.exception("Bank PDF processing failed")
         return 1
@@ -45,8 +55,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 def fill_bank_pdf_with_data(
     bank_template: Path | None = None,
-    signature: Path = Dir.SIGNATURE_PATH,
+    signature: Path | None = Dir.SIGNATURE_PATH,
     output_dir: Path = Dir.BANK_OUTPUT_DIR,
+    include_signature: bool | None = None,
 ) -> Path:
     bank_template = resolve_bank_template(bank_template)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -57,12 +68,14 @@ def fill_bank_pdf_with_data(
     period_suffix = Utils.today()
     bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
 
+    resolved_signature = resolve_signature(signature, include_signature)
+
     render_bank_pdf(
         input_pdf=bank_template,
         output_pdf=bank_output,
         amount=amount,
         date=invoice_period.invoice_date,
-        signature=signature,
+        signature=resolved_signature,
     )
 
     LOGGER.info("Bank PDF processing finished successfully: %s", bank_output)
@@ -99,6 +112,22 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
 def is_pdf_file(path: Path) -> bool:
     with path.open("rb") as file_handle:
         return file_handle.read(5) == b"%PDF-"
+
+
+def resolve_signature(signature: Path | None, include_signature: bool | None) -> Path | None:
+    if include_signature is None:
+        include_signature = is_signature_enabled()
+
+    if not include_signature:
+        LOGGER.info("Bank PDF signature is disabled")
+        return None
+
+    return signature
+
+
+def is_signature_enabled() -> bool:
+    value = EnvVar.get_optional_env("BANK_PDF_WITH_SIGNATURE", "true").strip().lower()
+    return value not in {"0", "false", "no", "off"}
 
 
 if __name__ == "__main__":
