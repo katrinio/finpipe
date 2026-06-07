@@ -1,6 +1,6 @@
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import Cmd
+from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message
 from src.storage.repositories.telegram_update_repository import build_telegram_update_storage
 from src.utils.credentials import LOGGER
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
@@ -9,33 +9,34 @@ from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 def handle_message(text: str) -> bool:
     telegram = TelegramClient()
 
-    match text:
-        case Cmd.STATUS:
-            telegram.send_message("Finpipe is running")
-            return True
-        case Cmd.HELP:
-            telegram.send_message("/status - bot status\n/help - available commands/health - bot health")
-            return True
-        case Cmd.HEALTH:
-            try:
+    try:
+        match text:
+            case Cmd.STATUS:
+                telegram.send_message(BotInfo.PROJECT_RUNNING)
+                return True
+            case Cmd.HELP:
+                telegram.send_message(build_help_message())
+                return True
+            case Cmd.HEALTH:
                 telegram.healthcheck()
-                telegram.send_message("✅ Telegram API OK")
-            except Exception:
-                telegram.send_message("❌ Telegram API ERROR")
-                return False
-            return True
-        case Cmd.INVOICE:
-            telegram.send_message("⏳ Generating invoice...")
-            try:
+                telegram.send_message(BotInfo.TG_API_OK)
+                return True
+            case Cmd.INVOICE:
+                telegram.send_message(BotInfo.GENERATING_INVOICE)
                 generate_and_send_invoice()
-                telegram.send_message("✅ Invoice sent")
-            except Exception as error:
-                telegram.send_message(f"❌ Invoice generation failed:\n{error}")
-                return False
-            return True
-        case _:
-            telegram.send_message("... try another command")
-            return True
+                telegram.send_message(BotInfo.INVOICE_SENT)
+                return True
+            case Cmd.ABOUT:
+                telegram.send_message(BotInfo.ABOUT)
+                return True
+            case _:
+                telegram.send_message(BotInfo.NO_SUCH_COMMAND)
+                return True
+
+    except Exception as error:
+        LOGGER.exception("Command failed: %s", text)
+        telegram.send_message(f"❌ Command {text} failed:\n{error}")
+        return False
 
 
 def poll() -> None:
@@ -52,10 +53,10 @@ def poll() -> None:
         return
 
     # Первый запуск:
-    # помечаем накопившиеся сообщения обработанными и не выполняем старые команды
+    # не выполняем старые команды, только сохраняем их как обработанные.
     if last_processed_update_id is None:
         for update in result:
-            mark_update_as_processed(storage, update)
+            storage.mark_processed(update["update_id"])
         return
 
     for update in result:
@@ -67,35 +68,20 @@ def poll() -> None:
         if not text:
             continue
 
+        update_id = update["update_id"]
+
         try:
-            handle_message(text)
-            mark_update_as_processed(storage, update)
-        except Exception:
-            LOGGER.exception("Failed to process Telegram update %s", update["update_id"])
-
-
-def mark_update_as_processed(storage, update: dict) -> None:
-    """Обрабатывает один update и помечает его только после успеха."""
-
-    update_id = update.get("update_id")
-    if not isinstance(update_id, int):
-        return
-
-    if storage.is_processed(update_id):
-        return
-
-    message = update.get("message")
-    if not message:
-        return
-
-    text = message.get("text")
-    if not text:
-        return
-
-    if handle_message(text):
-        storage.mark_processed(update_id)
+            LOGGER.info("Processing Telegram command: %s", text)
+            if handle_message(text):
+                storage.mark_processed(update_id)
+        except Exception as error:
+            LOGGER.exception("Failed to process Telegram update %s, Error: %s", update_id, error)
 
 
 # TODO: убрать после отладки
 if __name__ == "__main__":
-    poll()
+    handle_message(Cmd.STATUS)
+    handle_message(Cmd.HEALTH)
+    handle_message(Cmd.INVOICE)
+    handle_message(Cmd.ABOUT)
+    handle_message(Cmd.HELP)
