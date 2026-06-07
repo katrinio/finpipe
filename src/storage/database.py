@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterator
-from contextlib import contextmanager
 from pathlib import Path
 
 from sqlalchemy import Engine, create_engine, event
@@ -45,20 +43,6 @@ class Database:
         """Создаёт новую независимую сессию."""
 
         return self._session_factory()
-
-    @contextmanager
-    def session_scope(self) -> Iterator[Session]:
-        """Открывает сессию с автоматическим commit/rollback."""
-
-        session = self.session()
-        try:
-            yield session
-            session.commit()
-        except Exception:
-            session.rollback()
-            raise
-        finally:
-            session.close()
 
     def _configure_sqlite(self) -> None:
         if not self._is_sqlite():
