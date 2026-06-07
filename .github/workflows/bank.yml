@@ -4,28 +4,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  invoice:
+  process-bank-flow:
     runs-on: ubuntu-latest
 
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      GMAIL_CREDENTIALS_PATH: ${{ github.workspace }}/credentials.json
+      GMAIL_TOKEN_PATH: ${{ github.workspace }}/token.json
+
+      BANK_EMAIL_SUBJECT: ${{ secrets.BANK_EMAIL_SUBJECT }}
+      BANK_EMAIL_FROM: ${{ secrets.BANK_EMAIL_FROM }}
+
       ACCOUNT_HOLDER: ${{ secrets.ACCOUNT_HOLDER }}
       ACCOUNT_HOLDER_ADDRESS: ${{ secrets.ACCOUNT_HOLDER_ADDRESS }}
       ACCOUNT_BIC: ${{ secrets.ACCOUNT_BIC }}
       ACCOUNT_IBAN: ${{ secrets.ACCOUNT_IBAN }}
       ACCOUNT_NUMBER: ${{ secrets.ACCOUNT_NUMBER }}
+
       BANK_NAME: ${{ secrets.BANK_NAME }}
+
       COMPANY_NAME: ${{ secrets.COMPANY_NAME }}
       COMPANY_ADDRESS: ${{ secrets.COMPANY_ADDRESS }}
+
       INVOICE_AMOUNT: ${{ secrets.INVOICE_AMOUNT }}
       SERVICE_AGREEMENT_DATE: ${{ secrets.SERVICE_AGREEMENT_DATE }}
-    steps:
-      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v6
+      PAYMENT_NUMBER: ${{ secrets.PAYMENT_NUMBER }}
+      PAYMENT_CODE: ${{ secrets.PAYMENT_CODE }}
+      PAYMENT_DESCRIPTION: ${{ secrets.PAYMENT_DESCRIPTION }}
+
+      REGISTRATION_NUMBER: ${{ secrets.REGISTRATION_NUMBER }}
+      CITY: ${{ secrets.CITY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: "3.13"
+
+      - name: Create Google credentials files
+        run: |
+          printf '%s' '${{ secrets.GMAIL_CREDENTIALS_JSON }}' > "${GMAIL_CREDENTIALS_PATH}"
+          printf '%s' '${{ secrets.GMAIL_TOKEN_JSON }}' > "${GMAIL_TOKEN_PATH}"
+
+          test -s "${GMAIL_CREDENTIALS_PATH}"
+          test -s "${GMAIL_TOKEN_PATH}"
 
       - name: Install dependencies
         run: |
@@ -38,18 +66,28 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libreoffice
 
-      - name: Process Bank Flow and Send Docs
+      - name: Process Bank Flow and Send Documents
         run: |
           poetry run python -m src.workflows.process_bank_request
+
+      - name: Send Success Notification
+        if: success()
+        run: |
           curl -X POST \
-            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
             -d text="✅ Finpipe Process Bank Flow success"
 
-      - name: Process Bank Flow Failed Report
+      - name: Send Failure Notification
         if: failure()
         run: |
           curl -X POST \
-            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
             -d text="❌ Finpipe Process Bank Flow failed"
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f "${GMAIL_CREDENTIALS_PATH}"
+          rm -f "${GMAIL_TOKEN_PATH}"
