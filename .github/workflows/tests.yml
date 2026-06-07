@@ -70,3 +70,6 @@ jobs:
           else
             poetry run pytest tests/integration -ra
           fi
+
+      - name: Type check
+        run: poetry run mypy src
