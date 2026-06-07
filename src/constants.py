@@ -8,15 +8,16 @@ class Format:
 
 
 class Dir:
-    TEMPLATE_PATH = Path("templates")
-    OUTPUT_DIR = Path("output")
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]
+    TEMPLATE_PATH = PROJECT_ROOT / "templates"
+    OUTPUT_DIR = PROJECT_ROOT / "output"
     # invoice
     INVOICE_TEMPLATE = TEMPLATE_PATH / f"invoice_template.{Format.DOCX}"
     INVOICE_OUTPUT_DIR = OUTPUT_DIR / "invoices"
     # bank
     BANK_OUTPUT_DIR = OUTPUT_DIR / "bank"
 
-    ATTACHMENTS = Path("attachments")
+    ATTACHMENTS = PROJECT_ROOT / "attachments"
     SIGNATURE_PATH = TEMPLATE_PATH / f"signature.{Format.PNG}"
 
     TRANSFER_REQUEST_TEMPLATE = TEMPLATE_PATH / f"transfer_request_template.{Format.DOCX}"
@@ -24,7 +25,7 @@ class Dir:
 
 
 class TestData:
-    RESOURCES_DIR = Path("tests/resources")
+    RESOURCES_DIR = Dir.PROJECT_ROOT / "tests/resources"
 
     INVOICE_TEMPLATE_PATH = RESOURCES_DIR / f"test_invoice_template.{Format.DOCX}"
     TRANSFER_TEMPLATE_PATH = RESOURCES_DIR / f"test_transfer_request_template.{Format.DOCX}"
