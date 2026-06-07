@@ -210,10 +210,7 @@ __marimo__/
 
 # Sensitive
 attachments/
-templates/*
-!templates/invoice_template.docx
-!templates/transfer_request_template.docx
-!templates/signature.png
+templates/signature.png
 credentials.json
 token.json
 output/
