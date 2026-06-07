@@ -20,16 +20,9 @@ def generate_transfer_request(
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_pdf_path: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
 ) -> Path:
-    template_path = resolve_project_path(Path(template_path))
-    output_pdf_path = resolve_project_path(Path(output_pdf_path))
-
-    LOGGER.info(
-        "Rendering transfer request from template: cwd=%s template_path=%s exists=%s output_pdf_path=%s",
-        Path.cwd(),
-        template_path,
-        template_path.exists(),
-        output_pdf_path,
-    )
+    template_path = resolve_project_path(template_path)
+    output_pdf_path = resolve_project_path(output_pdf_path)
+    LOGGER.info("Rendering transfer request from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 

@@ -107,10 +107,6 @@ class EnvVar:
     @classmethod
     def get_env_path(cls, name: str) -> Path:
         value = EnvVar.get_required_env(name)
-        if not value:
-            message = f"Missing required environment variable: {name}"
-            raise RuntimeError(message)
-
         path = Path(value).expanduser()
         if not path.is_absolute():
             path = EnvVar.PROJECT_ROOT / path

@@ -74,8 +74,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
-    if not amount:
-        parser.error("Pass --amount or set INVOICE_AMOUNT in .env")
 
     if not args.template.exists():
         LOGGER.error("Invoice template not found: %s", args.template)
