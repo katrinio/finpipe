@@ -58,6 +58,7 @@ def fill_bank_pdf(
 
 def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
     """Собирает значения полей для наложения на PDF банка."""
+    EnvVar.load_dotenv()
 
     payment_number = EnvVar.get_required_env("PAYMENT_NUMBER")
     payment_code = EnvVar.get_required_env("PAYMENT_CODE")
