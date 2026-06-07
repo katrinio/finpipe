@@ -13,7 +13,8 @@ from src.logging_config import configure_logging
 from src.services.invoice.invoice_context import build_invoice_period
 from src.services.invoice.invoice_generator import generate_invoice
 from src.services.invoice.invoice_models import InvoiceData
-from src.storage.history import HistoryStorage
+from src.storage.dependencies import build_storage_dependencies
+from src.storage.repositories import InvoiceHistoryRepository
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ def generate_invoice_pdf(
     invoice_date: date | None = None,
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
+    invoice_history_repository: InvoiceHistoryRepository | None = None,
 ) -> Path:
     """
     Генерирует PDF-инвойс на указанную сумму
@@ -32,7 +34,6 @@ def generate_invoice_pdf(
     """
 
     invoice_period = build_invoice_period(invoice_date)
-
     output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
     data = InvoiceData(
@@ -55,9 +56,10 @@ def generate_invoice_pdf(
         ),
     )
 
+    repository = invoice_history_repository or build_storage_dependencies().invoice_history
     invoice_number = invoice_period.invoice_number
 
-    if HistoryStorage.invoice_exists(invoice_number):
+    if repository.invoice_exists(invoice_number):
         LOGGER.warning("Invoice %s already exists", invoice_number)
         msg = f"Invoice {invoice_number} already exists."
         raise ValueError(msg)
@@ -68,7 +70,7 @@ def generate_invoice_pdf(
         data=data,
     )
 
-    HistoryStorage.add_invoice(invoice_number)
+    repository.add_invoice(invoice_number)
 
     return output_pdf_path
 
@@ -88,6 +90,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         LOGGER.error("Invoice template not found: %s", args.template)
         return 1
 
+    storage = build_storage_dependencies()
     invoice_period = build_invoice_period(args.invoice_date)
 
     LOGGER.info(
@@ -101,6 +104,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_date=args.invoice_date,
         template_path=args.template,
         output_dir=args.output_dir,
+        invoice_history_repository=storage.invoice_history,
     )
 
     LOGGER.info("Invoice saved to %s", pdf_path)

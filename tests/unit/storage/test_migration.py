@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from src.storage.database import Database, build_sqlite_url
 from src.storage.migration import JsonToSQLiteMigrator
-from src.storage.models import AppliedMigration
+from src.storage.orm import AppliedMigration
 from src.storage.sqlalchemy_repositories import (
     SQLAlchemyInvoiceHistoryRepository,
     SQLAlchemyProcessedMessageRepository,

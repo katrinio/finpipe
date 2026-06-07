@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 
 from src.storage import processed_messages
 from src.storage.database import Database, build_sqlite_url
-from src.storage.models import ProcessedMessage
+from src.storage.orm import ProcessedMessage
 
 
 def test_load_processed_messages_returns_empty_set_when_file_missing(tmp_path, monkeypatch) -> None:

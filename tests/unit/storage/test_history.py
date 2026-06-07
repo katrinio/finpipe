@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from src.storage.database import Database, build_sqlite_url
 from src.storage.history import HistoryStorage
-from src.storage.models import HistoryRecord
+from src.storage.orm import HistoryRecord
 
 
 def test_history_storage_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

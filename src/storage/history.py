@@ -1,65 +1,56 @@
-"""Хранение истории уже созданных инвойсов."""
+"""Совместимый фасад истории инвойсов поверх нового repository-слоя."""
 
-import json
+from __future__ import annotations
+
 import logging
-from pathlib import Path
+
+from src.constants import Dir
+from src.storage.dependencies import build_storage_dependencies
+from src.storage.repositories import InvoiceHistoryRepository
 
 LOGGER = logging.getLogger(__name__)
 
 
 class HistoryStorage:
-    """Работает с локальным JSON-файлом истории инвойсов."""
+    """Сохраняет прежний публичный API и делегирует операции репозиторию истории инвойсов."""
 
-    FILE_PATH = Path(__file__).with_name("history.json")
+    FILE_PATH = Dir.STORAGE_HISTORY_JSON
+    DB_PATH = Dir.STORAGE_DB
+
+    @classmethod
+    def _repository(cls) -> InvoiceHistoryRepository:
+        return build_storage_dependencies(
+            db_path=cls.DB_PATH,
+            history_json_path=cls.FILE_PATH,
+        ).invoice_history
 
     @classmethod
     def load_history(cls) -> set[str]:
         """Загружает набор уже сохранённых номеров инвойсов."""
 
-        if not cls.FILE_PATH.exists():
-            return set()
-
-        with open(cls.FILE_PATH, encoding="utf-8") as file:
-            data = json.load(file)
-
-        return set(data.get("invoices", []))
+        return set(cls._repository().list_invoices())
 
     @classmethod
     def invoice_exists(cls, invoice_number: str) -> bool:
         """Проверяет, был ли инвойс с таким номером уже создан."""
 
-        return invoice_number in cls.load_history()
+        return cls._repository().invoice_exists(invoice_number)
 
     @classmethod
     def add_invoice(cls, invoice_number: str) -> None:
-        """Добавляет номер инвойса в локальную историю."""
+        """Добавляет номер инвойса в историю."""
 
-        invoices = cls.load_history()
-        invoices.add(invoice_number)
-
-        with open(cls.FILE_PATH, "w", encoding="utf-8") as file:
-            json.dump(
-                {"invoices": sorted(invoices)},
-                file,
-                indent=4,
-                ensure_ascii=False,
-            )
-
+        cls._repository().add_invoice(invoice_number)
         LOGGER.info("Saved invoice %s", invoice_number)
 
     @classmethod
     def list_invoices(cls) -> list[str]:
         """Возвращает отсортированный список номеров инвойсов."""
 
-        return sorted(cls.load_history())
+        return cls._repository().list_invoices()
 
     @classmethod
     def get_last_invoice(cls) -> str | None:
         """Возвращает последний номер инвойса или `None`."""
 
-        invoices = sorted(cls.load_history())
-
-        if not invoices:
-            return None
-
-        return invoices[-1]
+        return cls._repository().get_last_invoice()

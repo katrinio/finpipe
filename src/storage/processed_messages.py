@@ -1,57 +1,53 @@
-"""Учёт уже обработанных писем банка."""
+"""Совместимый фасад processed messages поверх нового repository-слоя."""
 
-import json
+from __future__ import annotations
+
 import logging
-from pathlib import Path
+
+from src.constants import Dir
+from src.storage.dependencies import build_storage_dependencies
+from src.storage.repositories import ProcessedMessageRepository
 
 LOGGER = logging.getLogger(__name__)
-FILE_PATH = Path(__file__).with_name("processed_messages.json")
+FILE_PATH = Dir.STORAGE_PROCESSED_MESSAGES_JSON
+DB_PATH = Dir.STORAGE_DB
+
+
+def _repository() -> ProcessedMessageRepository:
+    return build_storage_dependencies(
+        db_path=DB_PATH,
+        processed_messages_json_path=FILE_PATH,
+    ).processed_messages
 
 
 def load_processed_messages() -> set[str]:
     """Загружает набор уже обработанных message_id."""
 
-    if not FILE_PATH.exists():
-        return set()
-
-    with open(FILE_PATH, encoding="utf-8") as file:
-        data = json.load(file)
-
-    return set(data.get("processed_messages", []))
+    return set(_repository().list_message_ids())
 
 
 def save_processed_messages(ids: set[str]) -> None:
-    """Сохраняет текущий набор обработанных писем в JSON."""
+    """Полностью сохраняет текущий набор обработанных писем в SQLite."""
 
-    data = {"processed_messages": sorted(ids)}
-
-    with open(FILE_PATH, "w", encoding="utf-8") as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
-
-    LOGGER.debug("Saved %s processed message ids to %s", len(ids), FILE_PATH)
+    _repository().replace_all(ids)
+    LOGGER.debug("Saved %s processed message ids to %s", len(ids), DB_PATH)
 
 
 def is_processed(message_id: str) -> bool:
     """Проверяет, обрабатывалось ли письмо ранее."""
 
-    return message_id in load_processed_messages()
+    return _repository().is_processed(message_id)
 
 
 def mark_as_processed(message_id: str) -> None:
     """Помечает письмо банка как обработанное."""
 
-    ids = load_processed_messages()
-    ids.add(message_id)
-    save_processed_messages(ids)
+    _repository().mark_as_processed(message_id)
     LOGGER.debug("Marked message as processed: %s", message_id)
 
 
 def clear_processed_history() -> None:
     """Полностью очищает историю обработанных писем."""
 
-    data: dict[str, list[str]] = {"processed_messages": []}
-
-    with open(FILE_PATH, "w", encoding="utf-8") as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
-
-    LOGGER.debug("Cleared processed message history in %s", FILE_PATH)
+    _repository().clear()
+    LOGGER.debug("Cleared processed message history in %s", DB_PATH)

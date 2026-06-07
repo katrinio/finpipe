@@ -2,6 +2,18 @@
 
 `src/storage/storage.sqlite3` хранит локальное состояние проекта.
 
+## ORM structure
+
+По аналогии с `permafor` ORM вынесен в отдельный пакет `src/storage/orm/`:
+
+- `base.py` - общий `DeclarativeBase`
+- `history_record.py` - сущность истории инвойсов
+- `processed_message.py` - сущность обработанных писем
+- `applied_migration.py` - сущность служебной миграции
+- `__init__.py` - re-export ORM-сущностей
+
+Файл `src/storage/models.py` оставлен как совместимый re-export, чтобы не ломать старые импорты.
+
 ## Схема
 
 - `invoice_history`
@@ -14,20 +26,20 @@
   - `migration_name TEXT PRIMARY KEY`
   - `applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`
 
-## ORM-модели
+## ORM entities
 
 - `HistoryRecord` -> `invoice_history`
 - `ProcessedMessage` -> `processed_messages`
 - `AppliedMigration` -> `applied_migrations`
 
 Сейчас связей между сущностями нет. Новые сущности вроде `Invoice`, `BankRequest`, `EmailHistory` и `AuditLog`
-можно добавлять как отдельные ORM-модели и отдельные explicit repositories без изменения текущего контракта.
+можно добавлять как отдельные ORM-модули внутри `src/storage/orm/` и отдельные explicit repositories.
 
 ## Поток инициализации
 
 1. Composition root вызывает `build_storage_dependencies()`.
 2. `Database` создаёт engine и `sessionmaker`.
-3. `Database.initialize_schema()` создаёт ORM-таблицы через `Base.metadata.create_all(...)`.
+3. `Database.initialize_schema()` создаёт ORM-таблицы через `BaseStorage.metadata.create_all(...)`.
 4. `JsonToSQLiteMigrator.migrate()` один раз переносит legacy JSON.
 5. Workflow получает готовые repository-абстракции и работает только через них.
 
@@ -44,3 +56,4 @@ Commit/rollback управляется явно внутри infrastructure-сл
 ## TODO
 
 При появлении нескольких версий схемы заменить `create_all` на Alembic migration chain.
+После перевода всех импортов на `src.storage.orm` удалить compatibility-файл `src/storage/models.py`.
