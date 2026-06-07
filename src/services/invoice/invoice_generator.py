@@ -27,17 +27,24 @@ def generate_invoice(
     replacements = Replacement.build_replacements(template_data)
     pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
 
-    DocxTemplateRenderer.render(
-        template_path=template_path,
-        output_path=rendered_docx_path,
-        replacements=replacements,
-    )
+    try:
+        DocxTemplateRenderer.render(
+            template_path=template_path,
+            output_path=rendered_docx_path,
+            replacements=replacements,
+        )
 
-    render_pdf(
-        rendered_docx_path=rendered_docx_path,
-        output_path=output_pdf_path,
-        data=pdf_data,
-    )
+        render_pdf(
+            rendered_docx_path=rendered_docx_path,
+            output_path=output_pdf_path,
+            data=pdf_data,
+        )
+    except FileNotFoundError as error:
+        LOGGER.warning(
+            "Invoice template not found, using fallback PDF renderer: %s",
+            error,
+        )
+        InvoiceFallbackPdfRenderer.render(output_pdf_path, pdf_data)
 
     LOGGER.info(
         "Generated invoice: docx=%s pdf=%s",

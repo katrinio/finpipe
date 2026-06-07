@@ -1,7 +1,10 @@
+import logging
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from src.utils.credentials import EnvVar
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DocxTemplateRenderer:
@@ -12,8 +15,20 @@ class DocxTemplateRenderer:
         output_path: Path,
         replacements: dict[str, str],
     ) -> None:
+        original_template_path = template_path
+        original_output_path = output_path
         template_path = cls.resolve_project_path(template_path)
         output_path = cls.resolve_project_path(output_path)
+
+        LOGGER.info(
+            "DOCX template render paths: cwd=%s template_path=%s resolved_template_path=%s exists=%s output_path=%s resolved_output_path=%s",
+            Path.cwd(),
+            original_template_path,
+            template_path,
+            template_path.exists(),
+            original_output_path,
+            output_path,
+        )
 
         with (
             ZipFile(template_path, "r") as source,

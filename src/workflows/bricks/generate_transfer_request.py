@@ -22,6 +22,9 @@ def generate_transfer_request_pdf(
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
 ) -> Path:
+    template_path = Path(template_path)
+    output_dir = Path(output_dir)
+
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
 
@@ -31,6 +34,14 @@ def generate_transfer_request_pdf(
         city=EnvVar.get_required_env("CITY"),
         date=invoice_period.invoice_date,
         name=EnvVar.get_required_env("ACCOUNT_HOLDER"),
+    )
+
+    LOGGER.info(
+        "Transfer request inputs: cwd=%s template_path=%s exists=%s output_pdf_path=%s",
+        Path.cwd(),
+        template_path,
+        template_path.exists(),
+        output_pdf_path,
     )
 
     generate_transfer_request(
