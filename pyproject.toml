@@ -47,6 +47,15 @@ source = ["src"]
 [tool.coverage.report]
 skip_empty = true
 show_missing = true
+omit = [
+    "src/constants.py",
+    "src/**/__init__.py",
+]
+
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "raise SystemExit",
+]
 
 [tool.mypy]
 ignore_missing_imports = true
