@@ -127,7 +127,7 @@ def resolve_signature(signature: Path | None, include_signature: bool | None) ->
 
 
 def is_signature_enabled() -> bool:
-    value = EnvVar.get_optional_env("BANK_PDF_WITH_SIGNATURE", "true").strip().lower()
+    value = EnvVar.get_optional_env("BANK_PDF_WITH_SIGNATURE", "false").strip().lower()
     return value not in {"0", "false", "no", "off"}
 
 
