@@ -22,8 +22,8 @@ def generate_transfer_request_pdf(
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
 ) -> Path:
-    template_path = Path(template_path)
-    output_dir = Path(output_dir)
+    template_path = resolve_project_path(Path(template_path))
+    output_dir = resolve_project_path(Path(output_dir))
 
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
@@ -122,6 +122,13 @@ def parse_invoice_date(value: str) -> date:
     except ValueError as error:
         msg = "Expected date in YYYY-MM-DD format"
         raise argparse.ArgumentTypeError(msg) from error
+
+
+def resolve_project_path(path: Path) -> Path:
+    if path.is_absolute():
+        return path
+
+    return EnvVar.PROJECT_ROOT / path
 
 
 if __name__ == "__main__":

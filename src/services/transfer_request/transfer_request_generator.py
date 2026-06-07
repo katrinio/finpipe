@@ -10,6 +10,7 @@ from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
 from src.services.document.replacement import Replacement
 from src.services.transfer_request.transfer_request_models import TransferRequestData
 from src.services.transfer_request.transfer_request_pdf_renderer import TransferRequestFallbackPdfRenderer
+from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,8 +20,8 @@ def generate_transfer_request(
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_pdf_path: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
 ) -> Path:
-    template_path = Path(template_path)
-    output_pdf_path = Path(output_pdf_path)
+    template_path = resolve_project_path(Path(template_path))
+    output_pdf_path = resolve_project_path(Path(output_pdf_path))
 
     LOGGER.info(
         "Rendering transfer request from template: cwd=%s template_path=%s exists=%s output_pdf_path=%s",
@@ -35,6 +36,18 @@ def generate_transfer_request(
     template_data = Replacement.to_template_data(data)
     replacements = Replacement.build_replacements(template_data)
     pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
+
+    if not template_path.exists():
+        LOGGER.warning(
+            "Transfer request template not found before DOCX render, using fallback PDF renderer: %s",
+            template_path,
+        )
+        TransferRequestFallbackPdfRenderer.render(output_pdf_path, pdf_data)
+        LOGGER.info(
+            "Generated transfer via fallback only: pdf=%s",
+            output_pdf_path,
+        )
+        return output_pdf_path
 
     try:
         DocxTemplateRenderer.render(
@@ -76,3 +89,10 @@ def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]
             error,
         )
         TransferRequestFallbackPdfRenderer.render(output_path, data)
+
+
+def resolve_project_path(path: Path) -> Path:
+    if path.is_absolute():
+        return path
+
+    return EnvVar.PROJECT_ROOT / path

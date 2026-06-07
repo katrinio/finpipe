@@ -118,14 +118,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--template",
         type=Path,
-        default=Dir.TEMPLATE_PATH,
-        help=f"Path to invoice DOCX template. Defaults to {Dir.TEMPLATE_PATH}.",
+        default=Dir.INVOICE_TEMPLATE,
+        help=f"Path to invoice DOCX template. Defaults to {Dir.INVOICE_TEMPLATE}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Dir.OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {Dir.OUTPUT_DIR}.",
+        default=Dir.INVOICE_OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {Dir.INVOICE_OUTPUT_DIR}.",
     )
     return parser
 
