@@ -2,7 +2,7 @@ import pytest
 from pypdf import PdfReader
 
 from src.constants import TestData
-from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
+from src.infrastructure.document import DocxToPdfConverter
 
 
 @pytest.mark.skipif(

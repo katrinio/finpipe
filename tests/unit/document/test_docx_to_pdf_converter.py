@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from src.services.document import docx_to_pdf_converter as converter_module
-from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
+from src.infrastructure.document import DocxToPdfConverter
+from src.infrastructure.document import docx_to_pdf_converter as converter_module
 
 
 def test_build_osascript_command_flattens_script_lines() -> None:

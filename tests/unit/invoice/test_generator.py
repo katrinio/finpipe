@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.services.document.replacement import Replacement
+from src.infrastructure.document import Replacement
 
 
 def test_build_replacements_uses_mapping_field_names() -> None:

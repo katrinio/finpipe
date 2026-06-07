@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 
-from src.services.document.fallback_pdf_renderer import FallbackPdfRenderer
+from src.infrastructure.document.fallback_pdf_renderer import FallbackPdfRenderer
 
 LOGGER = logging.getLogger(__name__)
 PdfData = dict[str, str]

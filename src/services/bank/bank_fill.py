@@ -7,8 +7,8 @@ from pathlib import Path
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 
+from src.infrastructure.document.pdf_get_page_size import PdfGetPageSize
 from src.services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
-from src.services.document.pdf_get_page_size import PdfGetPageSize
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)

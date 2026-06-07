@@ -7,9 +7,9 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from src.constants import Format
-from src.services.document.docx_template_renderer import DocxTemplateRenderer
-from src.services.document.docx_to_pdf_converter import DocxToPdfConverter
-from src.services.document.replacement import Replacement
+from src.infrastructure.document.docx_template_renderer import DocxTemplateRenderer
+from src.infrastructure.document.docx_to_pdf_converter import DocxToPdfConverter
+from src.infrastructure.document.replacement import Replacement
 from src.services.invoice.invoice_models import InvoiceData
 from src.services.invoice.invoice_pdf_renderer import InvoiceFallbackPdfRenderer
 
