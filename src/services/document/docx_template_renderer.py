@@ -1,6 +1,8 @@
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from src.utils.credentials import EnvVar
+
 
 class DocxTemplateRenderer:
     @classmethod
@@ -10,6 +12,9 @@ class DocxTemplateRenderer:
         output_path: Path,
         replacements: dict[str, str],
     ) -> None:
+        template_path = cls.resolve_project_path(template_path)
+        output_path = cls.resolve_project_path(output_path)
+
         with (
             ZipFile(template_path, "r") as source,
             ZipFile(
@@ -36,3 +41,10 @@ class DocxTemplateRenderer:
                     name,
                     content,
                 )
+
+    @staticmethod
+    def resolve_project_path(path: Path) -> Path:
+        if path.is_absolute():
+            return path
+
+        return EnvVar.PROJECT_ROOT / path

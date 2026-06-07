@@ -23,6 +23,10 @@ def fill_bank_pdf(
     date: str,
     signature: Path | None = None,
 ) -> None:
+    input_pdf = resolve_project_path(input_pdf)
+    output_pdf = resolve_project_path(output_pdf)
+    signature = resolve_project_path(signature) if signature is not None else None
+
     LOGGER.info("Filling bank PDF: input=%s output=%s", input_pdf, output_pdf)
     reader = PdfReader(str(input_pdf))
     page = reader.pages[0]
@@ -98,3 +102,10 @@ def draw_form_fields(pdf_canvas: canvas.Canvas, values: dict[str, str]) -> None:
         if value is not None:
             field = PDF_FIELDS[field_name]
             pdf_canvas.drawString(field["x"], field["y"], str(value))
+
+
+def resolve_project_path(path: Path) -> Path:
+    if path.is_absolute():
+        return path
+
+    return EnvVar.PROJECT_ROOT / path
