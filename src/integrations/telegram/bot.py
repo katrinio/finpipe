@@ -1,6 +1,6 @@
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import Cmd
+from src.integrations.telegram.commands import BotInfo, Cmd
 from src.storage.repositories.telegram_update_repository import build_telegram_update_storage
 from src.utils.credentials import LOGGER
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
@@ -20,8 +20,8 @@ def handle_message(text: str) -> bool:
             try:
                 telegram.healthcheck()
                 telegram.send_message("✅ Telegram API OK")
-            except Exception:
-                telegram.send_message("❌ Telegram API ERROR")
+            except Exception as error:
+                telegram.send_message(f"❌ Telegram API ERROR:\n{error}")
                 return False
             return True
         case Cmd.INVOICE:
@@ -32,6 +32,9 @@ def handle_message(text: str) -> bool:
             except Exception as error:
                 telegram.send_message(f"❌ Invoice generation failed:\n{error}")
                 return False
+            return True
+        case Cmd.ABOUT:
+            telegram.send_message(BotInfo.ABOUT)
             return True
         case _:
             telegram.send_message("... try another command")
