@@ -1,7 +1,6 @@
 default_language_version:
   python: python3.14
 
-# Защищенное регулярное выражение для игнорирования папок и файлов
 exclude: >
   (?x)^(
     .*\.pytest_cache/|
@@ -36,3 +35,11 @@ repos:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy src
+        language: system
+        pass_filenames: false

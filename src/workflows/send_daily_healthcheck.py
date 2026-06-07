@@ -7,7 +7,7 @@ from src.logging_config import configure_logging
 from src.utils.credentials import LOGGER
 
 
-def main() -> int | None:
+def main() -> int:
     """Собирает статусы из окружения и отправляет сводный отчёт."""
 
     configure_logging()
@@ -22,6 +22,8 @@ def main() -> int | None:
     except Exception:
         LOGGER.exception("Healthcheck failed.")
         return 1
+
+    return 0
 
 
 if __name__ == "__main__":
