@@ -24,9 +24,14 @@ def get_gmail_service() -> Any:
     token_path = EnvVar.get_env_path("GMAIL_TOKEN_PATH")
     credentials = EnvVar.load_credentials(token_path, GMAIL_SCOPES)
 
-    if credentials and credentials.valid:
+    if credentials and credentials.valid and has_required_scopes(credentials):
         LOGGER.info("Loaded valid Gmail OAuth token from %s", token_path)
     else:
+        if credentials and credentials.valid and not has_required_scopes(credentials):
+            LOGGER.warning(
+                "Gmail OAuth token at %s is missing required scopes; reauthorizing",
+                token_path,
+            )
         credentials = refresh_or_create_credentials(
             credentials,
             EnvVar.get_env_path("GMAIL_CREDENTIALS_PATH"),
@@ -65,3 +70,11 @@ def save_credentials(credentials: Credentials, token_path: Path) -> None:
     token_path.parent.mkdir(parents=True, exist_ok=True)
     token_path.write_text(credentials.to_json(), encoding="utf-8")
     LOGGER.info("Saved Gmail OAuth token to %s", token_path)
+
+
+def has_required_scopes(credentials: Credentials) -> bool:
+    """Проверяет, выданы ли токену все необходимые Gmail scopes."""
+
+    granted_scopes = set(credentials.scopes or [])
+    required_scopes = set(GMAIL_SCOPES)
+    return required_scopes.issubset(granted_scopes)
