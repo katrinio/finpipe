@@ -28,16 +28,16 @@ def find_project_root(start: Path | None = None) -> Path:
 def unique_paths(paths: Sequence[Path]) -> tuple[Path, ...]:
     """Удаляет дубликаты путей после нормализации и resolve."""
 
-    result: list[Path] = []
+    deduplicated_paths: list[Path] = []
     seen: set[Path] = set()
 
     for path in paths:
         resolved_path = path.expanduser().resolve()
         if resolved_path not in seen:
-            result.append(resolved_path)
+            deduplicated_paths.append(resolved_path)
             seen.add(resolved_path)
 
-    return tuple(result)
+    return tuple(deduplicated_paths)
 
 
 class EnvVar:
@@ -110,12 +110,12 @@ class EnvVar:
 
         cls.load_dotenv()
 
-        value = os.getenv(name)
-        if not value:
+        env_value = os.getenv(name)
+        if not env_value:
             msg = f"Missing required environment variable: {name}. Checked .env files: {cls.format_dotenv_paths()}"
             raise RuntimeError(msg)
 
-        return value
+        return env_value
 
     @classmethod
     def get_optional_env(cls, name: str, default: str) -> str:
@@ -128,8 +128,8 @@ class EnvVar:
     def get_env_path(cls, name: str) -> Path:
         """Преобразует env-переменную с путём в абсолютный `Path`."""
 
-        value = EnvVar.get_required_env(name)
-        path = Path(value).expanduser()
+        env_path_value = EnvVar.get_required_env(name)
+        path = Path(env_path_value).expanduser()
         if not path.is_absolute():
             # В CI и локально разрешаем относительные пути от корня проекта.
             path = EnvVar.PROJECT_ROOT / path

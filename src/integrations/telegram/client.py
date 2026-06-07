@@ -81,7 +81,7 @@ class TelegramClient:
 
         icon = "✅" if overall_success else "❌"
 
-        message = (
+        report_message = (
             f"{icon} Finpipe daily check\n\n"
             f"Unit tests: {Utils.format_status(unit_status)}\n"
             f"Integration tests: {Utils.format_status(integration_status)}\n"
@@ -90,4 +90,4 @@ class TelegramClient:
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
         )
 
-        self.send_message(message)
+        self.send_message(report_message)

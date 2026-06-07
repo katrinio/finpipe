@@ -32,7 +32,7 @@ def generate_transfer_request_pdf(
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
 
-    data = TransferRequestData(
+    transfer_request_data = TransferRequestData(
         account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
         amount=amount,
         city=EnvVar.get_required_env("CITY"),
@@ -43,7 +43,7 @@ def generate_transfer_request_pdf(
     generate_transfer_request(
         template_path=template_path,
         output_pdf_path=output_pdf_path,
-        data=data,
+        data=transfer_request_data,
     )
     return output_pdf_path
 

@@ -1,6 +1,7 @@
 """Хранилища локального состояния и истории запусков."""
 
 from .processed_messages import (
+    clear_processed_history,
     is_processed,
     load_processed_messages,
     mark_as_processed,
@@ -8,6 +9,7 @@ from .processed_messages import (
 )
 
 __all__ = [
+    "clear_processed_history",
     "is_processed",
     "load_processed_messages",
     "mark_as_processed",
