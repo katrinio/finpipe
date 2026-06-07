@@ -1,0 +1,2 @@
+class Cmd:
+    STATUS = "/status"

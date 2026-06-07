@@ -34,14 +34,16 @@ class TelegramClient:
     def send_message(self, text: str) -> None:
         """Отправляет текстовое сообщение в целевой Telegram-чат."""
 
-        requests.post(
+        response = requests.post(
             f"https://api.telegram.org/bot{self.token}/sendMessage",
             json={
                 "chat_id": self.chat_id,
                 "text": text,
             },
             timeout=10,
-        ).raise_for_status()
+        )
+
+        response.raise_for_status()
 
     def send_document(self, document_path: Path) -> None:
         """Отправляет PDF-файл в Telegram как документ."""
@@ -60,6 +62,17 @@ class TelegramClient:
                 timeout=30,
             )
         response.raise_for_status()
+
+    def get_updates(self, offset: int | None = None) -> dict:
+        params = {"offset": offset} if offset is not None else None
+        response = requests.get(
+            f"https://api.telegram.org/bot{self.token}/getUpdates",
+            params=params,
+            timeout=10,
+        )
+
+        response.raise_for_status()
+        return response.json()
 
     def send_daily_report(
         self,
