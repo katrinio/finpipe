@@ -14,6 +14,12 @@ from src.utils.credentials import EnvVar
 LOGGER = logging.getLogger(__name__)
 
 
+def get_required_env(name: str) -> str:
+    """Возвращает обязательную переменную окружения для bank PDF."""
+
+    return EnvVar.get_required_env(name)
+
+
 def fill_bank_pdf(
     input_pdf: Path,
     output_pdf: Path,
@@ -58,15 +64,14 @@ def fill_bank_pdf(
 
 def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
     """Собирает значения полей для наложения на PDF банка."""
-    EnvVar.load_dotenv()
 
-    payment_number = EnvVar.get_required_env("PAYMENT_NUMBER")
-    payment_code = EnvVar.get_required_env("PAYMENT_CODE")
-    payment_description = EnvVar.get_required_env("PAYMENT_DESCRIPTION")
-    recipient = EnvVar.get_required_env("ACCOUNT_HOLDER")
-    registration_number = EnvVar.get_required_env("REGISTRATION_NUMBER")
-    account_number = EnvVar.get_required_env("ACCOUNT_NUMBER")
-    city = EnvVar.get_required_env("CITY")
+    payment_number = get_required_env("PAYMENT_NUMBER")
+    payment_code = get_required_env("PAYMENT_CODE")
+    payment_description = get_required_env("PAYMENT_DESCRIPTION")
+    recipient = get_required_env("ACCOUNT_HOLDER")
+    registration_number = get_required_env("REGISTRATION_NUMBER")
+    account_number = get_required_env("ACCOUNT_NUMBER")
+    city = get_required_env("CITY")
 
     return {
         "number": payment_number,
