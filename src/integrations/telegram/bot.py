@@ -2,6 +2,7 @@ from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import Cmd
 from src.storage.repositories.telegram_update_repository import build_telegram_update_storage
+from src.utils.credentials import LOGGER
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
 
@@ -41,20 +42,36 @@ def poll() -> None:
     telegram = TelegramClient()
     storage = build_telegram_update_storage(Dir.STORAGE_DB)
     last_processed_update_id = storage.get_last_processed_update_id()
+
     offset = last_processed_update_id + 1 if last_processed_update_id is not None else None
+
     updates = telegram.get_updates(offset=offset)
 
     result = updates.get("result", [])
     if not result:
         return
 
+    # Первый запуск:
+    # помечаем накопившиеся сообщения обработанными и не выполняем старые команды
     if last_processed_update_id is None:
         for update in result:
             mark_update_as_processed(storage, update)
         return
 
     for update in result:
-        mark_update_as_processed(storage, update)
+        message = update.get("message")
+        if not message:
+            continue
+
+        text = message.get("text")
+        if not text:
+            continue
+
+        try:
+            handle_message(text)
+            mark_update_as_processed(storage, update)
+        except Exception:
+            LOGGER.exception("Failed to process Telegram update %s", update["update_id"])
 
 
 def mark_update_as_processed(storage, update: dict) -> None:
