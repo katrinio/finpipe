@@ -1,6 +1,6 @@
 from src.storage.database import Database, build_sqlite_url
-from src.storage.repositories.sqlalchemy_repositories import (
-    SQLAlchemyInvoiceHistoryRepository,
+from src.storage.repositories.history_repository import SQLAlchemyInvoiceHistoryRepository
+from src.storage.repositories.processed_message_repository import (
     SQLAlchemyProcessedMessageRepository,
 )
 

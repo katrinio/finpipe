@@ -7,11 +7,8 @@ from pathlib import Path
 
 from src.constants import Dir
 from src.storage.database import Database, build_sqlite_url
-from src.storage.repositories.repositories import InvoiceHistoryRepository, ProcessedMessageRepository
-from src.storage.repositories.sqlalchemy_repositories import (
-    SQLAlchemyInvoiceHistoryRepository,
-    SQLAlchemyProcessedMessageRepository,
-)
+from src.storage.repositories.history_repository import InvoiceHistoryRepository, SQLAlchemyInvoiceHistoryRepository
+from src.storage.repositories.processed_message_repository import ProcessedMessageRepository, SQLAlchemyProcessedMessageRepository
 
 
 @dataclass(frozen=True)

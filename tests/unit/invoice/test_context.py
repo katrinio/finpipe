@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.services.invoice.invoice_context import build_invoice_period
+from src.services.invoice.context import build_invoice_period
 
 
 def test_build_invoice_period_for_may_2026() -> None:

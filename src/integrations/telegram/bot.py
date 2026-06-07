@@ -5,20 +5,24 @@ from src.storage.repositories.telegram_update_repository import build_telegram_u
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
 
-def handle_message(text: str) -> None:
+def handle_message(text: str) -> bool:
     telegram = TelegramClient()
 
     match text:
         case Cmd.STATUS:
             telegram.send_message("Finpipe is running")
+            return True
         case Cmd.HELP:
             telegram.send_message("/status - bot status\n/help - available commands/health - bot health")
+            return True
         case Cmd.HEALTH:
             try:
                 telegram.healthcheck()
                 telegram.send_message("✅ Telegram API OK")
             except Exception:
                 telegram.send_message("❌ Telegram API ERROR")
+                return False
+            return True
         case Cmd.INVOICE:
             telegram.send_message("⏳ Generating invoice...")
             try:
@@ -26,8 +30,11 @@ def handle_message(text: str) -> None:
                 telegram.send_message("✅ Invoice sent")
             except Exception as error:
                 telegram.send_message(f"❌ Invoice generation failed:\n{error}")
+                return False
+            return True
         case _:
             telegram.send_message("... try another command")
+            return True
 
 
 def poll() -> None:
@@ -43,29 +50,32 @@ def poll() -> None:
 
     if last_processed_update_id is None:
         for update in result:
-            update_id = update.get("update_id")
-            if isinstance(update_id, int):
-                storage.mark_processed(update_id)
+            mark_update_as_processed(storage, update)
         return
 
     for update in result:
-        update_id = update.get("update_id")
-        if not isinstance(update_id, int):
-            continue
+        mark_update_as_processed(storage, update)
 
-        if storage.is_processed(update_id):
-            continue
 
-        message = update.get("message")
-        if not message:
-            continue
+def mark_update_as_processed(storage, update: dict) -> None:
+    """Обрабатывает один update и помечает его только после успеха."""
 
-        text = message.get("text")
-        if not text:
-            continue
+    update_id = update.get("update_id")
+    if not isinstance(update_id, int):
+        return
 
-        handle_message(text)
+    if storage.is_processed(update_id):
+        return
 
+    message = update.get("message")
+    if not message:
+        return
+
+    text = message.get("text")
+    if not text:
+        return
+
+    if handle_message(text):
         storage.mark_processed(update_id)
 
 

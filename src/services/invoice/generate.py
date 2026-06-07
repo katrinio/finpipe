@@ -10,8 +10,8 @@ from src.constants import Format
 from src.infrastructure.document.docx_template_renderer import DocxTemplateRenderer
 from src.infrastructure.document.docx_to_pdf_converter import DocxToPdfConverter
 from src.infrastructure.document.replacement import Replacement
-from src.services.invoice.invoice_models import InvoiceData
-from src.services.invoice.invoice_pdf_renderer import InvoiceFallbackPdfRenderer
+from src.services.invoice.models import InvoiceData
+from src.services.invoice.render_pdf import InvoiceFallbackPdfRenderer
 
 LOGGER = logging.getLogger(__name__)
 

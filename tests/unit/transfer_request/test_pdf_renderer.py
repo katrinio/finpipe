@@ -1,4 +1,4 @@
-from src.services.transfer_request.transfer_request_pdf_renderer import TransferRequestFallbackPdfRenderer
+from src.services.transfer_request.render_pdf import TransferRequestFallbackPdfRenderer
 
 
 def test_transfer_request_fallback_lines_include_all_transfer_request_fields() -> None:

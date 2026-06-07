@@ -1,8 +1,8 @@
 from pypdf import PdfReader
 
 from src.constants import TestData
-from src.services.transfer_request.transfer_request_generator import generate_transfer_request
-from src.services.transfer_request.transfer_request_models import TransferRequestData
+from src.services.transfer_request.generate import generate_transfer_request
+from src.services.transfer_request.models import TransferRequestData
 
 
 def test_generate_transfer_request_creates_pdf(tmp_path):

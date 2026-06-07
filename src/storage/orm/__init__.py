@@ -3,7 +3,7 @@
 from src.storage.orm.base import BaseStorage
 from src.storage.orm.history_record import HistoryRecord
 from src.storage.orm.processed_message import ProcessedMessage
-from src.storage.orm.telegram_updates import TelegramUpdate
+from src.storage.orm.telegram_update import TelegramUpdate
 
 __all__ = [
     "BaseStorage",

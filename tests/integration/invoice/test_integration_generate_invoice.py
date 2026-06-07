@@ -3,8 +3,8 @@ from zipfile import ZipFile
 from pypdf import PdfReader
 
 from src.constants import TestData
-from src.services.invoice.invoice_generator import generate_invoice
-from src.services.invoice.invoice_models import InvoiceData
+from src.services.invoice.generate import generate_invoice
+from src.services.invoice.models import InvoiceData
 
 
 def read_docx_xml_text(docx_path):
