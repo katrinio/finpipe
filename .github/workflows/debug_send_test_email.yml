@@ -1,4 +1,4 @@
-name: Send Test Email
+name: 🔍 Send Test Email
 
 on:
   workflow_dispatch:

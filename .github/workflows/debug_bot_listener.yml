@@ -1,4 +1,4 @@
-name: Bot Listener
+name: 🔍 Bot Listener
 
 on:
   workflow_dispatch:

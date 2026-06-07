@@ -1,4 +1,4 @@
-name: Generate Invoice
+name: ⏰ Generate Invoice
 
 on:
   workflow_dispatch:
