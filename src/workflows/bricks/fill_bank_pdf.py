@@ -6,7 +6,7 @@ from pathlib import Path
 from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
-from src.services.bank.bank_fill import fill_bank_pdf
+from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
 from src.services.invoice.invoice_context import build_invoice_period
 from src.utils.credentials import EnvVar
 from src.utils.utils import Utils
@@ -35,14 +35,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        bank_template = resolve_bank_template(args.bank_template)
-        return run(bank_template, args.signature, args.output_dir)
+        fill_bank_pdf_with_data(args.bank_template, args.signature, args.output_dir)
     except Exception:
         LOGGER.exception("Bank PDF processing failed")
         return 1
+    else:
+        return 0
 
 
-def run(bank_template: Path, signature: Path, output_dir: Path) -> int:
+def fill_bank_pdf_with_data(
+    bank_template: Path | None = None,
+    signature: Path = Dir.SIGNATURE_PATH,
+    output_dir: Path = Dir.BANK_OUTPUT_DIR,
+) -> Path:
+    bank_template = resolve_bank_template(bank_template)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     LOGGER.info("Preparing bank PDF from %s", bank_template)
@@ -51,7 +57,7 @@ def run(bank_template: Path, signature: Path, output_dir: Path) -> int:
     period_suffix = Utils.today()
     bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
 
-    fill_bank_pdf(
+    render_bank_pdf(
         input_pdf=bank_template,
         output_pdf=bank_output,
         amount=amount,
@@ -59,8 +65,8 @@ def run(bank_template: Path, signature: Path, output_dir: Path) -> int:
         signature=signature,
     )
 
-    LOGGER.info("Bank PDF processing finished successfully")
-    return 0
+    LOGGER.info("Bank PDF processing finished successfully: %s", bank_output)
+    return bank_output
 
 
 def resolve_bank_template(bank_template: Path | None) -> Path:

@@ -16,6 +16,31 @@ from src.utils.credentials import EnvVar
 LOGGER = logging.getLogger(__name__)
 
 
+def generate_transfer_request_pdf(
+    amount: str,
+    invoice_date: date | None = None,
+    template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
+    output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
+) -> Path:
+    invoice_period = build_invoice_period(invoice_date)
+    output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
+
+    data = TransferRequestData(
+        account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
+        amount=amount,
+        city=EnvVar.get_required_env("CITY"),
+        date=invoice_period.invoice_date,
+        name=EnvVar.get_required_env("ACCOUNT_HOLDER"),
+    )
+
+    generate_transfer_request(
+        template_path=template_path,
+        output_pdf_path=output_pdf_path,
+        data=data,
+    )
+    return output_pdf_path
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     configure_logging()
     EnvVar.get_dotenv()
@@ -33,26 +58,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
-    output_pdf_path = args.output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
-
-    data = TransferRequestData(
-        account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
-        amount=amount,
-        city=EnvVar.get_required_env("CITY"),
-        date=invoice_period.invoice_date,
-        name=EnvVar.get_required_env("ACCOUNT_HOLDER"),
-    )
-
     LOGGER.info(
-        "Generating invoice %s for period %s - %s",
+        "Generating transfer request %s for period %s - %s",
         invoice_period.invoice_number,
         invoice_period.period_from,
         invoice_period.period_to,
     )
-    generate_transfer_request(
+    output_pdf_path = generate_transfer_request_pdf(
+        amount=amount,
+        invoice_date=args.invoice_date,
         template_path=args.template,
-        output_pdf_path=output_pdf_path,
-        data=data,
+        output_dir=args.output_dir,
     )
 
     LOGGER.info("Transfer Request saved to %s", output_pdf_path)

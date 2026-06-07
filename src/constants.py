@@ -32,10 +32,17 @@ class TestData:
 
 
 class Message:
+    START = "⚡ Magic is starting 🤞"
+    NO_NEW_BANK_EMAIL = "ℹ️ No new bank email found."
+    EMAIL_FETCHING_COMPLETED = "✔️ Email fetching completed"
+    BANK_PDF_FILLED = "✔️ Bank pdf filled"
+    INVOICE_GENERATED = "✔️ Invoice generated!"
+    TRANSACTION_REQUEST_GENERATED = "✔️ Transaction request generated!"
+
     BANK_RESPONSE = (
-        "Dobar dan,\n\n",
+        "Dobar dan,\n\n"
         "U prilogu dostavljam dokumenta koja ste tražili.\n"
         "Takođe vas molim da odmah izvršite prenos sredstava sa računa u evrima na račun u dinarima.\n\n"
         "S poštovanjem,\n"
-        "K.",
+        "K."
     )

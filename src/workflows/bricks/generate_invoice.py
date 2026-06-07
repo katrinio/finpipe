@@ -19,6 +19,7 @@ DEFAULT_SERVICE_AGREEMENT_DATE = "01.05.2025"
 
 
 def generate_invoice_pdf(
+    amount: str | None = None,
     invoice_date: date | None = None,
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
@@ -33,7 +34,7 @@ def generate_invoice_pdf(
         account_bic=EnvVar.get_required_env("ACCOUNT_BIC"),
         account_iban=EnvVar.get_required_env("ACCOUNT_IBAN"),
         account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
-        amount=EnvVar.get_required_env("INVOICE_AMOUNT"),
+        amount=amount or EnvVar.get_required_env("INVOICE_AMOUNT"),
         bank_name=EnvVar.get_required_env("BANK_NAME"),
         company_address=EnvVar.get_required_env("COMPANY_ADDRESS"),
         company_name=EnvVar.get_required_env("COMPANY_NAME"),
@@ -89,6 +90,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_period.period_to,
     )
     pdf_path = generate_invoice_pdf(
+        amount=amount,
         invoice_date=args.invoice_date,
         template_path=args.template,
         output_dir=args.output_dir,
