@@ -1,4 +1,4 @@
-name: Process Bank Flow
+name: ⏰ Process Bank Flow
 
 on:
   workflow_dispatch:
