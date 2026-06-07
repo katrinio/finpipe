@@ -210,7 +210,7 @@ __marimo__/
 
 # Sensitive
 attachments/
-templates/
+#templates/
 credentials.json
 token.json
 output/
