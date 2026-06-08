@@ -3,127 +3,173 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message
-from src.storage.dependencies import build_storage_dependencies
-from src.storage.repositories.telegram_update_repository import build_telegram_update_storage
+from src.integrations.telegram.commands import (
+    BotInfo,
+    Cmd,
+    build_help_message,
+    format_last_action,
+    format_whoami,
+)
+from src.storage.dependencies import (
+    StorageDependencies,
+    build_storage_dependencies,
+)
+from src.storage.repositories.telegram_update_repository import (
+    build_telegram_update_storage,
+)
 from src.utils.credentials import LOGGER
-from src.workflows.generate_invoice_and_send import generate_and_send_invoice
+from src.workflows.generate_invoice_and_send import (
+    generate_and_send_invoice,
+)
 
 
-def _format_whoami(telegram_id: int | None, username: str | None) -> str:
-    return f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {telegram_id}\nusername: {username or 'unknown'}"
+class TelegramBot:
+    """Telegram listener и обработчик команд."""
 
+    def __init__(self, storage_dependencies: StorageDependencies) -> None:
+        self.telegram = TelegramClient()
+        self.dependencies = storage_dependencies
+        self.update_storage = build_telegram_update_storage(Dir.STORAGE_DB)
 
-def handle_message(text: str, telegram_id: int | None = None, username: str | None = None) -> bool:
-    telegram = TelegramClient()
+    def poll(self) -> int:
+        """Получает и обрабатывает новые Telegram updates."""
 
-    try:
-        match text:
-            case Cmd.STATUS:
-                telegram.send_message(BotInfo.PROJECT_RUNNING)
-                return True
-            case Cmd.HELP:
-                telegram.send_message(build_help_message())
-                return True
-            case Cmd.HEALTH:
-                telegram.healthcheck()
-                telegram.send_message(BotInfo.TG_API_OK)
-                return True
-            case Cmd.INVOICE:
-                telegram.send_message(BotInfo.GENERATING_INVOICE)
-                generate_and_send_invoice()
-                telegram.send_message(BotInfo.INVOICE_SENT)
-                return True
-            case Cmd.WHOAMI:
-                telegram.send_message(_format_whoami(telegram_id, username))
-                return True
-            case Cmd.ABOUT:
-                telegram.send_message(BotInfo.ABOUT)
-                return True
-            case _:
-                telegram.send_message(BotInfo.NO_SUCH_COMMAND)
-                return True
+        last_processed_update_id = self.update_storage.get_last_processed_update_id()
 
-    except Exception as error:
-        LOGGER.exception("Command failed: %s", text)
-        telegram.send_message(f"❌ Command {text} failed:\n{error}")
-        return False
+        offset = last_processed_update_id + 1 if last_processed_update_id is not None else None
 
+        updates = self.telegram.get_updates(offset=offset)
 
-def _mark_initial_updates_as_processed(storage, result: list[dict]) -> int:
-    for update in result:
-        storage.mark_processed(update["update_id"])
-    return len(result)
+        result = updates.get("result", [])
+        LOGGER.info("Telegram poll returned %s updates", len(result))
 
+        if not result:
+            return 0
 
-def _is_authorized(allowed_user_repository, telegram_id: int) -> bool:
-    return allowed_user_repository.get_by_telegram_id(telegram_id) is not None
+        if last_processed_update_id is None:
+            return self._mark_initial_updates_as_processed(result)
 
+        for update in result:
+            self._process_update(update)
 
-def _process_update(update: dict, telegram: TelegramClient, storage, allowed_user_repository) -> None:
-    message = update.get("message")
-    if not message:
-        return
+        return len(result)
 
-    text = message.get("text")
-    if not text:
-        return
+    def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
+        """Выполняет команду Telegram."""
 
-    from_user = message.get("from", {})
-    telegram_id = from_user.get("id")
-    username = from_user.get("username")
-    if telegram_id is None:
-        return
+        handlers: dict[str, Callable[[], None]] = {
+            Cmd.STATUS: self._status,
+            Cmd.HELP: self._help,
+            Cmd.HEALTH: self._health,
+            Cmd.INVOICE: self._invoice,
+            Cmd.ABOUT: self._about,
+            Cmd.WHOAMI: lambda: self._whoami(telegram_id, username),
+            Cmd.LAST_ACTION: self._last_action,
+        }
 
-    update_id = update["update_id"]
+        try:
+            handler = handlers.get(text)
 
-    if not _is_authorized(allowed_user_repository, telegram_id):
-        LOGGER.warning("Access denied for Telegram user %s (@%s)", telegram_id, username)
-        telegram.send_message(BotInfo.ACCESS_DENIED)
-        return
+            if handler is None:
+                self.telegram.send_message(BotInfo.NO_SUCH_COMMAND)
+            else:
+                handler()
 
-    try:
+        except Exception as error:
+            LOGGER.exception("Command failed: %s", text)
+            self.telegram.send_message(f"❌ Command {text} failed:\n{error}")
+
+            return False
+
+        return True
+
+    def _process_update(self, update: dict) -> None:
+        """Обрабатывает один Telegram update."""
+
+        message = update.get("message")
+
+        if not message:
+            return
+
+        text = message.get("text")
+
+        if not text:
+            return
+
+        from_user = message.get("from", {})
+
+        telegram_id = from_user.get("id")
+        username = from_user.get("username")
+
+        if telegram_id is None:
+            return
+
+        update_id = update["update_id"]
+
+        if not self._is_authorized(telegram_id):
+            LOGGER.warning("Access denied for Telegram user %s (@%s)", telegram_id, username)
+            self.telegram.send_message(BotInfo.ACCESS_DENIED)
+            return
+
         LOGGER.info("Processing Telegram command: %s", text)
-        if handle_message(text, telegram_id=telegram_id, username=username):
-            storage.mark_processed(update_id)
-    except Exception as error:
-        LOGGER.exception("Failed to process Telegram update %s, Error: %s", update_id, error)
 
+        if self.handle_message(text=text, telegram_id=telegram_id, username=username):
+            self.update_storage.mark_processed(update_id)
 
-def poll() -> int:
-    telegram = TelegramClient()
-    storage_dependencies = build_storage_dependencies(Dir.STORAGE_DB)
-    storage = build_telegram_update_storage(Dir.STORAGE_DB)
-    last_processed_update_id = storage.get_last_processed_update_id()
+    def _is_authorized(self, telegram_id: int) -> bool:
+        """Проверяет доступ пользователя."""
 
-    offset = last_processed_update_id + 1 if last_processed_update_id is not None else None
+        return self.dependencies.allowed_users.get_by_telegram_id(telegram_id) is not None
 
-    updates = telegram.get_updates(offset=offset)
+    def _mark_initial_updates_as_processed(self, updates: list[dict]) -> int:
+        """Первый запуск: сохраняем старые updates без обработки."""
 
-    result = updates.get("result", [])
-    LOGGER.info("Telegram poll returned %s updates", len(result))
-    if not result:
-        return 0
+        for update in updates:
+            self.update_storage.mark_processed(update["update_id"])
+        return len(updates)
 
-    # Первый запуск:
-    # не выполняем старые команды, только сохраняем их как обработанные.
-    if last_processed_update_id is None:
-        return _mark_initial_updates_as_processed(storage, result)
+    def _status(self) -> None:
+        self.telegram.send_message(BotInfo.PROJECT_RUNNING)
 
-    for update in result:
-        _process_update(update, telegram, storage, storage_dependencies.allowed_users)
+    def _help(self) -> None:
+        self.telegram.send_message(build_help_message())
 
-    return len(result)
+    def _health(self) -> None:
+        self.telegram.healthcheck()
+        self.telegram.send_message(BotInfo.TG_API_OK)
+
+    def _invoice(self) -> None:
+        self.telegram.send_message(BotInfo.GENERATING_INVOICE)
+        generate_and_send_invoice()
+        self.telegram.send_message(BotInfo.INVOICE_SENT)
+
+    def _about(self) -> None:
+        self.telegram.send_message(BotInfo.ABOUT)
+
+    def _whoami(self, telegram_id: int | None, username: str | None) -> None:
+        self.telegram.send_message(format_whoami(telegram_id, username))
+
+    def _last_action(self) -> None:
+        actions = self.dependencies.audit_log.list_recent(1)
+        if not actions:
+            self.telegram.send_message(BotInfo.NO_AUDIT_LOG_RECORDS)
+            return
+
+        self.telegram.send_message(format_last_action(actions[0]))
 
 
 if __name__ == "__main__":
+    bot = TelegramBot(build_storage_dependencies(Dir.STORAGE_DB))
+
     LOGGER.info("Starting Telegram listener loop")
     while True:
         try:
-            poll()
+            bot.poll()
         except Exception:
-            LOGGER.exception("Telegram listener iteration failed")
+            "Telegram listener iteration failed"
+
         time.sleep(5)
