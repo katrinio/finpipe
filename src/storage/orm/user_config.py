@@ -1,4 +1,4 @@
-"""ORM-сущность записи истории инвойсов."""
+"""ORM-сущность пользовательских настроек."""
 
 from __future__ import annotations
 
@@ -8,16 +8,15 @@ from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseStorage
+from src.storage.orm.base import BaseTable
 
 
-class UserConfig(BaseStorage):
-    """Запись о пользователях."""
+class UserConfig(BaseTable):
+    """Пользовательские настройки, включая Telegram-привязку."""
 
     __tablename__ = "user_config"
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    telegram_id: Mapped[int] = mapped_column(Integer)
+    telegram_id: Mapped[int] = mapped_column(Integer, index=True)
     user_name: Mapped[str] = mapped_column(String)
     account_holder: Mapped[str] = mapped_column(String)
     account_holder_email: Mapped[str] = mapped_column(String)
