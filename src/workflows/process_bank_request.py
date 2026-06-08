@@ -44,7 +44,6 @@ def main() -> int:
 
     invoice_pdf_path = generate_invoice_pdf(
         amount=transfer_amount_text,
-        invoice_history_repository=storage.invoice_history,
     )
     telegram_client.send_message(Message.INVOICE_GENERATED)
 

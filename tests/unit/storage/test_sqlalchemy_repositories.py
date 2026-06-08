@@ -1,5 +1,5 @@
 from src.storage.database import Database, build_sqlite_url
-from src.storage.repositories.history_repository import SQLAlchemyInvoiceHistoryRepository
+from src.storage.orm import HistoryRecord
 from src.storage.repositories.processed_message_repository import (
     SQLAlchemyProcessedMessageRepository,
 )
@@ -8,19 +8,18 @@ from src.storage.repositories.processed_message_repository import (
 def test_invoice_history_repository_crud(tmp_path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
     database.initialize_schema()
-    repository = SQLAlchemyInvoiceHistoryRepository(database.session)
 
-    assert repository.list_invoices() == []
-    assert repository.get_last_invoice() is None
-    assert repository.invoice_exists("2026-05") is False
+    assert HistoryRecord.list_invoices() == []
+    assert HistoryRecord.get_last_invoice() is None
+    assert HistoryRecord.invoice_exists("2026-05") is False
 
-    repository.add_invoice("2026-05")
-    repository.add_invoice("2026-04")
-    repository.add_invoice("2026-05")
+    HistoryRecord.add_invoice("2026-05")
+    HistoryRecord.add_invoice("2026-04")
+    HistoryRecord.add_invoice("2026-05")
 
-    assert repository.invoice_exists("2026-05") is True
-    assert repository.list_invoices() == ["2026-04", "2026-05"]
-    assert repository.get_last_invoice() == "2026-05"
+    assert HistoryRecord.invoice_exists("2026-05") is True
+    assert HistoryRecord.list_invoices() == ["2026-04", "2026-05"]
+    assert HistoryRecord.get_last_invoice() == "2026-05"
 
 
 def test_processed_message_repository_crud_and_replace(tmp_path) -> None:
