@@ -8,10 +8,10 @@ from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseTable
+from src.storage.orm.base import BaseModel
 
 
-class HistoryRecord(BaseTable):
+class HistoryRecord(BaseModel):
     """Запись об уже созданном инвойсе."""
 
     __tablename__ = "invoice_history"

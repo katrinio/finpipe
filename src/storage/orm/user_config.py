@@ -8,10 +8,10 @@ from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseTable
+from src.storage.orm.base import BaseModel
 
 
-class UserConfig(BaseTable):
+class UserConfig(BaseModel):
     """Пользовательские настройки, включая Telegram-привязку."""
 
     __tablename__ = "user_config"

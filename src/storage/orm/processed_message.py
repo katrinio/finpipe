@@ -8,10 +8,10 @@ from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseTable
+from src.storage.orm.base import BaseModel
 
 
-class ProcessedMessage(BaseTable):
+class ProcessedMessage(BaseModel):
     """Письмо банка, уже отмеченное как обработанное."""
 
     __tablename__ = "processed_messages"

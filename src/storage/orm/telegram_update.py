@@ -8,10 +8,10 @@ from sqlalchemy import Integer, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseTable
+from src.storage.orm.base import BaseModel
 
 
-class TelegramUpdate(BaseTable):
+class TelegramUpdate(BaseModel):
     """Обработанный Telegram update_id."""
 
     __tablename__ = "telegram_updates"
