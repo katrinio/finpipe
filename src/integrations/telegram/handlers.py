@@ -62,7 +62,7 @@ class TelegramHandlers:
         self.telegram.send_message(BotInfo.ABOUT)
 
     def _whoami(self, telegram_id: int | None, username: str | None) -> None:
-        self.telegram.send_message(format_whoami(telegram_id, username))
+        self.telegram.send_message(f"{BotInfo.WHOAMI_PREFIX}\n{format_whoami(telegram_id, username)}")
 
     def _last_action(self) -> None:
         actions = self.audit_log.list_recent(1)

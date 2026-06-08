@@ -109,7 +109,7 @@ def test_poll_processes_authorized_user_and_whoami() -> None:
         tg_bot.poll()
 
         assert telegram_client.sent_messages == [
-            f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
+            f"👤 You are\n{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
         ]
         assert update_storage.processed == [11]
     finally:

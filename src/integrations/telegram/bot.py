@@ -86,8 +86,14 @@ class TelegramBot:
 
         LOGGER.info("Processing Telegram command: %s", text)
 
-        if self.handlers.handle_message(text=text, telegram_id=telegram_id, username=username):
+        if self.handle_message(text=text, telegram_id=telegram_id, username=username):
             self.update_storage.mark_processed(update["update_id"])
+
+    def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
+        """Делегирует команду вынесенным handlers, сохраняя совместимый API."""
+
+        self.handlers.telegram = self.telegram
+        return self.handlers.handle_message(text=text, telegram_id=telegram_id, username=username)
 
     def mark_initial_updates_as_processed(self, updates: list[dict]) -> int:
         """Первый запуск: сохраняем старые updates без обработки."""

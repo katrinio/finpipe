@@ -1,11 +1,13 @@
 """Набор простых утилит для дат, тестовых данных и статусов."""
 
 import datetime
+import random
+import string
 
 import arrow
 from faker import Faker
 
-fake = Faker()
+fake = Faker() if Faker is not None else None
 
 
 class Utils:
@@ -21,31 +23,35 @@ class Utils:
     def generate_int_string(length: int = 12) -> str:
         """Генерирует строку цифр заданной длины для тестовых данных."""
 
-        return f"1{fake.bothify('#' * (length - 1))}"
+        if fake is not None:
+            return f"1{fake.bothify('#' * (length - 1))}"
+
+        digits = "".join(random.choice(string.digits) for _ in range(length - 1))
+        return f"1{digits}"
 
     @staticmethod
     def generate_city() -> str:
         """Генерирует случайный город для тестовых сценариев."""
 
-        return fake.city()
+        return fake.city() if fake is not None else "Test City"
 
     @staticmethod
     def generate_name() -> str:
         """Генерирует случайное имя для тестовых сценариев."""
 
-        return fake.name()
+        return fake.name() if fake is not None else "Test User"
 
     @staticmethod
     def generate_random_sentence() -> str:
         """Генерирует случайное предложение для тестовых данных."""
 
-        return fake.sentence()
+        return fake.sentence() if fake is not None else "Test sentence."
 
     @staticmethod
     def generate_iban():
         """Генерирует тестовый IBAN."""
 
-        return fake.iban()
+        return fake.iban() if fake is not None else "RS35123456789012345678"
 
     @classmethod
     def now(cls) -> arrow.Arrow:
