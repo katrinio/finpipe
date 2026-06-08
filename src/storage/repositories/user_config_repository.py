@@ -30,3 +30,20 @@ class SQLAlchemyUserConfigRepository(UserConfigRepository):
         with self._session_factory() as session:
             statement = select(UserConfig).where(UserConfig.telegram_id == telegram_id).limit(1)
             return session.scalar(statement)
+
+    def add(self, telegram_id: int, user_name: str) -> None:
+        with self._session_factory() as session:
+            statement = select(UserConfig).where(UserConfig.telegram_id == telegram_id).limit(1)
+
+            user = session.execute(statement).scalar_one_or_none()
+
+            if user is None:
+                user = UserConfig(
+                    telegram_id=telegram_id,
+                    user_name=user_name,
+                )
+                session.add(user)
+            else:
+                user.user_name = user_name
+
+            session.commit()

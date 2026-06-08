@@ -6,7 +6,7 @@ def test_build_storage_dependencies_returns_working_repositories(tmp_path) -> No
 
     assert storage.invoice_history.list_invoices() == []
     assert storage.processed_messages.list_message_ids() == []
-    assert storage.user_config.get_by_telegram_id(123) is None
+    assert storage.allowed_users.list_all() == []
 
     storage.invoice_history.add_invoice("2026-05")
     storage.processed_messages.mark_as_processed("message-123")

@@ -31,7 +31,7 @@ class FakeUserConfigRepository:
 
 class FakeStorage:
     def __init__(self, allowed_ids: set[int]) -> None:
-        self.user_config = FakeUserConfigRepository(allowed_ids)
+        self.allowed_users = FakeUserConfigRepository(allowed_ids)
 
 
 class FakeTelegramUpdateStorage:

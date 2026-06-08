@@ -59,11 +59,11 @@ def _mark_initial_updates_as_processed(storage, result: list[dict]) -> int:
     return len(result)
 
 
-def _is_authorized(user_config_repository, telegram_id: int) -> bool:
-    return user_config_repository.get_by_telegram_id(telegram_id) is not None
+def _is_authorized(allowed_user_repository, telegram_id: int) -> bool:
+    return allowed_user_repository.get_by_telegram_id(telegram_id) is not None
 
 
-def _process_update(update: dict, telegram: TelegramClient, storage, user_config_repository) -> None:
+def _process_update(update: dict, telegram: TelegramClient, storage, allowed_user_repository) -> None:
     message = update.get("message")
     if not message:
         return
@@ -80,7 +80,7 @@ def _process_update(update: dict, telegram: TelegramClient, storage, user_config
 
     update_id = update["update_id"]
 
-    if not _is_authorized(user_config_repository, telegram_id):
+    if not _is_authorized(allowed_user_repository, telegram_id):
         LOGGER.warning("Access denied for Telegram user %s (@%s)", telegram_id, username)
         telegram.send_message(BotInfo.ACCESS_DENIED)
         return
@@ -114,7 +114,7 @@ def poll() -> int:
         return _mark_initial_updates_as_processed(storage, result)
 
     for update in result:
-        _process_update(update, telegram, storage, storage_dependencies.user_config)
+        _process_update(update, telegram, storage, storage_dependencies.allowed_users)
 
     return len(result)
 
