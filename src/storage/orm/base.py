@@ -9,8 +9,6 @@ from typing import Any, ClassVar
 from sqlalchemy import delete, select
 from sqlalchemy.orm import DeclarativeBase, Session
 
-from src.storage.database import Database
-
 
 class BaseStorage(DeclarativeBase):
     """Общий SQLAlchemy base для всех storage-сущностей."""
@@ -22,7 +20,7 @@ class BaseModel(BaseStorage):
     __abstract__ = True
     __pk_column_name__: ClassVar[str]
 
-    database: ClassVar[Database]
+    database: Any
 
     @classmethod
     @contextmanager
