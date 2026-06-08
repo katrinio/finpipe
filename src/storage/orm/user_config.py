@@ -29,3 +29,4 @@ class UserConfig(BaseStorage):
     company_name: Mapped[str] = mapped_column(String)
     company_address: Mapped[str] = mapped_column(String)
     service_agreement_date: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
