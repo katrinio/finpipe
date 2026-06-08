@@ -30,7 +30,10 @@ def main() -> int:
     return 0
 
 
-def fetch_bank_email_workflow(bank_email: BankEmail | None = None) -> Path | None:
+def fetch_bank_email_workflow(
+    bank_email: BankEmail | None = None,
+    processed_message_repository: object | None = None,
+) -> Path | None:
     """
     Находит новое письмо банка, скачивает PDF
     и возвращает путь к вложению или `None`.

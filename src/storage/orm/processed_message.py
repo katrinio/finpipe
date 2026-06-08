@@ -55,5 +55,5 @@ class ProcessedMessage(BaseModel):
     @classmethod
     def clear_processed_message(cls) -> None:
         with cls.session() as session:
-            ProcessedMessage.clear_processed_message()
+            ProcessedMessage.clear(session)
             session.commit()

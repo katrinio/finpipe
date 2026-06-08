@@ -25,6 +25,7 @@ def generate_invoice_pdf(
     invoice_date: date | None = None,
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
+    invoice_history_repository: object | None = None,
 ) -> Path:
     """
     Генерирует PDF-инвойс на указанную сумму
