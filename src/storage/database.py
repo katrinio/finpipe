@@ -9,6 +9,7 @@ from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.storage.orm import BaseStorage
+from src.storage.orm.base import BaseModel
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class Database:
 
         database_exists = self._sqlite_file_path().exists() if self._is_sqlite() else True
         BaseStorage.metadata.create_all(self._engine)
+        BaseModel.database = self
         if not database_exists:
             LOGGER.info("Initialized SQLAlchemy storage at %s", self._database_url)
 

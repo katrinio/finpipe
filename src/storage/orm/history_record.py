@@ -5,13 +5,14 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import String, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseTable
+from src.storage.orm.base import BaseModel
 
 
-class HistoryRecord(BaseTable):
+class HistoryRecord(BaseModel):
     """Запись об уже созданном инвойсе."""
 
     __tablename__ = "invoice_history"
@@ -23,3 +24,27 @@ class HistoryRecord(BaseTable):
         nullable=False,
         server_default=func.current_timestamp(),
     )
+
+    @classmethod
+    def list_invoices(cls) -> list[str]:
+        with cls.session() as session:
+            return HistoryRecord.list_primary_keys(session)
+
+    @classmethod
+    def invoice_exists(cls, invoice_number: str) -> bool:
+        with cls.session() as session:
+            return HistoryRecord.exists_by_primary_key(session, invoice_number)
+
+    @classmethod
+    def add_invoice(cls, invoice_number: str) -> None:
+        with cls.session() as session:
+            HistoryRecord.add_by_primary_key(session, invoice_number)
+            try:
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+
+    @classmethod
+    def get_last_invoice(cls) -> str | None:
+        with cls.session() as session:
+            return HistoryRecord.get_last_primary_key(session)

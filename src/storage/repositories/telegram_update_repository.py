@@ -18,12 +18,6 @@ class TelegramUpdateStorage:
     def __init__(self, session_factory: Callable[[], Session]) -> None:
         self._session_factory = session_factory
 
-    def is_processed(self, update_id: int) -> bool:
-        """Проверяет, был ли update_id уже обработан."""
-
-        with self._session_factory() as session:
-            return TelegramUpdate.exists_by_primary_key(session, update_id)
-
     def get_last_processed_update_id(self) -> int | None:
         """Возвращает последний обработанный update_id или `None`."""
 

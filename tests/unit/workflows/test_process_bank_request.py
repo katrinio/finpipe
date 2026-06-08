@@ -33,7 +33,7 @@ sys.modules.setdefault(
     types.SimpleNamespace(generate_transfer_request_pdf=lambda **_kwargs: None),
 )
 
-process_bank_request = importlib.import_module("src.workflows.process_bank_request")
+process_bank_request = importlib.import_module("src.workflows.prepare_bank_pdf")
 
 
 class FakeTelegramClient:

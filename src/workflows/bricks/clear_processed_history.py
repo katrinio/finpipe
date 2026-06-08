@@ -3,22 +3,20 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
 
 from src.logging_config import configure_logging
-from src.storage.dependencies import build_storage_dependencies
+from src.storage.orm import ProcessedMessage
 
 LOGGER = logging.getLogger(__name__)
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main() -> int:
     """Точка входа для очистки локальной истории processed messages."""
 
     configure_logging()
-    storage = build_storage_dependencies()
 
     try:
-        storage.processed_messages.clear()
+        ProcessedMessage.clear_processed_message()
     except Exception:
         LOGGER.exception("Failed to clear processed bank email history")
         return 1

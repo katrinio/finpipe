@@ -5,6 +5,7 @@ import pytz
 
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo, Cmd
+from src.storage.orm import AllowedUser
 
 
 class FakeTelegramClient:
@@ -65,15 +66,21 @@ def test_poll_denies_unauthorized_user(caplog) -> None:
     update_storage = FakeTelegramUpdateStorage()
     tg_bot = TelegramBot(FakeStorage(set()))
 
+    original_get_by_telegram_id = AllowedUser.get_by_telegram_id
+    AllowedUser.get_by_telegram_id = classmethod(lambda cls, telegram_id: None)
+
     tg_bot.telegram = telegram_client
     tg_bot.update_storage = update_storage
 
-    caplog.clear()
-    tg_bot.poll()
+    try:
+        caplog.clear()
+        tg_bot.poll()
 
-    assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
-    assert telegram_client.sent_messages == ["⛔ Access denied"]
-    assert update_storage.processed == []
+        assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
+        assert telegram_client.sent_messages == ["⛔ Access denied"]
+        assert update_storage.processed == []
+    finally:
+        AllowedUser.get_by_telegram_id = original_get_by_telegram_id
 
 
 def test_poll_processes_authorized_user_and_whoami() -> None:
@@ -92,15 +99,21 @@ def test_poll_processes_authorized_user_and_whoami() -> None:
     update_storage = FakeTelegramUpdateStorage()
     tg_bot = TelegramBot(FakeStorage({123}))
 
+    original_get_by_telegram_id = AllowedUser.get_by_telegram_id
+    AllowedUser.get_by_telegram_id = classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice"))
+
     tg_bot.telegram = telegram_client
     tg_bot.update_storage = update_storage
 
-    tg_bot.poll()
+    try:
+        tg_bot.poll()
 
-    assert telegram_client.sent_messages == [
-        f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
-    ]
-    assert update_storage.processed == [11]
+        assert telegram_client.sent_messages == [
+            f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
+        ]
+        assert update_storage.processed == [11]
+    finally:
+        AllowedUser.get_by_telegram_id = original_get_by_telegram_id
 
 
 def test_handle_message_last_action_uses_storage_audit_log() -> None:

@@ -18,6 +18,7 @@ from src.storage.dependencies import (
     StorageDependencies,
     build_storage_dependencies,
 )
+from src.storage.orm import AllowedUser
 from src.storage.repositories.telegram_update_repository import (
     build_telegram_update_storage,
 )
@@ -123,7 +124,7 @@ class TelegramBot:
     def _is_authorized(self, telegram_id: int) -> bool:
         """Проверяет доступ пользователя."""
 
-        return self.dependencies.allowed_users.get_by_telegram_id(telegram_id) is not None
+        return AllowedUser.get_by_telegram_id(telegram_id) is not None
 
     def _mark_initial_updates_as_processed(self, updates: list[dict]) -> int:
         """Первый запуск: сохраняем старые updates без обработки."""
