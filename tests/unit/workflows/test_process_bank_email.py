@@ -27,7 +27,7 @@ sys.modules.setdefault(
 )
 sys.modules.setdefault("src.logging_config", types.SimpleNamespace(configure_logging=lambda: None))
 
-fetch_bank_email = importlib.import_module("src.workflows.bricks.fetch_bank_email")
+fetch_bank_email = importlib.import_module("src.workflows.tasks.fetch_bank_email")
 
 
 class FakeProcessedMessage:

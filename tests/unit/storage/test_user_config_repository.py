@@ -24,6 +24,7 @@ def test_user_config_repository_get_by_telegram_id(tmp_path) -> None:
                 company_address="Company Address",
                 service_agreement_date=datetime(2026, 1, 1, tzinfo=UTC),
                 created_at=datetime(2026, 1, 2, tzinfo=UTC),
+                signature_path="some/fake/path",
             )
         )
         session.commit()

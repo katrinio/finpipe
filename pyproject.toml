@@ -29,6 +29,7 @@ canvas = "^0.155.0"
 pytest = "^9.0.3"
 fake = "^0.8"
 sqlalchemy = "^2.0.41"
+pillow = "^12.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

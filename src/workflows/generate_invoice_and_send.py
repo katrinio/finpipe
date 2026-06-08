@@ -3,7 +3,7 @@
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.utils.credentials import EnvVar
-from src.workflows.bricks.generate_invoice import generate_invoice_pdf
+from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 
 
 def generate_and_send_invoice() -> None:

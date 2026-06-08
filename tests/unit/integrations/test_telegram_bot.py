@@ -6,6 +6,7 @@ import pytz
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo, Cmd
 from src.storage.orm import AllowedUser
+from src.storage.orm.audit_log import AuditLog
 
 
 class FakeTelegramClient:
@@ -36,7 +37,10 @@ class FakeUserConfigRepository:
 class FakeStorage:
     def __init__(self, allowed_ids: set[int]) -> None:
         self.allowed_users = FakeUserConfigRepository(allowed_ids)
-        self.audit_log = SimpleNamespace(list_recent=lambda limit=50: [])
+        self.audit_log = SimpleNamespace(
+            list_recent=lambda limit=50: [],
+            add=lambda *args, **kwargs: None,
+        )
 
 
 class FakeTelegramUpdateStorage:
@@ -119,7 +123,7 @@ def test_poll_processes_authorized_user_and_whoami() -> None:
 def test_handle_message_last_action_uses_storage_audit_log() -> None:
 
     telegram_client = FakeTelegramClient()
-    audit_action = SimpleNamespace(
+    audit_action = AuditLog(
         user_name="alice",
         command="/invoice",
         status="SUCCESS",
@@ -135,8 +139,11 @@ def test_handle_message_last_action_uses_storage_audit_log() -> None:
     )
 
     storage_dependencies = SimpleNamespace(
-        allowed_users=SimpleNamespace(get_by_telegram_id=lambda telegram_id: True),
-        audit_log=SimpleNamespace(list_recent=lambda limit=50: [audit_action]),
+        allowed_users=AllowedUser(get_by_telegram_id=lambda telegram_id: True),
+        audit_log=SimpleNamespace(
+            list_recent=lambda limit=50: [audit_action],
+            add=lambda *args, **kwargs: None,
+        ),
     )
     tg_bot = TelegramBot(storage_dependencies)
     tg_bot.telegram = telegram_client

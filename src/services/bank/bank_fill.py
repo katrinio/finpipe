@@ -8,7 +8,9 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 
 from src.infrastructure.document.pdf_get_page_size import PdfGetPageSize
+from src.infrastructure.document.sign_pdf import PdfSigner
 from src.services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
+from src.services.signing.context import SignaturePositions
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -35,6 +37,9 @@ def fill_bank_pdf(
     input_pdf = resolve_project_path(input_pdf)
     output_pdf = resolve_project_path(output_pdf)
     signature = resolve_project_path(signature) if signature is not None else None
+    if signature is None:
+        msg = "Signature not found."
+        raise FileNotFoundError(msg)
 
     LOGGER.info("Filling bank PDF: input=%s output=%s", input_pdf, output_pdf)
     reader = PdfReader(str(input_pdf))
@@ -43,7 +48,11 @@ def fill_bank_pdf(
     packet = BytesIO()
     overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
     draw_form_fields(overlay, build_bank_form_data(amount, date))
-    draw_signature(overlay, signature)
+    PdfSigner.draw_signature(
+        pdf_canvas=overlay,
+        signature=signature,
+        position=SignaturePositions.BANK,
+    )
     overlay.save()
     packet.seek(0)
 
@@ -86,31 +95,7 @@ def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
     }
 
 
-def draw_signature(pdf_canvas: canvas.Canvas, signature: Path | None) -> None:
-    """Рисует подпись, если она включена и файл существует."""
-
-    if signature is None:
-        LOGGER.info("Skipping signature image rendering")
-        return
-
-    if not signature.exists():
-        LOGGER.warning("Signature image does not exist: %s", signature)
-        return
-
-    signature_field = PDF_FIELDS["signature"]
-    pdf_canvas.drawImage(
-        str(signature),
-        signature_field["x"],
-        signature_field["y"],
-        width=signature_field["width"],
-        height=signature_field["height"],
-        mask="auto",
-    )
-
-
 def draw_form_fields(pdf_canvas: canvas.Canvas, values: dict[str, str]) -> None:
-    """Рисует все текстовые поля банка в заданных координатах."""
-
     pdf_canvas.setFont("Helvetica", 9)
     for field_name in BANK_FIELD_ORDER:
         value = values.get(field_name)

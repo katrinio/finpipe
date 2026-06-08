@@ -1,10 +1,21 @@
 from collections.abc import Callable
+from dataclasses import dataclass
 
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
+from src.storage.orm.audit_log import AuditStatus
 from src.storage.repositories.audit_log_repository import AuditLogRepository
 from src.utils.credentials import LOGGER
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
+
+
+@dataclass(frozen=True)
+class CommandContext:
+    """Контекст Telegram-команды для аудита."""
+
+    telegram_id: int
+    username: str | None
+    command: str
 
 
 class TelegramHandlers:
@@ -17,13 +28,22 @@ class TelegramHandlers:
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
 
+        if telegram_id is None:
+            return False
+
+        context = CommandContext(
+            telegram_id=telegram_id,
+            username=username,
+            command=text,
+        )
+
         handlers: dict[str, Callable[[], None]] = {
             Cmd.STATUS: self._status,
             Cmd.HELP: self._help,
             Cmd.HEALTH: self._health,
             Cmd.INVOICE: self._invoice,
             Cmd.ABOUT: self._about,
-            Cmd.WHOAMI: lambda: self._whoami(telegram_id, username),
+            Cmd.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
             Cmd.LAST_ACTION: self._last_action,
         }
 
@@ -32,16 +52,35 @@ class TelegramHandlers:
 
             if handler is None:
                 self.telegram.send_message(BotInfo.NO_SUCH_COMMAND)
+                self._audit(context, AuditStatus.FAILED, "Unknown command")
             else:
                 handler()
+                self._audit(context, AuditStatus.SUCCESS)
 
         except Exception as error:
             LOGGER.exception("Command failed: %s", text)
             self.telegram.send_message(f"❌ Command {text} failed:\n{error}")
+            self._audit(context, AuditStatus.FAILED, str(error))
 
             return False
 
         return True
+
+    def _audit(
+        self,
+        context: CommandContext,
+        status: AuditStatus,
+        details: str = "",
+    ) -> None:
+        """Сохраняет запись аудита команды."""
+
+        self.audit_log.add(
+            context.telegram_id,
+            context.username or "",
+            context.command,
+            status,
+            details or None,
+        )
 
     def _status(self) -> None:
         self.telegram.send_message(BotInfo.PROJECT_RUNNING)

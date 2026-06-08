@@ -6,11 +6,18 @@ import argparse
 import logging
 from collections.abc import Sequence
 from datetime import date
+from io import BytesIO
 from pathlib import Path
 
+from pypdf import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
+
 from src.constants import Dir, Format
+from src.infrastructure.document.pdf_get_page_size import PdfGetPageSize
+from src.infrastructure.document.sign_pdf import PdfSigner
 from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
+from src.services.signing.context import SignaturePositions
 from src.services.transfer_request.generate import generate_transfer_request
 from src.services.transfer_request.models import TransferRequestData
 from src.utils.credentials import EnvVar
@@ -23,6 +30,7 @@ def generate_transfer_request_pdf(
     invoice_date: date | None = None,
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
+    signature: Path | None = Dir.SIGNATURE_PATH,
 ) -> Path:
     """
     Генерирует transfer request на указанную сумму
@@ -45,6 +53,7 @@ def generate_transfer_request_pdf(
         output_pdf_path=output_pdf_path,
         data=transfer_request_data,
     )
+    apply_signature_to_pdf(output_pdf_path, signature)
     return output_pdf_path
 
 
@@ -121,6 +130,42 @@ def parse_invoice_date(value: str) -> date:
     except ValueError as error:
         msg = "Expected date in YYYY-MM-DD format"
         raise argparse.ArgumentTypeError(msg) from error
+
+
+def apply_signature_to_pdf(output_pdf_path: Path, signature: Path | None) -> None:
+    """Накладывает подпись на уже сгенерированный PDF transfer request."""
+
+    if signature is None:
+        LOGGER.info("Transfer request signature is disabled")
+        return
+
+    if not signature.exists():
+        LOGGER.warning("Transfer request signature image does not exist: %s", signature)
+        return
+
+    reader = PdfReader(str(output_pdf_path))
+    page = reader.pages[0]
+
+    packet = BytesIO()
+    overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
+    PdfSigner.draw_signature(
+        pdf_canvas=overlay,
+        signature=signature,
+        position=SignaturePositions.TRANSFER_REQUEST,
+    )
+    overlay.save()
+    packet.seek(0)
+
+    overlay_page = PdfReader(packet).pages[0]
+    page.merge_page(overlay_page)
+
+    writer = PdfWriter()
+    writer.add_page(page)
+    for other_page in reader.pages[1:]:
+        writer.add_page(other_page)
+
+    with output_pdf_path.open("wb") as file_handle:
+        writer.write(file_handle)
 
 
 if __name__ == "__main__":

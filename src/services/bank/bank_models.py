@@ -10,7 +10,6 @@ PDF_FIELDS = {
     "account_number": {"x": 210, "y": 230},
     "amount": {"x": 440, "y": 230},
     "place_and_date": {"x": 100, "y": 125},
-    "signature": {"x": 420, "y": 100, "width": 70, "height": 70},
 }
 
 BANK_FIELD_ORDER = (
