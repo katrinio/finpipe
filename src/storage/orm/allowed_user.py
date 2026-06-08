@@ -39,3 +39,4 @@ class AllowedUser(BaseModel):
             if cls.get_by_telegram_id(telegram_id):
                 return
             session.add(cls(telegram_id=telegram_id, user_name=user_name))
+            session.commit()

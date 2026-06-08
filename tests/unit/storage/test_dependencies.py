@@ -1,7 +1,11 @@
+from src.storage.database import Database, build_sqlite_url
 from src.storage.orm import AllowedUser, HistoryRecord, ProcessedMessage
 
 
 def test_build_storage_dependencies_returns_working_repositories(tmp_path) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+
     assert HistoryRecord.list_invoices() == []
     assert ProcessedMessage.list_message_ids() == []
     assert AllowedUser.list_all() == []
