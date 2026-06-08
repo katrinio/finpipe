@@ -32,6 +32,7 @@ class FakeUserConfigRepository:
 class FakeStorage:
     def __init__(self, allowed_ids: set[int]) -> None:
         self.allowed_users = FakeUserConfigRepository(allowed_ids)
+        self.audit_log = SimpleNamespace(list_recent=lambda limit=50: [])
 
 
 class FakeTelegramUpdateStorage:
@@ -97,3 +98,22 @@ def test_poll_processes_authorized_user_and_whoami(monkeypatch) -> None:
         f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
     ]
     assert update_storage.processed == [11]
+
+
+def test_handle_message_last_action_uses_storage_audit_log(monkeypatch) -> None:
+    telegram_client = FakeTelegramClient()
+    audit_action = SimpleNamespace(
+        user_name="alice",
+        command="/invoice",
+        status="SUCCESS",
+        created_at=SimpleNamespace(__format__=None),
+    )
+    audit_action.created_at = __import__("datetime").datetime(2026, 6, 8, 10, 30, 0)
+    storage_dependencies = SimpleNamespace(audit_log=SimpleNamespace(list_recent=lambda limit=50: [audit_action]))
+
+    monkeypatch.setattr(bot, "TelegramClient", lambda: telegram_client)
+
+    assert bot.handle_message(Cmd.LAST_ACTION, storage_dependencies=storage_dependencies) is True
+    assert telegram_client.sent_messages == [
+        "📝 Last action\n\nUser: alice\nCommand: /invoice\nStatus: SUCCESS\nTime: 2026-06-08 10:30:00",
+    ]

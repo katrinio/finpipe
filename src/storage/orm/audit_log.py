@@ -6,7 +6,6 @@ from datetime import datetime
 from enum import StrEnum
 
 from sqlalchemy import Integer, String, func
-from sqlalchemy.dialects.mysql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -29,5 +28,5 @@ class AuditLog(BaseStorage):
     telegram_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     user_name: Mapped[str] = mapped_column(String, nullable=False)
     command: Mapped[str] = mapped_column(String, nullable=False)
-    status: Mapped[str] = mapped_column(ENUM(AuditStatus.SUCCESS, AuditStatus.DENIED, AuditStatus.FAILED))
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
     details: Mapped[str] = mapped_column(String, nullable=True)

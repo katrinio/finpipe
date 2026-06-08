@@ -8,6 +8,7 @@ class Cmd(StrEnum):
     INVOICE = "/invoice"
     ABOUT = "/about"
     WHOAMI = "/whoami"
+    LAST_ACTION = "/last_action"
 
     @property
     def description(self) -> str:
@@ -18,6 +19,7 @@ class Cmd(StrEnum):
             Cmd.INVOICE: "generate invoice",
             Cmd.ABOUT: "bot about",
             Cmd.WHOAMI: "show current Telegram identity",
+            Cmd.LAST_ACTION: "last action",
         }[self]
 
 
@@ -31,6 +33,7 @@ class BotInfo:
     NO_SUCH_COMMAND = "🫥 No such command."
     WHOAMI_PREFIX = "👤 You are"
     ACCESS_DENIED = "⛔ Access denied"
+    NO_AUDIT_LOG_RECORDS = "No audit records found"
 
 
 def build_help_message() -> str:

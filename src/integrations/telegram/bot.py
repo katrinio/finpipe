@@ -7,7 +7,7 @@ import time
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message
-from src.storage.dependencies import build_storage_dependencies
+from src.storage.dependencies import StorageDependencies, build_storage_dependencies
 from src.storage.repositories.telegram_update_repository import build_telegram_update_storage
 from src.utils.credentials import LOGGER
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
@@ -17,8 +17,20 @@ def _format_whoami(telegram_id: int | None, username: str | None) -> str:
     return f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {telegram_id}\nusername: {username or 'unknown'}"
 
 
-def handle_message(text: str, telegram_id: int | None = None, username: str | None = None) -> bool:
+def _format_last_action(action) -> str:
+    return (
+        f"📝 Last action\n\nUser: {action.user_name}\nCommand: {action.command}\nStatus: {action.status}\nTime: {action.created_at:%Y-%m-%d %H:%M:%S}"
+    )
+
+
+def handle_message(
+    text: str,
+    telegram_id: int | None = None,
+    username: str | None = None,
+    storage_dependencies: StorageDependencies | None = None,
+) -> bool:
     telegram = TelegramClient()
+    dependencies = storage_dependencies or build_storage_dependencies(Dir.STORAGE_DB)
 
     try:
         match text:
@@ -43,6 +55,13 @@ def handle_message(text: str, telegram_id: int | None = None, username: str | No
             case Cmd.ABOUT:
                 telegram.send_message(BotInfo.ABOUT)
                 return True
+            case Cmd.LAST_ACTION:
+                recent_actions = dependencies.audit_log.list_recent(1)
+                if not recent_actions:
+                    telegram.send_message(BotInfo.NO_AUDIT_LOG_RECORDS)
+                    return True
+                telegram.send_message(_format_last_action(recent_actions[0]))
+                return True
             case _:
                 telegram.send_message(BotInfo.NO_SUCH_COMMAND)
                 return True
@@ -63,7 +82,13 @@ def _is_authorized(allowed_user_repository, telegram_id: int) -> bool:
     return allowed_user_repository.get_by_telegram_id(telegram_id) is not None
 
 
-def _process_update(update: dict, telegram: TelegramClient, storage, allowed_user_repository) -> None:
+def _process_update(
+    update: dict,
+    telegram: TelegramClient,
+    storage,
+    allowed_user_repository,
+    storage_dependencies: StorageDependencies,
+) -> None:
     message = update.get("message")
     if not message:
         return
@@ -87,7 +112,7 @@ def _process_update(update: dict, telegram: TelegramClient, storage, allowed_use
 
     try:
         LOGGER.info("Processing Telegram command: %s", text)
-        if handle_message(text, telegram_id=telegram_id, username=username):
+        if handle_message(text, telegram_id=telegram_id, username=username, storage_dependencies=storage_dependencies):
             storage.mark_processed(update_id)
     except Exception as error:
         LOGGER.exception("Failed to process Telegram update %s, Error: %s", update_id, error)
@@ -114,7 +139,7 @@ def poll() -> int:
         return _mark_initial_updates_as_processed(storage, result)
 
     for update in result:
-        _process_update(update, telegram, storage, storage_dependencies.allowed_users)
+        _process_update(update, telegram, storage, storage_dependencies.allowed_users, storage_dependencies)
 
     return len(result)
 
