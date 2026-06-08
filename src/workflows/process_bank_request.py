@@ -8,10 +8,10 @@ from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.storage.dependencies import build_storage_dependencies
 from src.utils.credentials import EnvVar
-from src.workflows.bricks.fetch_bank_email import fetch_bank_email_workflow
-from src.workflows.bricks.fill_bank_pdf import fill_bank_pdf_with_data
-from src.workflows.bricks.generate_invoice import generate_invoice_pdf
-from src.workflows.bricks.generate_transfer_request import generate_transfer_request_pdf
+from src.workflows.tasks.fetch_bank_email import fetch_bank_email_workflow
+from src.workflows.tasks.fill_bank_pdf import fill_bank_pdf_with_data
+from src.workflows.tasks.generate_invoice import generate_invoice_pdf
+from src.workflows.tasks.generate_transfer_request import generate_transfer_request_pdf
 
 
 def main() -> int:

@@ -17,19 +17,19 @@ sys.modules.setdefault(
     types.SimpleNamespace(EnvVar=types.SimpleNamespace(get_dotenv=lambda: None)),
 )
 sys.modules.setdefault(
-    "src.workflows.bricks.fetch_bank_email",
+    "src.workflows.tasks.fetch_bank_email",
     types.SimpleNamespace(fetch_bank_email_workflow=lambda **_kwargs: None),
 )
 sys.modules.setdefault(
-    "src.workflows.bricks.fill_bank_pdf",
+    "src.workflows.tasks.fill_bank_pdf",
     types.SimpleNamespace(fill_bank_pdf_with_data=lambda *_args, **_kwargs: None),
 )
 sys.modules.setdefault(
-    "src.workflows.bricks.generate_invoice",
+    "src.workflows.tasks.generate_invoice",
     types.SimpleNamespace(generate_invoice_pdf=lambda **_kwargs: None),
 )
 sys.modules.setdefault(
-    "src.workflows.bricks.generate_transfer_request",
+    "src.workflows.tasks.generate_transfer_request",
     types.SimpleNamespace(generate_transfer_request_pdf=lambda **_kwargs: None),
 )
 

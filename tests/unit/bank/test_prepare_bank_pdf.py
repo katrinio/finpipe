@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from src.workflows.bricks import fill_bank_pdf
+from src.workflows.tasks import fill_bank_pdf
 
 
 def test_resolve_bank_template_returns_explicit_pdf(tmp_path) -> None:
