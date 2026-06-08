@@ -7,8 +7,10 @@ from pathlib import Path
 
 from src.constants import Dir
 from src.storage.database import Database, build_sqlite_url
+from src.storage.repositories.allowed_user_repository import AllowedUserRepository, SQLAlchemyAllowedUserRepository
 from src.storage.repositories.history_repository import InvoiceHistoryRepository, SQLAlchemyInvoiceHistoryRepository
 from src.storage.repositories.processed_message_repository import ProcessedMessageRepository, SQLAlchemyProcessedMessageRepository
+from src.storage.repositories.user_config_repository import SQLAlchemyUserConfigRepository, UserConfigRepository
 
 
 @dataclass(frozen=True)
@@ -17,6 +19,8 @@ class StorageDependencies:
 
     invoice_history: InvoiceHistoryRepository
     processed_messages: ProcessedMessageRepository
+    allowed_users: AllowedUserRepository
+    user_config: UserConfigRepository
 
 
 DEFAULT_DB_PATH = Dir.STORAGE_DB
@@ -32,8 +36,12 @@ def build_storage_dependencies(
 
     invoice_history = SQLAlchemyInvoiceHistoryRepository(database.session)
     processed_messages = SQLAlchemyProcessedMessageRepository(database.session)
+    allowed_users = SQLAlchemyAllowedUserRepository(database.session)
+    user_config = SQLAlchemyUserConfigRepository(database.session)
 
     return StorageDependencies(
         invoice_history=invoice_history,
         processed_messages=processed_messages,
+        allowed_users=allowed_users,
+        user_config=user_config,
     )

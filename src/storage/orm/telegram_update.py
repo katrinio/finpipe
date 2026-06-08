@@ -8,13 +8,14 @@ from sqlalchemy import Integer, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseStorage
+from src.storage.orm.base import BaseTable
 
 
-class TelegramUpdate(BaseStorage):
+class TelegramUpdate(BaseTable):
     """Обработанный Telegram update_id."""
 
     __tablename__ = "telegram_updates"
+    __pk_column_name__ = "update_id"
 
     update_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     processed_at: Mapped[datetime] = mapped_column(

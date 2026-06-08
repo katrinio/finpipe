@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol
 
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -38,21 +37,19 @@ class SQLAlchemyInvoiceHistoryRepository(InvoiceHistoryRepository):
         """Возвращает номера инвойсов в лексикографическом порядке."""
 
         with self._session_factory() as session:
-            statement = select(HistoryRecord.invoice_number).order_by(HistoryRecord.invoice_number)
-            return list(session.scalars(statement))
+            return HistoryRecord.list_primary_keys(session)
 
     def invoice_exists(self, invoice_number: str) -> bool:
         """Проверяет существование номера инвойса."""
 
         with self._session_factory() as session:
-            statement = select(HistoryRecord.invoice_number).where(HistoryRecord.invoice_number == invoice_number).limit(1)
-            return session.scalar(statement) is not None
+            return HistoryRecord.exists_by_primary_key(session, invoice_number)
 
     def add_invoice(self, invoice_number: str) -> None:
         """Сохраняет номер инвойса без дублирования."""
 
         with self._session_factory() as session:
-            session.add(HistoryRecord(invoice_number=invoice_number))
+            HistoryRecord.add_by_primary_key(session, invoice_number)
             try:
                 session.commit()
             except IntegrityError:
@@ -62,5 +59,4 @@ class SQLAlchemyInvoiceHistoryRepository(InvoiceHistoryRepository):
         """Возвращает последний номер инвойса согласно текущему бизнес-порядку."""
 
         with self._session_factory() as session:
-            statement = select(HistoryRecord.invoice_number).order_by(HistoryRecord.invoice_number.desc()).limit(1)
-            return session.scalar(statement)
+            return HistoryRecord.get_last_primary_key(session)

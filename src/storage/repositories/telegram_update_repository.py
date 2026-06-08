@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
-from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -23,21 +22,19 @@ class TelegramUpdateStorage:
         """Проверяет, был ли update_id уже обработан."""
 
         with self._session_factory() as session:
-            statement = select(TelegramUpdate.update_id).where(TelegramUpdate.update_id == update_id).limit(1)
-            return session.scalar(statement) is not None
+            return TelegramUpdate.exists_by_primary_key(session, update_id)
 
     def get_last_processed_update_id(self) -> int | None:
         """Возвращает последний обработанный update_id или `None`."""
 
         with self._session_factory() as session:
-            statement = select(func.max(TelegramUpdate.update_id))
-            return session.scalar(statement)
+            return TelegramUpdate.get_last_primary_key(session)
 
     def mark_processed(self, update_id: int) -> None:
         """Помечает update_id обработанным без дубликатов."""
 
         with self._session_factory() as session:
-            session.add(TelegramUpdate(update_id=update_id))
+            TelegramUpdate.add_by_primary_key(session, update_id)
             try:
                 session.commit()
             except IntegrityError:
