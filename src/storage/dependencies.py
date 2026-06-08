@@ -9,7 +9,6 @@ from src.constants import Dir
 from src.storage.database import Database, build_sqlite_url
 from src.storage.repositories.audit_log_repository import AuditLogRepository, SQLAlchemyAuditLogRepository
 from src.storage.repositories.processed_message_repository import ProcessedMessageRepository, SQLAlchemyProcessedMessageRepository
-from src.storage.repositories.user_config_repository import SQLAlchemyUserConfigRepository, UserConfigRepository
 
 
 @dataclass(frozen=True)
@@ -17,7 +16,6 @@ class StorageDependencies:
     """Готовый набор репозиториев для прикладного слоя."""
 
     processed_messages: ProcessedMessageRepository
-    user_config: UserConfigRepository
     audit_log: AuditLogRepository
 
 
@@ -33,11 +31,9 @@ def build_storage_dependencies(
     database.initialize_schema()
 
     processed_messages = SQLAlchemyProcessedMessageRepository(database.session)
-    user_config = SQLAlchemyUserConfigRepository(database.session)
     audit_log = SQLAlchemyAuditLogRepository(database.session)
 
     return StorageDependencies(
         processed_messages=processed_messages,
-        user_config=user_config,
         audit_log=audit_log,
     )

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -29,3 +29,25 @@ class UserConfig(BaseModel):
     company_address: Mapped[str] = mapped_column(String)
     service_agreement_date: Mapped[datetime] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime)
+
+    @classmethod
+    def get_by_telegram_id(cls, telegram_id: int) -> UserConfig | None:
+        """Возвращает запись пользователя по Telegram id."""
+
+        with cls.session() as session:
+            statement = select(UserConfig).where(UserConfig.telegram_id == telegram_id).limit(1)
+            return session.scalar(statement)
+
+    @classmethod
+    def add(cls, telegram_id: int, user_name: str) -> None:
+        with cls.session() as session:
+            statement = select(UserConfig).where(UserConfig.telegram_id == telegram_id).limit(1)
+            user = session.execute(statement).scalar_one_or_none()
+
+            if user is None:
+                user = UserConfig(telegram_id=telegram_id, user_name=user_name)
+                session.add(user)
+            else:
+                user.user_name = user_name
+
+            session.commit()
