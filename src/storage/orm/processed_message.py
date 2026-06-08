@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import String, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -23,3 +24,36 @@ class ProcessedMessage(BaseModel):
         nullable=False,
         server_default=func.current_timestamp(),
     )
+
+    @classmethod
+    def list_message_ids(cls) -> list[str]:
+        with cls.session() as session:
+            return ProcessedMessage.list_primary_keys(session)
+
+    @classmethod
+    def is_processed(cls, message_id: str) -> bool:
+        with cls.session() as session:
+            return ProcessedMessage.exists_by_primary_key(session, message_id)
+
+    @classmethod
+    def mark_as_processed(cls, message_id: str) -> None:
+        with cls.session() as session:
+            ProcessedMessage.add_by_primary_key(session, message_id)
+            try:
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+
+    @classmethod
+    def replace_all(cls, message_ids: set[str]) -> None:
+        """Полностью заменяет содержимое таблицы обработанных писем."""
+
+        with cls.session() as session:
+            ProcessedMessage.replace_primary_keys(session, sorted(message_ids))
+            session.commit()
+
+    @classmethod
+    def clear_processed_message(cls) -> None:
+        with cls.session() as session:
+            ProcessedMessage.clear_processed_message()
+            session.commit()
