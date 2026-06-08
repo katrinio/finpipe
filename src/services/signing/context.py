@@ -12,9 +12,9 @@ class PdfSignaturePosition:
 
 class SignaturePositions:
     BANK = PdfSignaturePosition(
-        x=370,
-        y=120,
-        height=40,
+        x=420,
+        y=100,
+        height=70,
     )
 
     TRANSFER_REQUEST = PdfSignaturePosition(
