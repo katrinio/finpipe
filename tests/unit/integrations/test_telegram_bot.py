@@ -1,6 +1,9 @@
+from datetime import datetime
 from types import SimpleNamespace
 
-from src.integrations.telegram import bot
+import pytz
+
+from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo, Cmd
 
 
@@ -46,7 +49,7 @@ class FakeTelegramUpdateStorage:
         self.processed.append(update_id)
 
 
-def test_poll_denies_unauthorized_user(monkeypatch, caplog) -> None:
+def test_poll_denies_unauthorized_user(caplog) -> None:
     updates = {
         "result": [
             {
@@ -60,20 +63,20 @@ def test_poll_denies_unauthorized_user(monkeypatch, caplog) -> None:
     }
     telegram_client = FakeTelegramClient(updates)
     update_storage = FakeTelegramUpdateStorage()
+    tg_bot = TelegramBot(FakeStorage(set()))
 
-    monkeypatch.setattr(bot, "TelegramClient", lambda: telegram_client)
-    monkeypatch.setattr(bot, "build_storage_dependencies", lambda _db_path: FakeStorage(set()))
-    monkeypatch.setattr(bot, "build_telegram_update_storage", lambda _db_path: update_storage)
+    tg_bot.telegram = telegram_client
+    tg_bot.update_storage = update_storage
 
     caplog.clear()
-    bot.poll()
+    tg_bot.poll()
 
     assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
     assert telegram_client.sent_messages == ["⛔ Access denied"]
     assert update_storage.processed == []
 
 
-def test_poll_processes_authorized_user_and_whoami(monkeypatch) -> None:
+def test_poll_processes_authorized_user_and_whoami() -> None:
     updates = {
         "result": [
             {
@@ -87,12 +90,12 @@ def test_poll_processes_authorized_user_and_whoami(monkeypatch) -> None:
     }
     telegram_client = FakeTelegramClient(updates)
     update_storage = FakeTelegramUpdateStorage()
+    tg_bot = TelegramBot(FakeStorage({123}))
 
-    monkeypatch.setattr(bot, "TelegramClient", lambda: telegram_client)
-    monkeypatch.setattr(bot, "build_storage_dependencies", lambda _db_path: FakeStorage({123}))
-    monkeypatch.setattr(bot, "build_telegram_update_storage", lambda _db_path: update_storage)
+    tg_bot.telegram = telegram_client
+    tg_bot.update_storage = update_storage
 
-    bot.poll()
+    tg_bot.poll()
 
     assert telegram_client.sent_messages == [
         f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
@@ -100,20 +103,32 @@ def test_poll_processes_authorized_user_and_whoami(monkeypatch) -> None:
     assert update_storage.processed == [11]
 
 
-def test_handle_message_last_action_uses_storage_audit_log(monkeypatch) -> None:
+def test_handle_message_last_action_uses_storage_audit_log() -> None:
+
     telegram_client = FakeTelegramClient()
     audit_action = SimpleNamespace(
         user_name="alice",
         command="/invoice",
         status="SUCCESS",
-        created_at=SimpleNamespace(__format__=None),
+        created_at=datetime(
+            2026,
+            6,
+            8,
+            10,
+            30,
+            0,
+            tzinfo=pytz.UTC,
+        ),
     )
-    audit_action.created_at = __import__("datetime").datetime(2026, 6, 8, 10, 30, 0)
-    storage_dependencies = SimpleNamespace(audit_log=SimpleNamespace(list_recent=lambda limit=50: [audit_action]))
 
-    monkeypatch.setattr(bot, "TelegramClient", lambda: telegram_client)
+    storage_dependencies = SimpleNamespace(
+        allowed_users=SimpleNamespace(get_by_telegram_id=lambda telegram_id: True),
+        audit_log=SimpleNamespace(list_recent=lambda limit=50: [audit_action]),
+    )
+    tg_bot = TelegramBot(storage_dependencies)
+    tg_bot.telegram = telegram_client
 
-    assert bot.handle_message(Cmd.LAST_ACTION, storage_dependencies=storage_dependencies) is True
+    assert tg_bot.handle_message(Cmd.LAST_ACTION, telegram_id=1, username="alice") is True
     assert telegram_client.sent_messages == [
-        "📝 Last action\n\nUser: alice\nCommand: /invoice\nStatus: SUCCESS\nTime: 2026-06-08 10:30:00",
+        ("📝 Last action\n\nUser: alice\nCommand: /invoice\nStatus: SUCCESS\nTime: 2026-06-08 10:30:00"),
     ]
