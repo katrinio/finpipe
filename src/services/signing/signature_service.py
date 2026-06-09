@@ -1,0 +1,2 @@
+class SignatureService:
+    pass
