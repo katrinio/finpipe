@@ -1,13 +1,14 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from src.integrations.oauth.gmail_oauth import GmailOAuth
+from src.integrations.gmail.account_service import GmailAccountService
+from src.integrations.gmail.gmail_oauth import GmailOAuth
+from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
-from src.storage.orm import UserConfig
 from src.storage.orm.audit_log import AuditStatus
 from src.storage.repositories.audit_log_repository import AuditLogRepository
-from src.utils.credentials import LOGGER
+from src.utils.credentials import LOGGER, EnvVar
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
 
@@ -47,8 +48,9 @@ class TelegramHandlers:
             Cmd.ABOUT: self._about,
             Cmd.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
             Cmd.LAST_ACTION: self._last_action,
-            Cmd.CONNECT_GMAIL: self._gmail_connect,
+            Cmd.CONNECT_GMAIL: lambda: self._gmail_connect(context.telegram_id, context.username),
             Cmd.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
+            Cmd.DISCONNECT_GMAIL: lambda: self._gmail_disconnect(context.telegram_id),
         }
 
         try:
@@ -115,13 +117,21 @@ class TelegramHandlers:
 
         self.telegram.send_message(format_last_action(actions[0]))
 
-    def _gmail_connect(self) -> None:
-        authorization_url = GmailOAuth.build_authorization_url()
+    def _gmail_connect(self, telegram_id: int, username: str | None) -> None:
+        if not GmailOAuthSettings.is_callback_enabled():
+            self.telegram.send_message(BotInfo.GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE)
+            return
+        callback_url = EnvVar.get_optional_env("GMAIL_OAUTH_CALLBACK_URL", "http://localhost:8000/oauth/gmail/callback")
+        authorization_url, _session = GmailOAuth.build_authorization_url(telegram_id, username, callback_url)
         self.telegram.send_message(f"Open this URL:\n{authorization_url}")
 
     def _gmail_status(self, telegram_id: int) -> None:
-        user_config = UserConfig.get_by_telegram_id(telegram_id)
-        if user_config is None:
+        status = GmailAccountService.status(telegram_id)
+        if not status.is_connected:
             self.telegram.send_message(BotInfo.GMAIL_NOT_CONNECTED)
             return
-        self.telegram.send_message(f"{BotInfo.GMAIL_CONNECTED}\n{user_config.gmail_email}")
+        self.telegram.send_message(f"{BotInfo.GMAIL_CONNECTED}\n{status.gmail_email or 'unknown'}")
+
+    def _gmail_disconnect(self, telegram_id: int) -> None:
+        GmailAccountService.disconnect(telegram_id)
+        self.telegram.send_message("✅ Gmail disconnected")
