@@ -119,7 +119,7 @@ class GmailOAuth:
     @classmethod
     def _build_flow(cls, callback_url: str) -> Any:
         try:
-            from google_auth_oauthlib.flow import Flow  # type: ignore[import-untyped]
+            from google_auth_oauthlib.flow import Flow
         except ImportError as error:  # pragma: no cover
             raise GmailOAuthError("google-auth-oauthlib is not available") from error
 
