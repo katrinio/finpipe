@@ -3,6 +3,7 @@ from pathlib import Path
 
 from PIL import Image
 from pypdf import PdfReader
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 from src.infrastructure.document import PdfGetPageSize
@@ -32,18 +33,28 @@ class PdfSigner:
         # TODO: save result to output_pdf
 
     @classmethod
-    def draw_signature(cls, pdf_canvas: canvas.Canvas, signature: Path, position: PdfSignaturePosition) -> None:
-        if not signature.exists():
-            LOGGER.warning("Signature image does not exist: %s", signature)
-            return
+    def draw_signature(
+        cls,
+        pdf_canvas: canvas.Canvas,
+        signature: Path | bytes,
+        position: PdfSignaturePosition,
+    ) -> None:
+        if isinstance(signature, Path):
+            if not signature.exists():
+                LOGGER.warning("Signature image does not exist: %s", signature)
+                return
+            signature_bytes = signature.read_bytes()
+        else:
+            signature_bytes = signature
 
         width, height = cls._get_signature_size(
-            signature,
+            signature_bytes,
             position.height,
         )
 
+        image = ImageReader(BytesIO(signature_bytes))
         pdf_canvas.drawImage(
-            str(signature),
+            image,
             position.x,
             position.y,
             width=width,
@@ -52,10 +63,11 @@ class PdfSigner:
         )
 
     @classmethod
-    def _get_signature_size(cls, signature: Path, target_height: int) -> tuple[int, int]:
+    def _get_signature_size(cls, signature: Path | bytes, target_height: int) -> tuple[int, int]:
         """Вычисляет ширину подписи с сохранением пропорций."""
 
-        with Image.open(signature) as image:
+        signature_source = BytesIO(signature) if isinstance(signature, bytes) else signature
+        with Image.open(signature_source) as image:
             original_width, original_height = image.size
 
         scale = target_height / original_height
