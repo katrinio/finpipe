@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from src.integrations.oauth.gmail_oauth import GmailOAuth
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
 from src.storage.orm.audit_log import AuditStatus
@@ -45,6 +46,7 @@ class TelegramHandlers:
             Cmd.ABOUT: self._about,
             Cmd.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
             Cmd.LAST_ACTION: self._last_action,
+            Cmd.CONNECT_GMAIL: self._gmail_connect,
         }
 
         try:
@@ -110,3 +112,7 @@ class TelegramHandlers:
             return
 
         self.telegram.send_message(format_last_action(actions[0]))
+
+    def _gmail_connect(self) -> None:
+        authorization_url = GmailOAuth.build_authorization_url()
+        self.telegram.send_message(f"Open this URL:\n{authorization_url}")
