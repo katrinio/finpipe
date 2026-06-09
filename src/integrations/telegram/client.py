@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, cast
 
 import requests
 
@@ -31,15 +32,19 @@ class TelegramClient:
             msg = "Telegram API healthcheck failed"
             raise RuntimeError(msg)
 
-    def send_message(self, text: str) -> None:
+    def send_message(self, text: str, reply_markup: dict | None = None) -> None:
         """Отправляет текстовое сообщение в целевой Telegram-чат."""
+
+        payload: dict[str, object] = {
+            "chat_id": self.chat_id,
+            "text": text,
+        }
+        if reply_markup is not None:
+            payload["reply_markup"] = reply_markup
 
         response = requests.post(
             f"https://api.telegram.org/bot{self.token}/sendMessage",
-            json={
-                "chat_id": self.chat_id,
-                "text": text,
-            },
+            json=cast(Any, payload),
             timeout=10,
         )
 

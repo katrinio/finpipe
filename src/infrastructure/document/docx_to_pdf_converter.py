@@ -118,7 +118,16 @@ class DocxToPdfConverter:
         """Возвращает True, если в среде есть хотя бы один backend."""
 
         if cls.should_use_pages():
-            return cls.PAGES_APP_PATH.exists()
+            if not cls.PAGES_APP_PATH.exists():
+                return False
+
+            probe = subprocess.run(
+                ["open", "-Ra", cls.PAGES_BACKEND_NAME],
+                capture_output=True,
+                check=False,
+                text=True,
+            )
+            return probe.returncode == 0
 
         return any(shutil.which(command) is not None for command in cls.LIBREOFFICE_COMMANDS)
 

@@ -6,7 +6,9 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
+from src.integrations.telegram.heandlers.menu_handlers import MenuHandler
 from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.buttons import GmailButtons, MainMenuButtons, NavigationButtons, SignatureButtons, SystemButtons
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
@@ -30,6 +32,7 @@ class TelegramHandlers:
     def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]):
         self.telegram = telegram
         self.audit_log = audit_log
+        self.menu_handler = MenuHandler(self.telegram)
         # TODO:
         # User states are stored in memory only.
         # After process restart all active flows are lost.
@@ -38,7 +41,6 @@ class TelegramHandlers:
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
-
         if telegram_id is None:
             return False
 
@@ -49,19 +51,24 @@ class TelegramHandlers:
         )
 
         handlers: dict[str, Callable[[], None]] = {
-            Cmd.STATUS: self._status,
-            Cmd.HELP: self._help,
-            Cmd.HEALTH: self._health,
             Cmd.INVOICE: self._invoice,
-            Cmd.ABOUT: self._about,
-            Cmd.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
-            Cmd.LAST_ACTION: self._last_action,
-            Cmd.CONNECT_GMAIL: lambda: self._gmail_connect(context.telegram_id, context.username),
-            Cmd.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
-            Cmd.DISCONNECT_GMAIL: lambda: self._gmail_disconnect(context.telegram_id),
-            Cmd.UPLOAD_SIGNATURE: lambda: self._upload_signature(context.telegram_id),
-            Cmd.DELETE_SIGNATURE: lambda: self._delete_signature(context.telegram_id),
-            Cmd.SIGNATURE_STATUS: lambda: self._signature_status(context.telegram_id),
+            Cmd.MENU: self.menu_handler.main_menu,
+            MainMenuButtons.GMAIL: self.menu_handler.gmail_menu,
+            MainMenuButtons.SYSTEM: self.menu_handler.system_menu,
+            MainMenuButtons.SIGNATURE: self.menu_handler.signature_menu,
+            GmailButtons.GMAIL_CONNECT: lambda: self._gmail_connect(context.telegram_id, context.username),
+            GmailButtons.GMAIL_DISCONNECT: lambda: self._gmail_disconnect(context.telegram_id),
+            GmailButtons.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
+            SignatureButtons.SIGNATURE_DELETE: lambda: self._delete_signature(context.telegram_id),
+            SignatureButtons.SIGNATURE_STATUS: lambda: self._signature_status(context.telegram_id),
+            SignatureButtons.SIGNATURE_UPLOAD: lambda: self._upload_signature(context.telegram_id),
+            SystemButtons.ABOUT: self._about,
+            SystemButtons.HEALTHCHECK: self._health,
+            SystemButtons.HELP: self._help,
+            SystemButtons.LAST_ACTION: self._last_action,
+            SystemButtons.SYSTEM_STATUS: self._status,
+            SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
+            NavigationButtons.BACK: self.menu_handler.main_menu,
         }
 
         try:
@@ -69,7 +76,7 @@ class TelegramHandlers:
 
             if handler is None:
                 self.telegram.send_message(BotInfo.NO_SUCH_COMMAND)
-                self._audit(context, AuditStatus.FAILED, "Unknown command")
+                self._audit(context, AuditStatus.FAILED, BotInfo.NO_SUCH_COMMAND)
             else:
                 handler()
                 self._audit(context, AuditStatus.SUCCESS)
@@ -115,14 +122,18 @@ class TelegramHandlers:
 
     def _invoice(self) -> None:
         self.telegram.send_message(BotInfo.GENERATING_INVOICE)
-        generate_and_send_invoice()
+        try:
+            generate_and_send_invoice()
+        except ValueError as error:
+            self.telegram.send_message(str(error))
+            return
         self.telegram.send_message(BotInfo.INVOICE_SENT)
 
     def _about(self) -> None:
         self.telegram.send_message(BotInfo.ABOUT)
 
     def _whoami(self, telegram_id: int | None, username: str | None) -> None:
-        self.telegram.send_message(f"{BotInfo.WHOAMI_PREFIX}\n{format_whoami(telegram_id, username)}")
+        self.telegram.send_message(format_whoami(telegram_id, username))
 
     def _last_action(self) -> None:
         actions = self.audit_log.list_recent(1)

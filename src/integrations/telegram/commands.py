@@ -2,41 +2,19 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from src.integrations.telegram.messages import BotInfo
+from src.integrations.telegram.ui.messages import BotInfo
 from src.storage.orm.audit_log import AuditLog
 
 
 class Cmd(StrEnum):
-    STATUS = "/status"
-    HELP = "/help"
-    HEALTH = "/health"
+    MENU = "/menu"
     INVOICE = "/invoice"
-    ABOUT = "/about"
-    WHOAMI = "/whoami"
-    LAST_ACTION = "/last_action"
-    CONNECT_GMAIL = "/connect_gmail"
-    GMAIL_STATUS = "/gmail_status"
-    DISCONNECT_GMAIL = "/disconnect_gmail"
-    UPLOAD_SIGNATURE = "/upload_signature"
-    DELETE_SIGNATURE = "/delete_signature"
-    SIGNATURE_STATUS = "/signature_status"
 
     @property
     def description(self) -> str:
         descriptions = {
-            Cmd.STATUS: "bot status",
-            Cmd.HELP: "available commands",
-            Cmd.HEALTH: "run health check",
+            Cmd.MENU: "menu",
             Cmd.INVOICE: "generate invoice",
-            Cmd.ABOUT: "project info",
-            Cmd.WHOAMI: "show current Telegram identity",
-            Cmd.LAST_ACTION: "show last action",
-            Cmd.CONNECT_GMAIL: "connect gmail",
-            Cmd.GMAIL_STATUS: "is gmail connected",
-            Cmd.DISCONNECT_GMAIL: "disconnect gmail",
-            Cmd.UPLOAD_SIGNATURE: "upload signature",
-            Cmd.DELETE_SIGNATURE: "delete signature",
-            Cmd.SIGNATURE_STATUS: "show signature status",
         }
 
         return descriptions[self]

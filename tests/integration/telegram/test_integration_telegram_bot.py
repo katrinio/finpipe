@@ -2,7 +2,8 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 
 from src.integrations.telegram.bot import TelegramBot
-from src.integrations.telegram.commands import BotInfo, Cmd
+from src.integrations.telegram.commands import BotInfo
+from src.integrations.telegram.ui.buttons import SystemButtons
 from src.storage.orm import AllowedUser
 from src.storage.orm.audit_log import AuditLog
 
@@ -25,7 +26,7 @@ class TestTelegramBot:
                     {
                         "update_id": 11,
                         "message": {
-                            "text": Cmd.WHOAMI,
+                            "text": SystemButtons.WHOAMI,
                             "from": {"id": 999, "username": "intruder"},
                         },
                     }
@@ -56,7 +57,7 @@ class TestTelegramBot:
                     {
                         "update_id": 11,
                         "message": {
-                            "text": Cmd.WHOAMI,
+                            "text": SystemButtons.WHOAMI,
                             "from": {"id": user_id, "username": user_name},
                         },
                     }
@@ -68,7 +69,7 @@ class TestTelegramBot:
         tg_bot.poll()
 
         assert tg_bot.telegram.sent_messages == [
-            f"{BotInfo.WHOAMI_PREFIX}\n{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
+            f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
         ]
         assert tg_bot.update_storage.processed == [11]
 
@@ -100,7 +101,7 @@ class TestTelegramBot:
         )
         tg_bot.telegram = telegram_client
 
-        assert tg_bot.handle_message(Cmd.LAST_ACTION, telegram_id=1, username="alice") is True
+        assert tg_bot.handle_message(SystemButtons.LAST_ACTION, telegram_id=1, username="alice") is True
         assert telegram_client.sent_messages == [
             ("📝 Last action\n\nUser: alice\nCommand: /invoice\nStatus: SUCCESS\nTime: 2026-06-08 10:30:00"),
         ]
