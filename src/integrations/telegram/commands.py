@@ -7,14 +7,8 @@ from src.storage.orm.audit_log import AuditLog
 
 
 class Cmd(StrEnum):
-    MENU = "menu"
-    STATUS = "/status"
-    HELP = "/help"
-    HEALTH = "/health"
+    MENU = "/menu"
     INVOICE = "/invoice"
-    ABOUT = "/about"
-    WHOAMI = "/whoami"
-    LAST_ACTION = "/last_action"
     CONNECT_GMAIL = "/connect_gmail"
     GMAIL_STATUS = "/gmail_status"
     DISCONNECT_GMAIL = "/disconnect_gmail"
@@ -26,13 +20,7 @@ class Cmd(StrEnum):
     def description(self) -> str:
         descriptions = {
             Cmd.MENU: "menu",
-            Cmd.STATUS: "bot status",
-            Cmd.HELP: "available commands",
-            Cmd.HEALTH: "run health check",
             Cmd.INVOICE: "generate invoice",
-            Cmd.ABOUT: "project info",
-            Cmd.WHOAMI: "show current Telegram identity",
-            Cmd.LAST_ACTION: "show last action",
             Cmd.CONNECT_GMAIL: "connect gmail",
             Cmd.GMAIL_STATUS: "is gmail connected",
             Cmd.DISCONNECT_GMAIL: "disconnect gmail",

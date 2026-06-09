@@ -6,6 +6,7 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
+from src.integrations.telegram.menu import MainMenuButtons, NavigationButtons, SystemButtons, build_main_menu, build_system_menu
 from src.integrations.telegram.states import UserState
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
@@ -38,7 +39,7 @@ class TelegramHandlers:
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
-
+        print(repr(text))
         if telegram_id is None:
             return False
 
@@ -49,19 +50,22 @@ class TelegramHandlers:
         )
 
         handlers: dict[str, Callable[[], None]] = {
-            Cmd.STATUS: self._status,
-            Cmd.HELP: self._help,
-            Cmd.HEALTH: self._health,
+            Cmd.MENU: self._menu,
+            MainMenuButtons.SYSTEM: self._system_menu,
+            SystemButtons.SYSTEM_STATUS: self._status,
+            SystemButtons.HELP: self._help,
+            SystemButtons.HEALTHCHECK: self._health,
             Cmd.INVOICE: self._invoice,
-            Cmd.ABOUT: self._about,
-            Cmd.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
-            Cmd.LAST_ACTION: self._last_action,
+            SystemButtons.ABOUT: self._about,
+            SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
+            SystemButtons.LAST_ACTION: self._last_action,
             Cmd.CONNECT_GMAIL: lambda: self._gmail_connect(context.telegram_id, context.username),
             Cmd.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
             Cmd.DISCONNECT_GMAIL: lambda: self._gmail_disconnect(context.telegram_id),
             Cmd.UPLOAD_SIGNATURE: lambda: self._upload_signature(context.telegram_id),
             Cmd.DELETE_SIGNATURE: lambda: self._delete_signature(context.telegram_id),
             Cmd.SIGNATURE_STATUS: lambda: self._signature_status(context.telegram_id),
+            NavigationButtons.BACK: self._menu,
         }
 
         try:
@@ -69,7 +73,7 @@ class TelegramHandlers:
 
             if handler is None:
                 self.telegram.send_message(BotInfo.NO_SUCH_COMMAND)
-                self._audit(context, AuditStatus.FAILED, "Unknown command")
+                self._audit(context, AuditStatus.FAILED, BotInfo.NO_SUCH_COMMAND)
             else:
                 handler()
                 self._audit(context, AuditStatus.SUCCESS)
@@ -115,14 +119,18 @@ class TelegramHandlers:
 
     def _invoice(self) -> None:
         self.telegram.send_message(BotInfo.GENERATING_INVOICE)
-        generate_and_send_invoice()
+        try:
+            generate_and_send_invoice()
+        except ValueError as error:
+            self.telegram.send_message(str(error))
+            return
         self.telegram.send_message(BotInfo.INVOICE_SENT)
 
     def _about(self) -> None:
         self.telegram.send_message(BotInfo.ABOUT)
 
     def _whoami(self, telegram_id: int | None, username: str | None) -> None:
-        self.telegram.send_message(f"{BotInfo.WHOAMI_PREFIX}\n{format_whoami(telegram_id, username)}")
+        self.telegram.send_message(f"{format_whoami(telegram_id, username)}")
 
     def _last_action(self) -> None:
         actions = self.audit_log.list_recent(1)
@@ -195,6 +203,18 @@ class TelegramHandlers:
 
         self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
         return
+
+    def _menu(self) -> None:
+        self.telegram.send_message(
+            "🏠 Главное меню",
+            reply_markup=build_main_menu(),
+        )
+
+    def _system_menu(self) -> None:
+        self.telegram.send_message(
+            MainMenuButtons.SYSTEM,
+            reply_markup=build_system_menu(),
+        )
 
     def set_user_state(self, telegram_id: int, state: UserState) -> None:
         """Сохраняет простое состояние пользователя в памяти."""
