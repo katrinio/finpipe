@@ -5,7 +5,10 @@ from pathlib import Path
 import pytest
 from cryptography.fernet import Fernet
 
+from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
+from src.storage.database import Database, build_sqlite_url
+from src.storage.orm import Signature
 from src.workflows.tasks.encrypt_signature import encrypt_signature_workflow
 
 
@@ -15,7 +18,9 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("TELEGRAM_ADMIN_ID", "777")
     SignatureCipher._cipher = None
+    monkeypatch.setattr(Dir, "STORAGE_DB", tmp_path / "storage.sqlite3")
 
     source = tmp_path / "signature.png"
     destination = tmp_path / "signature.enc"
@@ -28,6 +33,12 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     assert result == destination
     assert destination.exists()
     assert SignatureCipher.decrypt_bytes(destination) == b"signature-bytes"
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+    signature = Signature.get_active(777)
+    assert signature is not None
+    assert signature.signature_path == str(destination)
+    assert signature.signature_hash == Signature._hash_path(destination)
     assert "Signature encrypted:" in captured.out
     assert str(source) in captured.out
     assert str(destination) in captured.out

@@ -11,6 +11,8 @@ from pathlib import Path
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
+from src.storage.database import Database, build_sqlite_url
+from src.storage.orm import Signature
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -62,6 +64,15 @@ def encrypt_signature_workflow(source: Path, destination: Path) -> Path:
 
     destination = SignatureCipher.encrypt_file(source, destination)
     signature_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
+    owner_telegram_id = int(EnvVar.get_required_env("TELEGRAM_ADMIN_ID"))
+    database = Database(build_sqlite_url(Dir.STORAGE_DB))
+    database.initialize_schema()
+    Signature.create(
+        owner_telegram_id=owner_telegram_id,
+        signature_path=destination,
+        signature_hash=signature_hash,
+        active=True,
+    )
     print(f"Signature encrypted: {source} -> {destination} (sha256={signature_hash})")
     LOGGER.info("Signature encrypted successfully: %s -> %s", source, destination)
     return destination

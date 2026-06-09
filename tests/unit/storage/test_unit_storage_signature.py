@@ -88,3 +88,25 @@ def test_bootstrap_primary_admin_is_idempotent(
     assert first_signature.signature_hash == second_signature.signature_hash
     assert len(AllowedUser.list_all()) == 1
     assert not source.exists()
+
+
+def test_signature_delete_removes_db_row_and_file(tmp_path: Path) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+
+    signature_path = tmp_path / "777_sign.enc"
+    signature_path.write_bytes(b"encrypted-signature")
+
+    Signature.create(
+        owner_telegram_id=777,
+        signature_path=signature_path,
+        signature_hash=hashlib.sha256(signature_path.read_bytes()).hexdigest(),
+    )
+
+    assert signature_path.exists()
+    assert Signature.exists(777)
+
+    Signature.delete(777)
+
+    assert not signature_path.exists()
+    assert not Signature.exists(777)
