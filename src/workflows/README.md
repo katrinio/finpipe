@@ -21,13 +21,6 @@
 
 ---
 
-### prepare_bank_pdf
-
-Совместимый alias для process_bank_request.
-
-Сохранён для старых точек входа и обратной совместимости.
-
----
 
 ### send_daily_healthcheck
 

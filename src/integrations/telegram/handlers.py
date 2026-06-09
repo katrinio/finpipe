@@ -12,7 +12,7 @@ from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
 from src.storage.orm.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER, EnvVar
-from src.workflows.generate_invoice_and_send import generate_and_send_invoice
+from src.workflows.run_invoice_delivery import generate_and_send_invoice
 
 
 @dataclass(frozen=True)
