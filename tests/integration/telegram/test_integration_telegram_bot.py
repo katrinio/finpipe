@@ -66,9 +66,7 @@ class TestTelegramBot:
 
         tg_bot.poll()
 
-        assert tg_bot.telegram.sent_messages == [
-            BotInfo.WHOAMI_PREFIX,
-        ]
+        assert tg_bot.telegram.sent_messages == BotInfo.WHOAMI_PREFIX
         assert tg_bot.update_storage.processed == [11]
 
     def test_handle_message_last_action_uses_storage_audit_log(self, fake_telegram_client) -> None:
