@@ -6,6 +6,7 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
+from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
 from src.storage.orm.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER, EnvVar
@@ -142,8 +143,18 @@ class TelegramHandlers:
         self.telegram.send_message("✅ Gmail disconnected")
 
     def _upload_signature(self, telegram_id: int) -> None:
-        GmailAccountService.disconnect(telegram_id)
-        self.telegram.send_message("✅ ")
+        # TODO: download signature file from Telegram API and pass it to _handle_signature_upload.
+        self.telegram.send_message("✍️ Upload signature flow is prepared. File download will be connected next.")
+
+    def _handle_signature_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
+        # TODO: connect Telegram file download to this method.
+        SignatureService.upload(
+            telegram_id=telegram_id,
+            file_name=file_name,
+            file_size=file_size,
+            file_bytes=file_bytes,
+        )
+        self.telegram.send_message("✅ Signature uploaded")
 
     def _delete_signature(self, telegram_id: int) -> None:
         Signature.delete(telegram_id)
