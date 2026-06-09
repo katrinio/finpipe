@@ -1945,6 +1945,18 @@ pymysql = ["pymysql"]
 sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
+name = "types-reportlab"
+version = "4.5.1.20260521"
+description = "Typing stubs for reportlab"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "types_reportlab-4.5.1.20260521-py3-none-any.whl", hash = "sha256:b438c76655dbf24e4b4de157611ff137e1fd670e942d039f8a9321b3fe65cba1"},
+    {file = "types_reportlab-4.5.1.20260521.tar.gz", hash = "sha256:072d6d700d42f37bd515a1f92a4298066909d5ada3d40a9f7fd61f414f2691af"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
