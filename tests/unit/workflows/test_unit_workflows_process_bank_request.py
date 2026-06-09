@@ -1,9 +1,13 @@
 import importlib
 from pathlib import Path
+from typing import TypeVar
+
+import pytest
 
 from src.constants import Message
 
 process_bank_request = importlib.import_module("src.workflows.prepare_bank_pdf")
+T = TypeVar("T")
 
 
 class FakeTelegramClient:
@@ -24,7 +28,7 @@ class FakeStorage:
         self.processed_messages = object()
 
 
-def test_main_returns_early_when_no_new_bank_email(monkeypatch) -> None:
+def test_main_returns_early_when_no_new_bank_email(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[str] = []
     telegram_client = FakeTelegramClient()
 
@@ -35,12 +39,12 @@ def test_main_returns_early_when_no_new_bank_email(monkeypatch) -> None:
     monkeypatch.setattr(
         process_bank_request,
         "fetch_bank_email_workflow",
-        lambda: calls.append("fetch") or None,
+        lambda: _record_str_and_return(calls, "fetch", None),
     )
-    monkeypatch.setattr(process_bank_request, "extract_amount", lambda _path: calls.append("extract_amount"))
-    monkeypatch.setattr(process_bank_request, "fill_bank_pdf_with_data", lambda *_args, **_kwargs: calls.append("fill_bank_pdf"))
-    monkeypatch.setattr(process_bank_request, "generate_transfer_request_pdf", lambda **_kwargs: calls.append("transfer_request"))
-    monkeypatch.setattr(process_bank_request, "generate_invoice_pdf", lambda **_kwargs: calls.append("invoice"))
+    monkeypatch.setattr(process_bank_request, "extract_amount", lambda _path: _record_call(calls, "extract_amount"))
+    monkeypatch.setattr(process_bank_request, "fill_bank_pdf_with_data", lambda *_args, **_kwargs: _record_call(calls, "fill_bank_pdf"))
+    monkeypatch.setattr(process_bank_request, "generate_transfer_request_pdf", lambda **_kwargs: _record_call(calls, "transfer_request"))
+    monkeypatch.setattr(process_bank_request, "generate_invoice_pdf", lambda **_kwargs: _record_call(calls, "invoice"))
 
     result = process_bank_request.main()
 
@@ -53,7 +57,7 @@ def test_main_returns_early_when_no_new_bank_email(monkeypatch) -> None:
     assert telegram_client.documents == []
 
 
-def test_main_generates_all_documents_and_sends_bank_response(monkeypatch) -> None:
+def test_main_generates_all_documents_and_sends_bank_response(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[object] = []
     telegram_client = FakeTelegramClient()
     bank_template_path = Path("attachments/bank-form.pdf")
@@ -68,27 +72,27 @@ def test_main_generates_all_documents_and_sends_bank_response(monkeypatch) -> No
     monkeypatch.setattr(
         process_bank_request,
         "fetch_bank_email_workflow",
-        lambda: calls.append("fetch") or bank_template_path,
+        lambda: _record_call_and_return(calls, "fetch", bank_template_path),
     )
     monkeypatch.setattr(
         process_bank_request,
         "extract_amount",
-        lambda path: calls.append(("extract_amount", path)) or 123.4,
+        lambda path: _record_tuple_and_return(calls, ("extract_amount", path), 123.4),
     )
     monkeypatch.setattr(
         process_bank_request,
         "fill_bank_pdf_with_data",
-        lambda path, amount: calls.append(("fill_bank_pdf", path, amount)) or bank_pdf_path,
+        lambda path, amount: _record_tuple_and_return(calls, ("fill_bank_pdf", path, amount), bank_pdf_path),
     )
     monkeypatch.setattr(
         process_bank_request,
         "generate_transfer_request_pdf",
-        lambda amount: calls.append(("transfer_request", amount)) or transfer_request_pdf_path,
+        lambda amount: _record_tuple_and_return(calls, ("transfer_request", amount), transfer_request_pdf_path),
     )
     monkeypatch.setattr(
         process_bank_request,
         "generate_invoice_pdf",
-        lambda **kwargs: calls.append(("invoice", kwargs["amount"])) or invoice_pdf_path,
+        lambda **kwargs: _record_tuple_and_return(calls, ("invoice", kwargs["amount"]), invoice_pdf_path),
     )
 
     result = process_bank_request.main()
@@ -116,3 +120,22 @@ def test_main_generates_all_documents_and_sends_bank_response(monkeypatch) -> No
         transfer_request_pdf_path,
         bank_pdf_path,
     ]
+
+
+def _record_call(calls: list[str], value: str) -> None:
+    calls.append(value)
+
+
+def _record_str_and_return[T](calls: list[str], value: str, result: T) -> T:
+    calls.append(value)
+    return result
+
+
+def _record_call_and_return[T](calls: list[object], value: object, result: T) -> T:
+    calls.append(value)
+    return result
+
+
+def _record_tuple_and_return[T](calls: list[object], value: object, result: T) -> T:
+    calls.append(value)
+    return result
