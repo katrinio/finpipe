@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 import pytest
 
+from src.constants import Dir
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.database import Database, build_sqlite_url
 from src.storage.orm import AllowedUser, Signature
@@ -15,6 +17,10 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
 ) -> None:
     monkeypatch.setenv("TELEGRAM_ADMIN_ID", "9001")
     monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "primary-admin")
+    source = tmp_path / "signature.png"
+    source.write_bytes(b"signature-bytes")
+    monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
+    monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "9001_sign.enc")
 
     db_path = tmp_path / "storage.sqlite3"
 
@@ -25,7 +31,8 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
 
     assert first_admin is not None
     assert first_signature is not None
-    assert first_signature.signature_path.endswith("src/storage/signatures/signature.enc")
+    assert first_signature.signature_path.endswith("signatures/9001_sign.enc")
+    assert first_signature.signature_hash == hashlib.sha256((tmp_path / "signatures" / "9001_sign.enc").read_bytes()).hexdigest()
 
     bootstrap_primary_admin(db_path)
 
@@ -41,3 +48,4 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
     assert second_signature.id == first_signature.id
     assert len(AllowedUser.list_all()) == 1
     assert Signature.exists(9001)
+    assert not source.exists()

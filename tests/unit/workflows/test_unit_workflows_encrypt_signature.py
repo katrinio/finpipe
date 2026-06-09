@@ -1,0 +1,33 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+from cryptography.fernet import Fernet
+
+from src.infrastructure.security.signature_cipher import SignatureCipher
+from src.workflows.tasks.encrypt_signature import encrypt_signature_workflow
+
+
+def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    SignatureCipher._cipher = None
+
+    source = tmp_path / "signature.png"
+    destination = tmp_path / "signature.enc"
+    source.write_bytes(b"signature-bytes")
+
+    result = encrypt_signature_workflow(source, destination)
+
+    captured = capsys.readouterr()
+
+    assert result == destination
+    assert destination.exists()
+    assert SignatureCipher.decrypt_bytes(destination) == b"signature-bytes"
+    assert "Signature encrypted:" in captured.out
+    assert str(source) in captured.out
+    assert str(destination) in captured.out

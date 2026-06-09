@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,7 @@ def test_signature_create_persists_and_reuses_owner(tmp_path: Path) -> None:
 
     assert first_signature is not None
     assert first_signature.signature_path == str(first_path)
+    assert first_signature.signature_hash == hashlib.sha256(first_path.read_bytes()).hexdigest()
     assert Signature.exists(123)
 
     Signature.create(owner_telegram_id=123, signature_path=second_path)
@@ -42,6 +44,10 @@ def test_bootstrap_primary_admin_creates_admin_and_active_signature(
 ) -> None:
     monkeypatch.setenv("TELEGRAM_ADMIN_ID", "777")
     monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "admin")
+    source = tmp_path / "signature.png"
+    source.write_bytes(b"signature-bytes")
+    monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
+    monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "777_sign.enc")
 
     bootstrap_primary_admin(tmp_path / "storage.sqlite3")
 
@@ -52,7 +58,10 @@ def test_bootstrap_primary_admin_creates_admin_and_active_signature(
     assert admin.user_name == "admin"
     assert signature is not None
     assert signature.owner_telegram_id == 777
-    assert signature.signature_path == str(Dir.SIGNATURE_ENC)
+    assert signature.signature_path == str(tmp_path / "signatures" / "777_sign.enc")
+    assert signature.signature_hash == hashlib.sha256((tmp_path / "signatures" / "777_sign.enc").read_bytes()).hexdigest()
+    assert not source.exists()
+    assert (tmp_path / "signatures" / "777_sign.enc").exists()
 
 
 def test_bootstrap_primary_admin_is_idempotent(
@@ -61,6 +70,10 @@ def test_bootstrap_primary_admin_is_idempotent(
 ) -> None:
     monkeypatch.setenv("TELEGRAM_ADMIN_ID", "777")
     monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "admin")
+    source = tmp_path / "signature.png"
+    source.write_bytes(b"signature-bytes")
+    monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
+    monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "777_sign.enc")
 
     db_path = tmp_path / "storage.sqlite3"
     bootstrap_primary_admin(db_path)
@@ -72,4 +85,6 @@ def test_bootstrap_primary_admin_is_idempotent(
     assert first_signature is not None
     assert second_signature is not None
     assert first_signature.id == second_signature.id
+    assert first_signature.signature_hash == second_signature.signature_hash
     assert len(AllowedUser.list_all()) == 1
+    assert not source.exists()
