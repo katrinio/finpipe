@@ -1,6 +1,6 @@
 import pytest
 
-from tests.fakes.storage import FakeStorage, FakeTelegramUpdateStorage
+from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
 
 
 @pytest.fixture
