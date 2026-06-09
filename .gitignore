@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 *.py[codz]
 *$py.class
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
 
 # C extensions
 *.so
