@@ -1,12 +1,5 @@
-# menu_handlers.py
-
-from src.integrations.telegram.ui.menu import (
-    MainMenuButtons,
-    build_gmail_menu,
-    build_main_menu,
-    build_signature_menu,
-    build_system_menu,
-)
+from src.integrations.telegram.ui.buttons import MainMenuButtons
+from src.integrations.telegram.ui.menu import build_gmail_menu, build_main_menu, build_signature_menu, build_system_menu
 
 
 class MenuHandler:

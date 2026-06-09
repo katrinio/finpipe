@@ -8,13 +8,7 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
 from src.integrations.telegram.heandlers.menu_handlers import MenuHandler
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.menu import (
-    GmailButtons,
-    MainMenuButtons,
-    NavigationButtons,
-    SignatureButtons,
-    SystemButtons,
-)
+from src.integrations.telegram.ui.buttons import GmailButtons, MainMenuButtons, NavigationButtons, SignatureButtons, SystemButtons
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
