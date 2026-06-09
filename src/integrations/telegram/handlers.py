@@ -6,7 +6,15 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
-from src.integrations.telegram.menu import MainMenuButtons, NavigationButtons, SystemButtons, build_main_menu, build_system_menu
+from src.integrations.telegram.menu import (
+    GmailButtons,
+    MainMenuButtons,
+    NavigationButtons,
+    SystemButtons,
+    build_gmail_menu,
+    build_main_menu,
+    build_system_menu,
+)
 from src.integrations.telegram.states import UserState
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
@@ -52,6 +60,7 @@ class TelegramHandlers:
         handlers: dict[str, Callable[[], None]] = {
             Cmd.MENU: self._menu,
             MainMenuButtons.SYSTEM: self._system_menu,
+            MainMenuButtons.GMAIL: self._gmail_menu,
             SystemButtons.SYSTEM_STATUS: self._status,
             SystemButtons.HELP: self._help,
             SystemButtons.HEALTHCHECK: self._health,
@@ -59,9 +68,9 @@ class TelegramHandlers:
             SystemButtons.ABOUT: self._about,
             SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
             SystemButtons.LAST_ACTION: self._last_action,
-            Cmd.CONNECT_GMAIL: lambda: self._gmail_connect(context.telegram_id, context.username),
-            Cmd.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
-            Cmd.DISCONNECT_GMAIL: lambda: self._gmail_disconnect(context.telegram_id),
+            GmailButtons.GMAIL_CONNECT: lambda: self._gmail_connect(context.telegram_id, context.username),
+            GmailButtons.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
+            GmailButtons.GMAIL_DISCONNECT: lambda: self._gmail_disconnect(context.telegram_id),
             Cmd.UPLOAD_SIGNATURE: lambda: self._upload_signature(context.telegram_id),
             Cmd.DELETE_SIGNATURE: lambda: self._delete_signature(context.telegram_id),
             Cmd.SIGNATURE_STATUS: lambda: self._signature_status(context.telegram_id),
@@ -214,6 +223,12 @@ class TelegramHandlers:
         self.telegram.send_message(
             MainMenuButtons.SYSTEM,
             reply_markup=build_system_menu(),
+        )
+
+    def _gmail_menu(self) -> None:
+        self.telegram.send_message(
+            MainMenuButtons.GMAIL,
+            reply_markup=build_gmail_menu(),
         )
 
     def set_user_state(self, telegram_id: int, state: UserState) -> None:

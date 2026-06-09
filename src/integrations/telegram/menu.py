@@ -11,14 +11,11 @@ class MainMenuButtons:
     SIGNATURE_UPLOAD = "📤 Загрузить"
     SIGNATURE_DELETE = "🗑 Удалить"
 
-    # Gmail menu
+
+class GmailButtons:
     GMAIL_STATUS = "📋 Статус"
     GMAIL_CONNECT = "🔗 Подключить"
     GMAIL_DISCONNECT = "🔌 Отключить"
-
-    # Navigation
-    BACK = "⬅️ Назад"
-    HOME = "🏠 Главное меню"
 
 
 class SystemButtons:
@@ -32,6 +29,7 @@ class SystemButtons:
 
 class NavigationButtons:
     BACK = "⬅️ Назад"
+    HOME = "🏠 Главное меню"
 
 
 def build_main_menu() -> dict:
@@ -70,6 +68,22 @@ def build_system_menu() -> dict:
             ],
             [
                 {"text": NavigationButtons.BACK},
+            ],
+        ],
+        "resize_keyboard": True,
+    }
+
+
+def build_gmail_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": GmailButtons.GMAIL_DISCONNECT},
+                {"text": GmailButtons.GMAIL_CONNECT},
+            ],
+            [
+                {"text": NavigationButtons.BACK},
+                {"text": GmailButtons.GMAIL_STATUS},
             ],
         ],
         "resize_keyboard": True,

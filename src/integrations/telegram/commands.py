@@ -9,9 +9,6 @@ from src.storage.orm.audit_log import AuditLog
 class Cmd(StrEnum):
     MENU = "/menu"
     INVOICE = "/invoice"
-    CONNECT_GMAIL = "/connect_gmail"
-    GMAIL_STATUS = "/gmail_status"
-    DISCONNECT_GMAIL = "/disconnect_gmail"
     UPLOAD_SIGNATURE = "/upload_signature"
     DELETE_SIGNATURE = "/delete_signature"
     SIGNATURE_STATUS = "/signature_status"
@@ -21,9 +18,6 @@ class Cmd(StrEnum):
         descriptions = {
             Cmd.MENU: "menu",
             Cmd.INVOICE: "generate invoice",
-            Cmd.CONNECT_GMAIL: "connect gmail",
-            Cmd.GMAIL_STATUS: "is gmail connected",
-            Cmd.DISCONNECT_GMAIL: "disconnect gmail",
             Cmd.UPLOAD_SIGNATURE: "upload signature",
             Cmd.DELETE_SIGNATURE: "delete signature",
             Cmd.SIGNATURE_STATUS: "show signature status",
