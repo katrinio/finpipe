@@ -1,6 +1,7 @@
 import importlib.util
 import sys
 import types
+from io import BytesIO
 from pathlib import Path
 from typing import Self
 
@@ -30,6 +31,8 @@ def _load_sign_pdf_module(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setitem(sys.modules, "pypdf", pypdf_module)
 
     reportlab_module = types.ModuleType("reportlab")
+    reportlab_lib_module = types.ModuleType("reportlab.lib")
+    reportlab_lib_utils_module = types.ModuleType("reportlab.lib.utils")
     reportlab_pdfgen_module = types.ModuleType("reportlab.pdfgen")
     reportlab_canvas_module = types.ModuleType("reportlab.pdfgen.canvas")
 
@@ -46,8 +49,18 @@ def _load_sign_pdf_module(monkeypatch: pytest.MonkeyPatch):
 
     reportlab_canvas_module.Canvas = CanvasStub
     reportlab_pdfgen_module.canvas = reportlab_canvas_module
+
+    class ImageReaderStub:
+        def __init__(self, source: object) -> None:
+            self.source = source
+
+    reportlab_lib_utils_module.ImageReader = ImageReaderStub
+    reportlab_lib_module.utils = reportlab_lib_utils_module
     reportlab_module.pdfgen = reportlab_pdfgen_module
+    reportlab_module.lib = reportlab_lib_module
     monkeypatch.setitem(sys.modules, "reportlab", reportlab_module)
+    monkeypatch.setitem(sys.modules, "reportlab.lib", reportlab_lib_module)
+    monkeypatch.setitem(sys.modules, "reportlab.lib.utils", reportlab_lib_utils_module)
     monkeypatch.setitem(sys.modules, "reportlab.pdfgen", reportlab_pdfgen_module)
     monkeypatch.setitem(sys.modules, "reportlab.pdfgen.canvas", reportlab_canvas_module)
 
@@ -157,13 +170,14 @@ def test_draw_signature_uses_position_and_calculated_size(tmp_path: Path, monkey
         position=module.PdfSignaturePosition(x=15, y=25, height=60),
     )
 
-    assert calls == [
-        (
-            (str(signature_path), 15, 25),
-            {
-                "width": 150,
-                "height": 60,
-                "mask": "auto",
-            },
-        )
-    ]
+    assert len(calls) == 1
+    args, kwargs = calls[0]
+    assert args[1:] == (15, 25)
+    assert kwargs == {
+        "width": 150,
+        "height": 60,
+        "mask": "auto",
+    }
+    assert hasattr(args[0], "source")
+    assert isinstance(args[0].source, BytesIO)
+    assert args[0].source.getvalue() == b"fake image"

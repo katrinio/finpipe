@@ -19,13 +19,11 @@ def main() -> int:
 
     configure_logging()
     EnvVar.get_dotenv()
-    storage = build_storage_dependencies()
+    build_storage_dependencies()
     telegram_client = TelegramClient()
     telegram_client.send_message(Message.START)
 
-    bank_template_path = fetch_bank_email_workflow(
-        processed_message_repository=storage.processed_messages,
-    )
+    bank_template_path = fetch_bank_email_workflow()
     if bank_template_path is None:
         # Без нового письма workflow ничего не генерирует и завершаетcя штатно.
         telegram_client.send_message(Message.NO_NEW_BANK_EMAIL)
@@ -42,10 +40,7 @@ def main() -> int:
     transfer_request_pdf_path = generate_transfer_request_pdf(amount=transfer_amount_text)
     telegram_client.send_message(Message.TRANSACTION_REQUEST_GENERATED)
 
-    invoice_pdf_path = generate_invoice_pdf(
-        amount=transfer_amount_text,
-        invoice_history_repository=storage.invoice_history,
-    )
+    invoice_pdf_path = generate_invoice_pdf(amount=transfer_amount_text)
     telegram_client.send_message(Message.INVOICE_GENERATED)
 
     send_bank_response(

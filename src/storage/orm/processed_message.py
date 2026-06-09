@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import String, func
+from sqlalchemy import String, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
@@ -28,17 +28,29 @@ class ProcessedMessage(BaseModel):
     @classmethod
     def list_message_ids(cls) -> list[str]:
         with cls.session() as session:
-            return cls.list_primary_keys(session)
+            statement = select(cls.message_id).order_by(cls.message_id)
+            return list(session.scalars(statement))
+
+    @classmethod
+    def get_by_message_id(cls, message_id: str) -> "ProcessedMessage | None":
+        with cls.session() as session:
+            statement = select(cls).where(cls.message_id == message_id).limit(1)
+            return session.scalar(statement)
 
     @classmethod
     def is_processed(cls, message_id: str) -> bool:
         with cls.session() as session:
-            return cls.exists_by_primary_key(session, message_id)
+            statement = select(cls.message_id).where(cls.message_id == message_id).limit(1)
+            return session.scalar(statement) is not None
+
+    @classmethod
+    def exists(cls, message_id: str) -> bool:
+        return cls.is_processed(message_id)
 
     @classmethod
     def mark_as_processed(cls, message_id: str) -> None:
         with cls.session() as session:
-            cls.add_by_primary_key(session, message_id)
+            session.add(cls(message_id=message_id))
             try:
                 session.commit()
             except IntegrityError:
@@ -49,11 +61,12 @@ class ProcessedMessage(BaseModel):
         """Полностью заменяет содержимое таблицы обработанных писем."""
 
         with cls.session() as session:
-            cls.replace_primary_keys(session, sorted(message_ids))
+            session.query(cls).delete()
+            session.add_all(cls(message_id=message_id) for message_id in sorted(message_ids))
             session.commit()
 
     @classmethod
     def clear_processed_message(cls) -> None:
         with cls.session() as session:
-            cls.clear(session)
+            session.query(cls).delete()
             session.commit()

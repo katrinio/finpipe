@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Monthly salary invoice and bank PDF automation."
 authors = ["Katrin"]
 readme = "README.md"
-packages = [{ include = "src" }]
+packages = [
+    { include = "src" },
+]
 
 [tool.poetry.scripts]
 gen_invoice = "src.workflows.generate_invoice:main"
@@ -26,8 +28,7 @@ docxtpl = "^0.20.2"
 sqlalchemy = "^2.0.41"
 pillow = "^12.2.0"
 faker = "^40.21.0"
-
-
+cryptography = "^48.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

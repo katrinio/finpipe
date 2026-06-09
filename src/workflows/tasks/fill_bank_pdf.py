@@ -26,7 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=f"Path to source bank PDF. Defaults to the newest PDF in {Dir.ATTACHMENTS}.",
     )
-    parser.add_argument("--signature", type=Path, default=Dir.SIGNATURE_PATH)
+    parser.add_argument("--signature", type=Path, default=Dir.SIGNATURE_ENC)
     parser.add_argument(
         "--without-signature",
         action="store_true",
@@ -61,7 +61,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 def fill_bank_pdf_with_data(
     bank_template: Path | None = None,
-    signature: Path | None = Dir.SIGNATURE_PATH,
+    signature: Path | None = Dir.SIGNATURE_ENC,
     output_dir: Path = Dir.BANK_OUTPUT_DIR,
     include_signature: bool | None = None,
     amount: float | None = None,

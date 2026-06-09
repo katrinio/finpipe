@@ -1,39 +1,13 @@
 import importlib
-import sys
-import types
 from pathlib import Path
+from typing import TypeVar
+
+import pytest
 
 from src.constants import Message
 
-sys.modules.setdefault("src.integrations.telegram.client", types.SimpleNamespace(TelegramClient=object))
-sys.modules.setdefault("src.logging_config", types.SimpleNamespace(configure_logging=lambda: None))
-sys.modules.setdefault("src.services.bank.bank_extract", types.SimpleNamespace(extract_amount=lambda _path: 0.0))
-sys.modules.setdefault(
-    "src.storage.dependencies",
-    types.SimpleNamespace(build_storage_dependencies=lambda: types.SimpleNamespace(invoice_history=object(), processed_messages=object())),
-)
-sys.modules.setdefault(
-    "src.utils.credentials",
-    types.SimpleNamespace(EnvVar=types.SimpleNamespace(get_dotenv=lambda: None)),
-)
-sys.modules.setdefault(
-    "src.workflows.tasks.fetch_bank_email",
-    types.SimpleNamespace(fetch_bank_email_workflow=lambda **_kwargs: None),
-)
-sys.modules.setdefault(
-    "src.workflows.tasks.fill_bank_pdf",
-    types.SimpleNamespace(fill_bank_pdf_with_data=lambda *_args, **_kwargs: None),
-)
-sys.modules.setdefault(
-    "src.workflows.tasks.generate_invoice",
-    types.SimpleNamespace(generate_invoice_pdf=lambda **_kwargs: None),
-)
-sys.modules.setdefault(
-    "src.workflows.tasks.generate_transfer_request",
-    types.SimpleNamespace(generate_transfer_request_pdf=lambda **_kwargs: None),
-)
-
 process_bank_request = importlib.import_module("src.workflows.prepare_bank_pdf")
+T = TypeVar("T")
 
 
 class FakeTelegramClient:
@@ -54,24 +28,23 @@ class FakeStorage:
         self.processed_messages = object()
 
 
-def test_main_returns_early_when_no_new_bank_email(monkeypatch) -> None:
+def test_main_returns_early_when_no_new_bank_email(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[str] = []
     telegram_client = FakeTelegramClient()
-    storage = FakeStorage()
 
     monkeypatch.setattr(process_bank_request, "configure_logging", lambda: calls.append("configure_logging"))
     monkeypatch.setattr(process_bank_request.EnvVar, "get_dotenv", lambda: calls.append("get_dotenv"))
-    monkeypatch.setattr(process_bank_request, "build_storage_dependencies", lambda: storage)
+    monkeypatch.setattr(process_bank_request, "build_storage_dependencies", lambda: FakeStorage())
     monkeypatch.setattr(process_bank_request, "TelegramClient", lambda: telegram_client)
     monkeypatch.setattr(
         process_bank_request,
         "fetch_bank_email_workflow",
-        lambda **kwargs: calls.append("fetch") or None,
+        lambda: _record_str_and_return(calls, "fetch", None),
     )
-    monkeypatch.setattr(process_bank_request, "extract_amount", lambda _path: calls.append("extract_amount"))
-    monkeypatch.setattr(process_bank_request, "fill_bank_pdf_with_data", lambda *_args, **_kwargs: calls.append("fill_bank_pdf"))
-    monkeypatch.setattr(process_bank_request, "generate_transfer_request_pdf", lambda **_kwargs: calls.append("transfer_request"))
-    monkeypatch.setattr(process_bank_request, "generate_invoice_pdf", lambda **_kwargs: calls.append("invoice"))
+    monkeypatch.setattr(process_bank_request, "extract_amount", lambda _path: _record_call(calls, "extract_amount"))
+    monkeypatch.setattr(process_bank_request, "fill_bank_pdf_with_data", lambda *_args, **_kwargs: _record_call(calls, "fill_bank_pdf"))
+    monkeypatch.setattr(process_bank_request, "generate_transfer_request_pdf", lambda **_kwargs: _record_call(calls, "transfer_request"))
+    monkeypatch.setattr(process_bank_request, "generate_invoice_pdf", lambda **_kwargs: _record_call(calls, "invoice"))
 
     result = process_bank_request.main()
 
@@ -84,10 +57,9 @@ def test_main_returns_early_when_no_new_bank_email(monkeypatch) -> None:
     assert telegram_client.documents == []
 
 
-def test_main_generates_all_documents_and_sends_bank_response(monkeypatch) -> None:
+def test_main_generates_all_documents_and_sends_bank_response(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[object] = []
     telegram_client = FakeTelegramClient()
-    storage = FakeStorage()
     bank_template_path = Path("attachments/bank-form.pdf")
     bank_pdf_path = Path("output/bank/filled.pdf")
     transfer_request_pdf_path = Path("output/transfer_request/request.pdf")
@@ -95,32 +67,32 @@ def test_main_generates_all_documents_and_sends_bank_response(monkeypatch) -> No
 
     monkeypatch.setattr(process_bank_request, "configure_logging", lambda: calls.append("configure_logging"))
     monkeypatch.setattr(process_bank_request.EnvVar, "get_dotenv", lambda: calls.append("get_dotenv"))
-    monkeypatch.setattr(process_bank_request, "build_storage_dependencies", lambda: storage)
+    monkeypatch.setattr(process_bank_request, "build_storage_dependencies", lambda: FakeStorage())
     monkeypatch.setattr(process_bank_request, "TelegramClient", lambda: telegram_client)
     monkeypatch.setattr(
         process_bank_request,
         "fetch_bank_email_workflow",
-        lambda **kwargs: calls.append(("fetch", kwargs["processed_message_repository"])) or bank_template_path,
+        lambda: _record_call_and_return(calls, "fetch", bank_template_path),
     )
     monkeypatch.setattr(
         process_bank_request,
         "extract_amount",
-        lambda path: calls.append(("extract_amount", path)) or 123.4,
+        lambda path: _record_tuple_and_return(calls, ("extract_amount", path), 123.4),
     )
     monkeypatch.setattr(
         process_bank_request,
         "fill_bank_pdf_with_data",
-        lambda path, amount: calls.append(("fill_bank_pdf", path, amount)) or bank_pdf_path,
+        lambda path, amount: _record_tuple_and_return(calls, ("fill_bank_pdf", path, amount), bank_pdf_path),
     )
     monkeypatch.setattr(
         process_bank_request,
         "generate_transfer_request_pdf",
-        lambda amount: calls.append(("transfer_request", amount)) or transfer_request_pdf_path,
+        lambda amount: _record_tuple_and_return(calls, ("transfer_request", amount), transfer_request_pdf_path),
     )
     monkeypatch.setattr(
         process_bank_request,
         "generate_invoice_pdf",
-        lambda **kwargs: calls.append(("invoice", kwargs["amount"], kwargs["invoice_history_repository"])) or invoice_pdf_path,
+        lambda **kwargs: _record_tuple_and_return(calls, ("invoice", kwargs["amount"]), invoice_pdf_path),
     )
 
     result = process_bank_request.main()
@@ -129,11 +101,11 @@ def test_main_generates_all_documents_and_sends_bank_response(monkeypatch) -> No
     assert calls == [
         "configure_logging",
         "get_dotenv",
-        ("fetch", storage.processed_messages),
+        "fetch",
         ("extract_amount", bank_template_path),
         ("fill_bank_pdf", bank_template_path, 123.4),
         ("transfer_request", "123.40"),
-        ("invoice", "123.40", storage.invoice_history),
+        ("invoice", "123.40"),
     ]
     assert telegram_client.messages == [
         Message.START,
@@ -148,3 +120,22 @@ def test_main_generates_all_documents_and_sends_bank_response(monkeypatch) -> No
         transfer_request_pdf_path,
         bank_pdf_path,
     ]
+
+
+def _record_call(calls: list[str], value: str) -> None:
+    calls.append(value)
+
+
+def _record_str_and_return[T](calls: list[str], value: str, result: T) -> T:
+    calls.append(value)
+    return result
+
+
+def _record_call_and_return[T](calls: list[object], value: object, result: T) -> T:
+    calls.append(value)
+    return result
+
+
+def _record_tuple_and_return[T](calls: list[object], value: object, result: T) -> T:
+    calls.append(value)
+    return result

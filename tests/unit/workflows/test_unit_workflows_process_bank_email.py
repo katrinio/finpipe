@@ -1,7 +1,7 @@
 import importlib
-import sys
-import types
 from dataclasses import dataclass
+
+import pytest
 
 
 @dataclass(frozen=True)
@@ -12,20 +12,6 @@ class BankEmail:
     message_id: str
     thread_id: str
 
-
-sys.modules.setdefault(
-    "src.integrations.gmail",
-    types.SimpleNamespace(BankEmail=BankEmail, get_gmail_service=lambda: object()),
-)
-sys.modules.setdefault(
-    "src.integrations.gmail.downloader",
-    types.SimpleNamespace(download_attachments=lambda _email: None),
-)
-sys.modules.setdefault(
-    "src.integrations.gmail.search",
-    types.SimpleNamespace(find_bank_email=lambda _service: None),
-)
-sys.modules.setdefault("src.logging_config", types.SimpleNamespace(configure_logging=lambda: None))
 
 fetch_bank_email = importlib.import_module("src.workflows.tasks.fetch_bank_email")
 
@@ -62,13 +48,13 @@ def build_bank_email(message_id: str = "message-123") -> BankEmail:
     )
 
 
-def test_process_bank_email_workflow_returns_when_no_email(monkeypatch) -> None:
-    calls = []
+def test_process_bank_email_workflow_returns_when_no_email(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
     FakeProcessedMessage.reset()
 
     monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
     monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service: None)
-    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: calls.append("download"))
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: _record_call(calls, "download"))
     monkeypatch.setattr(fetch_bank_email, "ProcessedMessage", FakeProcessedMessage)
 
     result = fetch_bank_email.fetch_bank_email_workflow()
@@ -79,15 +65,15 @@ def test_process_bank_email_workflow_returns_when_no_email(monkeypatch) -> None:
     assert FakeProcessedMessage.mark_calls == []
 
 
-def test_process_bank_email_workflow_skips_processed_email(monkeypatch) -> None:
-    calls = []
+def test_process_bank_email_workflow_skips_processed_email(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
     bank_email = build_bank_email()
     FakeProcessedMessage.reset()
     FakeProcessedMessage.processed_ids = {bank_email.message_id}
 
     monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
     monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service: bank_email)
-    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: calls.append("download"))
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: _record_call(calls, "download"))
     monkeypatch.setattr(fetch_bank_email, "ProcessedMessage", FakeProcessedMessage)
 
     result = fetch_bank_email.fetch_bank_email_workflow()
@@ -97,8 +83,8 @@ def test_process_bank_email_workflow_skips_processed_email(monkeypatch) -> None:
     assert FakeProcessedMessage.mark_calls == []
 
 
-def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch) -> None:
-    calls = []
+def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[str, str]] = []
     bank_email = build_bank_email()
     FakeProcessedMessage.reset()
 
@@ -107,7 +93,7 @@ def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch) 
     monkeypatch.setattr(
         fetch_bank_email,
         "download_attachments",
-        lambda email: calls.append(("download", email.message_id)) or "attachments/bank-form.pdf",
+        lambda email: _record_download(calls, email.message_id),
     )
     monkeypatch.setattr(fetch_bank_email, "ProcessedMessage", FakeProcessedMessage)
 
@@ -118,7 +104,7 @@ def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch) 
     assert FakeProcessedMessage.mark_calls == ["message-123"]
 
 
-def test_process_bank_email_workflow_does_not_mark_without_pdf(monkeypatch) -> None:
+def test_process_bank_email_workflow_does_not_mark_without_pdf(monkeypatch: pytest.MonkeyPatch) -> None:
     bank_email = build_bank_email()
     FakeProcessedMessage.reset()
 
@@ -131,3 +117,12 @@ def test_process_bank_email_workflow_does_not_mark_without_pdf(monkeypatch) -> N
 
     assert result is None
     assert FakeProcessedMessage.mark_calls == []
+
+
+def _record_call(calls: list[str], value: str) -> None:
+    calls.append(value)
+
+
+def _record_download(calls: list[tuple[str, str]], message_id: str) -> str:
+    calls.append(("download", message_id))
+    return "attachments/bank-form.pdf"

@@ -8,14 +8,13 @@ from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.handlers import TelegramHandlers
+from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
     build_storage_dependencies,
 )
 from src.storage.orm import AllowedUser
-from src.storage.repositories.telegram_update_repository import (
-    build_telegram_update_storage,
-)
+from src.storage.orm.telegram_update import TelegramUpdate
 from src.utils.credentials import LOGGER
 
 
@@ -25,7 +24,7 @@ class TelegramBot:
     def __init__(self, storage_dependencies: StorageDependencies) -> None:
         self.telegram = TelegramClient()
         self.dependencies = storage_dependencies
-        self.update_storage = build_telegram_update_storage(Dir.STORAGE_DB)
+        self.update_storage = TelegramUpdate
         self.handlers = TelegramHandlers(
             telegram=self.telegram,
             audit_log=self.dependencies.audit_log,
@@ -106,7 +105,10 @@ class TelegramBot:
         return AllowedUser.get_by_telegram_id(telegram_id) is not None
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Точка входа для Telegram listener."""
+
+    bootstrap_primary_admin()
     bot = TelegramBot(build_storage_dependencies(Dir.STORAGE_DB))
 
     LOGGER.info("Starting Telegram listener loop")
@@ -117,3 +119,7 @@ if __name__ == "__main__":
             LOGGER.exception("Telegram listener iteration failed")
 
         time.sleep(5)
+
+
+if __name__ == "__main__":
+    main()

@@ -15,14 +15,33 @@ class FakeUserConfigRepository:
         return None
 
 
+class FakeAuditLog:
+    def __init__(self) -> None:
+        self.created: list[tuple[int, str, str, str, str | None]] = []
+        self.records: list[SimpleNamespace] = []
+
+    def create(
+        self,
+        telegram_id: int,
+        user_name: str,
+        command: str,
+        status: str,
+        details: str | None = None,
+    ) -> None:
+        self.created.append((telegram_id, user_name, command, status, details))
+
+    def list_recent(self, limit: int = 50):
+        return self.records[-limit:]
+
+    def clear(self) -> None:
+        self.created = []
+        self.records = []
+
+
 class FakeStorage:
     def __init__(self, allowed_ids: set[int]) -> None:
         self.allowed_users = FakeUserConfigRepository(allowed_ids)
-
-        self.audit_log = SimpleNamespace(
-            list_recent=lambda limit=50: [],
-            add=lambda *args, **kwargs: None,
-        )
+        self.audit_log = FakeAuditLog()
 
 
 class FakeTelegramUpdateStorage:

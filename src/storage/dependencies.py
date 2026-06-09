@@ -7,15 +7,14 @@ from pathlib import Path
 
 from src.constants import Dir
 from src.storage.database import Database, build_sqlite_url
-from src.storage.orm import HistoryRecord, ProcessedMessage
-from src.storage.repositories.audit_log_repository import AuditLogRepository, SQLAlchemyAuditLogRepository
+from src.storage.orm import AuditLog, HistoryRecord, ProcessedMessage
 
 
 @dataclass(frozen=True)
 class StorageDependencies:
-    """Готовый набор репозиториев для прикладного слоя."""
+    """Готовый набор persistence-моделей для прикладного слоя."""
 
-    audit_log: AuditLogRepository
+    audit_log: type[AuditLog]
     invoice_history: type[HistoryRecord]
     processed_messages: type[ProcessedMessage]
 
@@ -29,10 +28,8 @@ def build_storage_dependencies(db_path: Path = DEFAULT_DB_PATH) -> StorageDepend
     database = Database(build_sqlite_url(db_path))
     database.initialize_schema()
 
-    audit_log = SQLAlchemyAuditLogRepository(database.session)
-
     return StorageDependencies(
-        audit_log=audit_log,
+        audit_log=AuditLog,
         invoice_history=HistoryRecord,
         processed_messages=ProcessedMessage,
     )
