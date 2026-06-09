@@ -8,8 +8,8 @@ import pytest
 
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import Cmd
 from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.buttons import SignatureButtons
 from src.integrations.telegram.ui.messages import BotInfo
 from src.services.signing.exceptions import InvalidSignatureFormatError
 from src.storage.dependencies import StorageDependencies
@@ -35,7 +35,7 @@ def test_upload_signature_sets_waiting_state(
     tg_bot.telegram = cast(TelegramClient, telegram_client)
     tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
 
-    assert tg_bot.handle_message(Cmd.UPLOAD_SIGNATURE, telegram_id=123, username="alice") is True
+    assert tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice") is True
     assert tg_bot.handlers.get_user_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
     assert telegram_client.sent_messages == [
         BotInfo.SIGNATURE_REQUIREMENTS,
@@ -64,7 +64,7 @@ def test_successful_signature_upload_clears_state(
 
     monkeypatch.setattr("src.integrations.telegram.handlers.SignatureService.upload", lambda **kwargs: None)
 
-    tg_bot.handle_message(Cmd.UPLOAD_SIGNATURE, telegram_id=123, username="alice")
+    tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice")
     tg_bot.process_update(
         {
             "update_id": 42,
@@ -112,7 +112,7 @@ def test_invalid_file_keeps_state(
 
     monkeypatch.setattr("src.integrations.telegram.handlers.SignatureService.upload", raise_invalid)
 
-    tg_bot.handle_message(Cmd.UPLOAD_SIGNATURE, telegram_id=123, username="alice")
+    tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice")
     tg_bot.process_update(
         {
             "update_id": 43,
