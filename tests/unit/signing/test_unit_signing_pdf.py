@@ -41,7 +41,7 @@ def _load_sign_pdf_module(monkeypatch: pytest.MonkeyPatch):
         def save(self) -> None:
             return None
 
-        def drawImage(self, *args: object, **kwargs: object) -> None:  # noqa: N802
+        def drawImage(self, *args: object, **kwargs: object) -> None:
             return None
 
     reportlab_canvas_module.Canvas = CanvasStub
@@ -108,7 +108,7 @@ def test_get_signature_size_scales_width_to_target_height(tmp_path: Path, monkey
 
     monkeypatch.setattr(module.Image, "open", lambda path: ImageStub())
 
-    assert module.PdfSigner._get_signature_size(signature_path, target_height=50) == (100, 50)  # noqa: SLF001
+    assert module.PdfSigner._get_signature_size(signature_path, target_height=50) == (100, 50)
 
 
 def test_draw_signature_logs_and_skips_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -116,7 +116,7 @@ def test_draw_signature_logs_and_skips_missing_file(tmp_path: Path, monkeypatch:
     signature_path = tmp_path / "missing.png"
 
     class CanvasStub:
-        def drawImage(self, *args: object, **kwargs: object) -> None:  # noqa: N802
+        def drawImage(self, *args: object, **kwargs: object) -> None:
             message = "drawImage must not be called for a missing signature"
             raise AssertionError(message)
 
@@ -137,7 +137,7 @@ def test_draw_signature_uses_position_and_calculated_size(tmp_path: Path, monkey
     calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
 
     class CanvasStub:
-        def drawImage(self, *args: object, **kwargs: object) -> None:  # noqa: N802
+        def drawImage(self, *args: object, **kwargs: object) -> None:
             calls.append((args, kwargs))
 
     class ImageStub:

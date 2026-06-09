@@ -1,5 +1,3 @@
-import sys
-import types
 from datetime import datetime
 from types import SimpleNamespace
 
@@ -9,9 +7,6 @@ from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo, Cmd
 from src.storage.orm import AllowedUser
 from src.storage.orm.audit_log import AuditLog
-
-sys.modules.setdefault("arrow", types.SimpleNamespace(now=lambda: None))
-sys.modules.setdefault("faker", types.SimpleNamespace(Faker=None))
 
 
 class TestTelegramBot:
