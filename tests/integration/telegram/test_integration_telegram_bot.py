@@ -1,7 +1,5 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from types import SimpleNamespace
-
-import pytz
 
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo, Cmd
@@ -86,7 +84,7 @@ class TestTelegramBot:
                 10,
                 30,
                 0,
-                tzinfo=pytz.UTC,
+                tzinfo=UTC,
             ),
         )
 

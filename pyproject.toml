@@ -122,6 +122,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [dependency-groups]
 dev = [
+    "ruff>=0.15.14,<0.16.0",
     "pytest>=9.0.0,<10.0.0",
     "pytest-cov>=7.1.0,<8.0.0",
     "pre-commit>=4.6.0,<5.0.0",
