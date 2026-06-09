@@ -76,7 +76,11 @@ class TelegramHandlers:
 
         except Exception as error:
             LOGGER.exception("Command failed: %s", text)
-            self.telegram.send_message(f"❌ Command {text} failed:\n{error}")
+            # TODO:
+            # Временный отладочный вывод.
+            # Перед запуском в производство скрыть подробности исключений от пользователей
+            # и отправлять только BotInfo.SYSTEM_ERROR.
+            self.telegram.send_message(f"{BotInfo.SYSTEM_ERROR}\nCommand {text} failed:\n{error}")
             self._audit(context, AuditStatus.FAILED, str(error))
 
             return False
@@ -147,11 +151,11 @@ class TelegramHandlers:
 
     def _gmail_disconnect(self, telegram_id: int) -> None:
         GmailAccountService.disconnect(telegram_id)
-        self.telegram.send_message("✅ Gmail disconnected")
+        self.telegram.send_message(BotInfo.GMAIL_DISCONNECTED)
 
     def _upload_signature(self, telegram_id: int) -> None:
         self.set_user_state(telegram_id, UserState.WAITING_SIGNATURE_UPLOAD)
-        self.telegram.send_message("✍️ Пришлите подпись в PNG формате.\nТребования:\n- PNG\n- до 2 МБ\n- прозрачный фон рекомендуется")
+        self.telegram.send_message(BotInfo.SIGNATURE_REQUIREMENTS)
 
     def _handle_signature_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
         try:
@@ -162,17 +166,18 @@ class TelegramHandlers:
                 file_bytes=file_bytes,
             )
         except InvalidSignatureFormatError:
-            self.telegram.send_message("❌ Разрешены только PNG файлы")
+            self.telegram.send_message(BotInfo.SIGNATURE_NOT_PNG)
             return
         except SignatureTooLargeError:
-            self.telegram.send_message("❌ Размер файла превышает 2 МБ")
+            self.telegram.send_message(BotInfo.SIGNATURE_TOO_LARGE)
             return
         except InvalidSignatureImageError:
-            self.telegram.send_message("❌ Не удалось обработать изображение")
+            self.telegram.send_message(BotInfo.SIGNATURE_UPLOAD_ERROR)
             return
 
         self.clear_user_state(telegram_id)
-        self.telegram.send_message("✅ Подпись успешно обновлена")
+        self.telegram.send_message(BotInfo.SIGNATURE_UPDATED)
+        return
 
     def _delete_signature(self, telegram_id: int) -> None:
         signature = Signature.get_active(telegram_id)
