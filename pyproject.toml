@@ -59,7 +59,6 @@ exclude_lines = [
 
 [tool.mypy]
 python_version = "3.14"
-python_executable = ".venv/bin/python"
 ignore_missing_imports = false
 warn_unused_ignores = true
 check_untyped_defs = true
