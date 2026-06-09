@@ -31,6 +31,8 @@ class UserConfig(BaseModel):
     signature_path: Mapped[str] = mapped_column(String)
     gmail_email: Mapped[str | None] = mapped_column(String, nullable=True)
     gmail_refresh_token: Mapped[str | None] = mapped_column(String, nullable=True)
+    gmail_connected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    gmail_last_error: Mapped[str | None] = mapped_column(String, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime)
 
@@ -57,7 +59,42 @@ class UserConfig(BaseModel):
             session.commit()
 
     @classmethod
-    def update_gmail_credentials(cls, telegram_id: int, email: str, refresh_token: str) -> None:
+    def update_gmail_credentials(cls, telegram_id: int, gmail_email: str, gmail_refresh_token: str) -> None:
         with cls.session() as session:
-            session.execute(update(cls).where(cls.telegram_id == telegram_id).values(gmail_refresh_token=refresh_token, gmail_email=email))
+            session.execute(
+                update(cls)
+                .where(cls.telegram_id == telegram_id)
+                .values(
+                    gmail_refresh_token=gmail_refresh_token,
+                    gmail_email=gmail_email,
+                    gmail_connected_at=datetime.utcnow(),
+                    gmail_last_error=None,
+                )
+            )
+            session.commit()
+
+    @classmethod
+    def clear_gmail_credentials(cls, telegram_id: int) -> None:
+        with cls.session() as session:
+            session.execute(
+                update(cls)
+                .where(cls.telegram_id == telegram_id)
+                .values(
+                    gmail_refresh_token=None,
+                    gmail_email=None,
+                    gmail_connected_at=None,
+                    gmail_last_error=None,
+                )
+            )
+            session.commit()
+
+    @classmethod
+    def has_gmail_connection(cls, telegram_id: int) -> bool:
+        user_config = cls.get_by_telegram_id(telegram_id)
+        return bool(user_config and user_config.gmail_refresh_token)
+
+    @classmethod
+    def set_gmail_connection_error(cls, telegram_id: int, error_message: str) -> None:
+        with cls.session() as session:
+            session.execute(update(cls).where(cls.telegram_id == telegram_id).values(gmail_last_error=error_message))
             session.commit()
