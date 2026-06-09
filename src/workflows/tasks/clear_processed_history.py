@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from src.logging_config import configure_logging
-from src.storage.dependencies import build_storage_dependencies
+from src.storage.orm.processed_message import ProcessedMessage
 
 LOGGER = logging.getLogger(__name__)
 
@@ -16,8 +16,7 @@ def main() -> int:
     configure_logging()
 
     try:
-        storage = build_storage_dependencies()
-        storage.processed_messages.clear_processed_message()
+        ProcessedMessage.clear_processed_message()
     except Exception:
         LOGGER.exception("Failed to clear processed bank email history")
         return 1

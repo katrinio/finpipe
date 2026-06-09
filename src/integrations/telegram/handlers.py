@@ -6,8 +6,7 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
-from src.storage.orm.audit_log import AuditStatus
-from src.storage.repositories.audit_log_repository import AuditLogRepository
+from src.storage.orm.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER, EnvVar
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
 
@@ -24,7 +23,7 @@ class CommandContext:
 class TelegramHandlers:
     """Telegram handlers и действия бота."""
 
-    def __init__(self, telegram: TelegramClient, audit_log: AuditLogRepository):
+    def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]):
         self.telegram = telegram
         self.audit_log = audit_log
 
@@ -80,7 +79,7 @@ class TelegramHandlers:
     ) -> None:
         """Сохраняет запись аудита команды."""
 
-        self.audit_log.add(
+        self.audit_log.create(
             context.telegram_id,
             context.username or "",
             context.command,

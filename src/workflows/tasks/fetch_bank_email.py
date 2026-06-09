@@ -32,7 +32,6 @@ def main() -> int:
 
 def fetch_bank_email_workflow(
     bank_email: BankEmail | None = None,
-    processed_message_repository: object | None = None,
 ) -> Path | None:
     """
     Находит новое письмо банка, скачивает PDF

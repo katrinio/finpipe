@@ -92,8 +92,8 @@ class TestTelegramBot:
             SimpleNamespace(
                 allowed_users=AllowedUser(get_by_telegram_id=lambda telegram_id: True),
                 audit_log=SimpleNamespace(
+                    create=lambda *args, **kwargs: None,
                     list_recent=lambda limit=50: [audit_action],
-                    add=lambda *args, **kwargs: None,
                 ),
             )
         )

@@ -1,6 +1,4 @@
 import importlib
-import sys
-import types
 from dataclasses import dataclass
 
 
@@ -12,20 +10,6 @@ class BankEmail:
     message_id: str
     thread_id: str
 
-
-sys.modules.setdefault(
-    "src.integrations.gmail",
-    types.SimpleNamespace(BankEmail=BankEmail, get_gmail_service=lambda: object()),
-)
-sys.modules.setdefault(
-    "src.integrations.gmail.downloader",
-    types.SimpleNamespace(download_attachments=lambda _email: None),
-)
-sys.modules.setdefault(
-    "src.integrations.gmail.search",
-    types.SimpleNamespace(find_bank_email=lambda _service: None),
-)
-sys.modules.setdefault("src.logging_config", types.SimpleNamespace(configure_logging=lambda: None))
 
 fetch_bank_email = importlib.import_module("src.workflows.tasks.fetch_bank_email")
 

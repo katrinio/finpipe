@@ -13,9 +13,7 @@ from src.storage.dependencies import (
     build_storage_dependencies,
 )
 from src.storage.orm import AllowedUser
-from src.storage.repositories.telegram_update_repository import (
-    build_telegram_update_storage,
-)
+from src.storage.orm.telegram_update import TelegramUpdate
 from src.utils.credentials import LOGGER
 
 
@@ -25,7 +23,7 @@ class TelegramBot:
     def __init__(self, storage_dependencies: StorageDependencies) -> None:
         self.telegram = TelegramClient()
         self.dependencies = storage_dependencies
-        self.update_storage = build_telegram_update_storage(Dir.STORAGE_DB)
+        self.update_storage = TelegramUpdate
         self.handlers = TelegramHandlers(
             telegram=self.telegram,
             audit_log=self.dependencies.audit_log,
