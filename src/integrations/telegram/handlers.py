@@ -6,6 +6,7 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
+from src.storage.orm import Signature
 from src.storage.orm.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER, EnvVar
 from src.workflows.generate_invoice_and_send import generate_and_send_invoice
@@ -50,6 +51,9 @@ class TelegramHandlers:
             Cmd.CONNECT_GMAIL: lambda: self._gmail_connect(context.telegram_id, context.username),
             Cmd.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
             Cmd.DISCONNECT_GMAIL: lambda: self._gmail_disconnect(context.telegram_id),
+            Cmd.UPLOAD_SIGNATURE: lambda: self._upload_signature(context.telegram_id),
+            Cmd.DELETE_SIGNATURE: lambda: self._delete_signature(context.telegram_id),
+            Cmd.SIGNATURE_STATUS: lambda: self._signature_status(context.telegram_id),
         }
 
         try:
@@ -134,3 +138,18 @@ class TelegramHandlers:
     def _gmail_disconnect(self, telegram_id: int) -> None:
         GmailAccountService.disconnect(telegram_id)
         self.telegram.send_message("✅ Gmail disconnected")
+
+    def _upload_signature(self, telegram_id: int) -> None:
+        GmailAccountService.disconnect(telegram_id)
+        self.telegram.send_message("✅ ")
+
+    def _delete_signature(self, telegram_id: int) -> None:
+        Signature.delete(telegram_id)
+        self.telegram.send_message("✅ ")
+
+    def _signature_status(self, telegram_id: int) -> None:
+        if not Signature.exists(telegram_id):
+            self.telegram.send_message(BotInfo.SIGNATURE_NOT_EXIST)
+            return
+
+        self.telegram.send_message(BotInfo.SIGNATURE_EXIST)

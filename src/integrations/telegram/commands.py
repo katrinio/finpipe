@@ -18,7 +18,7 @@ class Cmd(StrEnum):
     DISCONNECT_GMAIL = "/disconnect_gmail"
     UPLOAD_SIGNATURE = "/upload_signature"
     DELETE_SIGNATURE = "/delete_signature"
-    SIGNATURE_STATUS = "//signature_status"
+    SIGNATURE_STATUS = "/signature_status"
 
     @property
     def description(self) -> str:
@@ -63,6 +63,9 @@ class BotInfo:
     GMAIL_NOT_CONNECTED = "❌ Gmail is not connected."
     GMAIL_CONNECTED = "✅ Gmail connected"
     GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE = "⚠️ Gmail OAuth is temporarily unavailable."
+
+    SIGNATURE_NOT_EXIST = "❌ Подпись не была обнаружена"
+    SIGNATURE_EXIST = "✅ Подпись была обнаружена"
 
 
 def build_help_message() -> str:
