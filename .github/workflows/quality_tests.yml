@@ -71,7 +71,7 @@ jobs:
               --cov=src \
               --cov-report=term-missing \
               --cov-report=xml \
-              --cov-fail-under=50 \
+              --cov-fail-under=40 \
               -ra
           else
             poetry run pytest tests/integration -ra

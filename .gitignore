@@ -1,7 +1,12 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+*.pyc
 *.py[codz]
 *$py.class
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
 
 # C extensions
 *.so
@@ -216,3 +221,10 @@ output/
 src/storage/processed_messages.json
 /templates/signature.png
 /src/storage/signatures/
+
+
+# Local database
+src/storage/storage.sqlite3
+src/storage/*.sqlite3
+src/storage/*.sqlite3-shm
+src/storage/*.sqlite3-wal
