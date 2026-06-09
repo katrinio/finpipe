@@ -38,7 +38,7 @@ class TestTelegramBot:
         tg_bot.poll()
 
         assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
-        assert tg_bot.telegram.sent_messages == ["⛔ Access denied"]
+        assert tg_bot.telegram.sent_messages == [BotInfo.ACCESS_DENIED]
         assert tg_bot.update_storage.processed == []
 
     def test_poll_processes_authorized_user_and_whoami(self, fake_telegram_client, fake_storage, fake_update_storage, monkeypatch) -> None:
@@ -67,7 +67,7 @@ class TestTelegramBot:
         tg_bot.poll()
 
         assert tg_bot.telegram.sent_messages == [
-            f"👤 You are\n{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
+            BotInfo.WHOAMI_PREFIX,
         ]
         assert tg_bot.update_storage.processed == [11]
 

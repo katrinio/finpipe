@@ -9,6 +9,7 @@ import pytest
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import Cmd
+from src.integrations.telegram.messages import BotInfo
 from src.integrations.telegram.states import UserState
 from src.services.signing.exceptions import InvalidSignatureFormatError
 from src.storage.dependencies import StorageDependencies
@@ -37,7 +38,7 @@ def test_upload_signature_sets_waiting_state(
     assert tg_bot.handle_message(Cmd.UPLOAD_SIGNATURE, telegram_id=123, username="alice") is True
     assert tg_bot.handlers.get_user_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
     assert telegram_client.sent_messages == [
-        "✍️ Пришлите подпись в PNG формате.\nТребования:\n- PNG\n- до 2 МБ\n- прозрачный фон рекомендуется",
+        BotInfo.SIGNATURE_REQUIREMENTS,
     ]
 
 
@@ -80,8 +81,8 @@ def test_successful_signature_upload_clears_state(
 
     assert tg_bot.handlers.get_user_state(123) is None
     assert telegram_client.sent_messages == [
-        "✍️ Пришлите подпись в PNG формате.\nТребования:\n- PNG\n- до 2 МБ\n- прозрачный фон рекомендуется",
-        "✅ Подпись успешно обновлена",
+        BotInfo.SIGNATURE_REQUIREMENTS,
+        BotInfo.SIGNATURE_UPDATED,
     ]
     assert fake_update_storage.processed == [42]
 
@@ -127,5 +128,5 @@ def test_invalid_file_keeps_state(
     )
 
     assert tg_bot.handlers.get_user_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
-    assert telegram_client.sent_messages[0] == ("✍️ Пришлите подпись в PNG формате.\nТребования:\n- PNG\n- до 2 МБ\n- прозрачный фон рекомендуется")
+    assert telegram_client.sent_messages[0] == (BotInfo.SIGNATURE_REQUIREMENTS,)
     assert fake_update_storage.processed == [43]
