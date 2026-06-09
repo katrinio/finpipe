@@ -53,10 +53,10 @@ class TelegramHandlers:
 
         handlers: dict[str, Callable[[], None]] = {
             Cmd.INVOICE: self._invoice,
-            Cmd.MENU: self._menu,
-            MainMenuButtons.GMAIL: self._gmail_menu,
-            MainMenuButtons.SYSTEM: self._system_menu,
-            MainMenuButtons.SIGNATURE: self._signature_menu,
+            Cmd.MENU: self.menu_handler.menu,
+            MainMenuButtons.GMAIL: self.menu_handler.gmail_menu,
+            MainMenuButtons.SYSTEM: self.menu_handler.system_menu,
+            MainMenuButtons.SIGNATURE: self.menu_handler.signature_menu,
             GmailButtons.GMAIL_CONNECT: lambda: self._gmail_connect(context.telegram_id, context.username),
             GmailButtons.GMAIL_DISCONNECT: lambda: self._gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
@@ -69,7 +69,7 @@ class TelegramHandlers:
             SystemButtons.LAST_ACTION: self._last_action,
             SystemButtons.SYSTEM_STATUS: self._status,
             SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
-            NavigationButtons.BACK: self._menu,
+            NavigationButtons.BACK: self.menu_handler.menu,
         }
 
         try:
