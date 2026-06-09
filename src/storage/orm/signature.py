@@ -6,7 +6,7 @@ import hashlib
 from datetime import UTC, datetime
 from pathlib import Path
 
-from sqlalchemy import Boolean, Integer, String, func, select, text
+from sqlalchemy import Boolean, Integer, String, delete, func, select, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -99,6 +99,23 @@ class Signature(BaseModel):
         """Проверяет наличие подписи для владельца."""
 
         return cls.get_by_owner(owner_telegram_id) is not None
+
+    @classmethod
+    def delete(cls, owner_telegram_id: int) -> None:
+        """Очищает активную подпись владельца, если она есть."""
+
+        with cls.session() as session:
+            statement = select(cls).where(cls.owner_telegram_id == owner_telegram_id).limit(1)
+            signature = session.scalar(statement)
+            if signature is None:
+                return
+
+            signature_path = Path(signature.signature_path)
+            session.execute(delete(cls).where(cls.owner_telegram_id == owner_telegram_id))
+            session.commit()
+
+            if signature_path.exists():
+                signature_path.unlink()
 
     @staticmethod
     def _hash_path(signature_path: Path | str) -> str:

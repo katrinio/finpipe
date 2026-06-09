@@ -28,7 +28,6 @@ class UserConfig(BaseModel):
     company_name: Mapped[str] = mapped_column(String)
     company_address: Mapped[str] = mapped_column(String)
     service_agreement_date: Mapped[datetime] = mapped_column(DateTime)
-    signature_path: Mapped[str] = mapped_column(String)
     gmail_email: Mapped[str | None] = mapped_column(String, nullable=True)
     gmail_refresh_token: Mapped[str | None] = mapped_column(String, nullable=True)
     gmail_connected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
