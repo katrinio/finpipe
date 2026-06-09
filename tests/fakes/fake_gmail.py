@@ -14,7 +14,7 @@ class FakeMessages:
         self.response = response
         self.sent_bodies: list[dict] = []
 
-    def send(self, userId: str, body: dict) -> FakeSendCall:  # noqa: N803
+    def send(self, userId: str, body: dict) -> FakeSendCall:
         self.sent_bodies.append(body)
         return FakeSendCall(self.response)
 
