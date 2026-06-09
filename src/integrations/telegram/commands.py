@@ -7,6 +7,7 @@ from src.storage.orm.audit_log import AuditLog
 
 
 class Cmd(StrEnum):
+    MENU = "menu"
     STATUS = "/status"
     HELP = "/help"
     HEALTH = "/health"
@@ -24,6 +25,7 @@ class Cmd(StrEnum):
     @property
     def description(self) -> str:
         descriptions = {
+            Cmd.MENU: "menu",
             Cmd.STATUS: "bot status",
             Cmd.HELP: "available commands",
             Cmd.HEALTH: "run health check",
