@@ -99,7 +99,7 @@ class TelegramHandlers:
 
     def _health(self) -> None:
         self.telegram.healthcheck()
-        self.telegram.send_message(BotInfo.TG_API_OK)
+        self.telegram.send_message(BotInfo.TELEGRAM_API_OK)
 
     def _invoice(self) -> None:
         self.telegram.send_message(BotInfo.GENERATING_INVOICE)
@@ -119,6 +119,7 @@ class TelegramHandlers:
             return
 
         self.telegram.send_message(format_last_action(actions[0]))
+        return
 
     def _gmail_connect(self, telegram_id: int, username: str | None) -> None:
         if not GmailOAuthSettings.is_callback_enabled():
@@ -127,6 +128,7 @@ class TelegramHandlers:
         callback_url = EnvVar.get_optional_env("GMAIL_OAUTH_CALLBACK_URL", "http://localhost:8000/oauth/gmail/callback")
         authorization_url, _session = GmailOAuth.build_authorization_url(telegram_id, username, callback_url)
         self.telegram.send_message(f"Open this URL:\n{authorization_url}")
+        return
 
     def _gmail_status(self, telegram_id: int) -> None:
         status = GmailAccountService.status(telegram_id)
@@ -149,7 +151,8 @@ class TelegramHandlers:
 
     def _signature_status(self, telegram_id: int) -> None:
         if not Signature.exists(telegram_id):
-            self.telegram.send_message(BotInfo.SIGNATURE_NOT_EXIST)
+            self.telegram.send_message(BotInfo.SIGNATURE_NOT_FOUND)
             return
 
-        self.telegram.send_message(BotInfo.SIGNATURE_EXIST)
+        self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
+        return
