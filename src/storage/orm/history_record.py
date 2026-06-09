@@ -28,7 +28,8 @@ class HistoryRecord(BaseModel):
     @classmethod
     def list_invoices(cls) -> list[str]:
         with cls.session() as session:
-            return HistoryRecord.list_primary_keys(session)
+            statement = select(cls.invoice_number).order_by(cls.invoice_number)
+            return list(session.scalars(statement))
 
     @classmethod
     def get_by_invoice_number(cls, invoice_number: str) -> "HistoryRecord | None":
@@ -39,7 +40,8 @@ class HistoryRecord(BaseModel):
     @classmethod
     def invoice_exists(cls, invoice_number: str) -> bool:
         with cls.session() as session:
-            return HistoryRecord.exists_by_primary_key(session, invoice_number)
+            statement = select(cls.invoice_number).where(cls.invoice_number == invoice_number).limit(1)
+            return session.scalar(statement) is not None
 
     @classmethod
     def exists(cls, invoice_number: str) -> bool:
@@ -48,7 +50,7 @@ class HistoryRecord(BaseModel):
     @classmethod
     def add_invoice(cls, invoice_number: str) -> None:
         with cls.session() as session:
-            HistoryRecord.add_by_primary_key(session, invoice_number)
+            session.add(cls(invoice_number=invoice_number))
             try:
                 session.commit()
             except IntegrityError:
@@ -57,4 +59,5 @@ class HistoryRecord(BaseModel):
     @classmethod
     def get_last_invoice(cls) -> str | None:
         with cls.session() as session:
-            return HistoryRecord.get_last_primary_key(session)
+            statement = select(cls.invoice_number).order_by(cls.invoice_number.desc()).limit(1)
+            return session.scalar(statement)

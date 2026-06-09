@@ -9,7 +9,6 @@ from typing import Any
 from sqlalchemy import Engine, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.storage.orm import BaseStorage
 from src.storage.orm.base import BaseModel
 
 LOGGER = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ class Database:
         """
 
         database_exists = self._sqlite_file_path().exists() if self._is_sqlite() else True
-        BaseStorage.metadata.create_all(self._engine)
+        BaseModel.metadata.create_all(self._engine)
         BaseModel.database = self
         if self._is_sqlite():
             self._sync_sqlite_schema()

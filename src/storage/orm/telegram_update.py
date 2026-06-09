@@ -28,7 +28,8 @@ class TelegramUpdate(BaseModel):
     @classmethod
     def is_processed(cls, update_id: int) -> bool:
         with cls.session() as session:
-            return TelegramUpdate.exists_by_primary_key(session, update_id)
+            statement = select(cls.update_id).where(cls.update_id == update_id).limit(1)
+            return session.scalar(statement) is not None
 
     @classmethod
     def get_by_update_id(cls, update_id: int) -> "TelegramUpdate | None":
@@ -39,12 +40,13 @@ class TelegramUpdate(BaseModel):
     @classmethod
     def get_last_processed_update_id(cls) -> int | None:
         with cls.session() as session:
-            return TelegramUpdate.get_last_primary_key(session)
+            statement = select(cls.update_id).order_by(cls.update_id.desc()).limit(1)
+            return session.scalar(statement)
 
     @classmethod
     def mark_processed(cls, update_id: int) -> None:
         with cls.session() as session:
-            TelegramUpdate.add_by_primary_key(session, update_id)
+            session.add(cls(update_id=update_id))
             try:
                 session.commit()
             except IntegrityError:

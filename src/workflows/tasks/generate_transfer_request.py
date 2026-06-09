@@ -15,6 +15,7 @@ from reportlab.pdfgen import canvas
 from src.constants import Dir, Format
 from src.infrastructure.document.pdf_get_page_size import PdfGetPageSize
 from src.infrastructure.document.sign_pdf import PdfSigner
+from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.services.signing.context import SignaturePositions
@@ -30,7 +31,7 @@ def generate_transfer_request_pdf(
     invoice_date: date | None = None,
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
     output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
-    signature: Path | None = Dir.SIGNATURE_PATH,
+    signature: Path | None = Dir.SIGNATURE_ENC,
 ) -> Path:
     """
     Генерирует transfer request на указанную сумму
@@ -148,9 +149,10 @@ def apply_signature_to_pdf(output_pdf_path: Path, signature: Path | None) -> Non
 
     packet = BytesIO()
     overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
+    signature_bytes = SignatureCipher.decrypt_bytes(signature)
     PdfSigner.draw_signature(
         pdf_canvas=overlay,
-        signature=signature,
+        signature=signature_bytes,
         position=SignaturePositions.TRANSFER_REQUEST,
     )
     overlay.save()

@@ -9,6 +9,7 @@ from reportlab.pdfgen import canvas
 
 from src.infrastructure.document.pdf_get_page_size import PdfGetPageSize
 from src.infrastructure.document.sign_pdf import PdfSigner
+from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
 from src.services.signing.context import SignaturePositions
 from src.utils.credentials import EnvVar
@@ -48,9 +49,10 @@ def fill_bank_pdf(
     packet = BytesIO()
     overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
     draw_form_fields(overlay, build_bank_form_data(amount, date))
+    signature_bytes = SignatureCipher.decrypt_bytes(signature)
     PdfSigner.draw_signature(
         pdf_canvas=overlay,
-        signature=signature,
+        signature=signature_bytes,
         position=SignaturePositions.BANK,
     )
     overlay.save()

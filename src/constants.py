@@ -29,6 +29,7 @@ class Dir:
     TRANSFER_REQUEST_TEMPLATE = TEMPLATE_PATH / f"transfer_request_template.{Format.DOCX}"
     TRANSFER_REQUEST_OUTPUT_DIR = OUTPUT_DIR / "transfer_request"
     STORAGE_DIR = PROJECT_ROOT / "src" / "storage"
+    SIGNATURE_ENC = STORAGE_DIR / "signatures" / "signature.enc"
     STORAGE_DB = STORAGE_DIR / "storage.sqlite3"
 
 
