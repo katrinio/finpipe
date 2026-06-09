@@ -11,6 +11,7 @@ class Cmd(StrEnum):
     ABOUT = "/about"
     WHOAMI = "/whoami"
     LAST_ACTION = "/last_action"
+    CONNECT_GMAIL = "/connect_gmail"
 
     @property
     def description(self) -> str:
@@ -22,6 +23,7 @@ class Cmd(StrEnum):
             Cmd.ABOUT: "project info",
             Cmd.WHOAMI: "show current Telegram identity",
             Cmd.LAST_ACTION: "show last action",
+            Cmd.CONNECT_GMAIL: "connect gmail",
         }
 
         return descriptions[self]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Integer, String, select
+from sqlalchemy import Integer, String, select, update
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -29,6 +29,8 @@ class UserConfig(BaseModel):
     company_address: Mapped[str] = mapped_column(String)
     service_agreement_date: Mapped[datetime] = mapped_column(DateTime)
     signature_path: Mapped[str] = mapped_column(String)
+    gmail_email: Mapped[str | None] = mapped_column(String, nullable=True)
+    gmail_refresh_token: Mapped[str | None] = mapped_column(String, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime)
 
@@ -52,4 +54,10 @@ class UserConfig(BaseModel):
             else:
                 user.user_name = user_name
 
+            session.commit()
+
+    @classmethod
+    def update_gmail_credentials(cls, telegram_id: int, email: str, refresh_token: str) -> None:
+        with cls.session() as session:
+            session.execute(update(cls).where(cls.telegram_id == telegram_id).values(gmail_refresh_token=refresh_token, gmail_email=email))
             session.commit()
