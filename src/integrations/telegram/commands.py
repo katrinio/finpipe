@@ -16,6 +16,9 @@ class Cmd(StrEnum):
     CONNECT_GMAIL = "/connect_gmail"
     GMAIL_STATUS = "/gmail_status"
     DISCONNECT_GMAIL = "/disconnect_gmail"
+    UPLOAD_SIGNATURE = "/upload_signature"
+    DELETE_SIGNATURE = "/delete_signature"
+    SIGNATURE_STATUS = "//signature_status"
 
     @property
     def description(self) -> str:
@@ -30,6 +33,9 @@ class Cmd(StrEnum):
             Cmd.CONNECT_GMAIL: "connect gmail",
             Cmd.GMAIL_STATUS: "is gmail connected",
             Cmd.DISCONNECT_GMAIL: "disconnect gmail",
+            Cmd.UPLOAD_SIGNATURE: "upload signature",
+            Cmd.DELETE_SIGNATURE: "delete signature",
+            Cmd.SIGNATURE_STATUS: "show signature status",
         }
 
         return descriptions[self]
