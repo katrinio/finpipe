@@ -63,6 +63,36 @@ class TelegramClient:
             )
         response.raise_for_status()
 
+    def get_file(self, file_id: str) -> str:
+        """Возвращает file_path для файла Telegram."""
+
+        response = requests.get(
+            f"https://api.telegram.org/bot{self.token}/getFile",
+            params={"file_id": file_id},
+            timeout=10,
+        )
+
+        response.raise_for_status()
+        payload = response.json()
+
+        if not payload.get("ok"):
+            msg = f"Telegram API getFile failed for file_id={file_id}"
+            raise RuntimeError(msg)
+
+        file_path = payload["result"]["file_path"]
+        return str(file_path)
+
+    def download_file(self, file_path: str) -> bytes:
+        """Скачивает файл Telegram Bot API по file_path."""
+
+        response = requests.get(
+            f"https://api.telegram.org/file/bot{self.token}/{file_path}",
+            timeout=30,
+        )
+
+        response.raise_for_status()
+        return response.content
+
     def get_updates(self, offset: int | None = None) -> dict:
         params = {"offset": offset} if offset is not None else None
         response = requests.get(

@@ -38,7 +38,7 @@ class TestTelegramBot:
         tg_bot.poll()
 
         assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
-        assert tg_bot.telegram.sent_messages == ["⛔ Access denied"]
+        assert tg_bot.telegram.sent_messages == [BotInfo.ACCESS_DENIED]
         assert tg_bot.update_storage.processed == []
 
     def test_poll_processes_authorized_user_and_whoami(self, fake_telegram_client, fake_storage, fake_update_storage, monkeypatch) -> None:
@@ -47,8 +47,9 @@ class TestTelegramBot:
             "get_by_telegram_id",
             classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
         )
-
-        tg_bot = TelegramBot(fake_storage({123}))
+        user_name = "alice"
+        user_id = 123
+        tg_bot = TelegramBot(fake_storage({user_id}))
         tg_bot.telegram = fake_telegram_client(
             {
                 "result": [
@@ -56,7 +57,7 @@ class TestTelegramBot:
                         "update_id": 11,
                         "message": {
                             "text": Cmd.WHOAMI,
-                            "from": {"id": 123, "username": "alice"},
+                            "from": {"id": user_id, "username": user_name},
                         },
                     }
                 ]
@@ -67,7 +68,7 @@ class TestTelegramBot:
         tg_bot.poll()
 
         assert tg_bot.telegram.sent_messages == [
-            f"👤 You are\n{BotInfo.WHOAMI_PREFIX}\ntelegram_id: 123\nusername: alice",
+            f"{BotInfo.WHOAMI_PREFIX}\n{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
         ]
         assert tg_bot.update_storage.processed == [11]
 

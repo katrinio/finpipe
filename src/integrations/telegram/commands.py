@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from src.integrations.telegram.messages import BotInfo
 from src.storage.orm.audit_log import AuditLog
 
 
@@ -16,6 +17,9 @@ class Cmd(StrEnum):
     CONNECT_GMAIL = "/connect_gmail"
     GMAIL_STATUS = "/gmail_status"
     DISCONNECT_GMAIL = "/disconnect_gmail"
+    UPLOAD_SIGNATURE = "/upload_signature"
+    DELETE_SIGNATURE = "/delete_signature"
+    SIGNATURE_STATUS = "/signature_status"
 
     @property
     def description(self) -> str:
@@ -30,33 +34,12 @@ class Cmd(StrEnum):
             Cmd.CONNECT_GMAIL: "connect gmail",
             Cmd.GMAIL_STATUS: "is gmail connected",
             Cmd.DISCONNECT_GMAIL: "disconnect gmail",
+            Cmd.UPLOAD_SIGNATURE: "upload signature",
+            Cmd.DELETE_SIGNATURE: "delete signature",
+            Cmd.SIGNATURE_STATUS: "show signature status",
         }
 
         return descriptions[self]
-
-
-class BotInfo:
-    """Текстовые константы Telegram-бота."""
-
-    ABOUT = "🤖 Finpipe MVP\n\nFeatures:\n• Invoice generation\n• Gmail integration\n• Telegram bot\n• SQLite storage\n\nVersion: 0.1"
-
-    HELP_HEADER = "📚 Available commands"
-
-    PROJECT_RUNNING = "🟢 Finpipe is running."
-    TG_API_OK = "✅ Telegram API OK."
-
-    GENERATING_INVOICE = "⏳ Generating invoice..."
-    INVOICE_SENT = "✅ Invoice sent."
-
-    ACCESS_DENIED = "⛔ Access denied"
-    NO_SUCH_COMMAND = "🫥 No such command"
-
-    WHOAMI_PREFIX = "👤 You are"
-
-    NO_AUDIT_LOG_RECORDS = "📝 No audit records found."
-    GMAIL_NOT_CONNECTED = "❌ Gmail is not connected."
-    GMAIL_CONNECTED = "✅ Gmail connected"
-    GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE = "⚠️ Gmail OAuth is temporarily unavailable."
 
 
 def build_help_message() -> str:

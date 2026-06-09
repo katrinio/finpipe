@@ -76,6 +76,14 @@ class Database:
         """Добавляет новые nullable-колонки в старую SQLite-схему."""
 
         with self._engine.begin() as connection:
+            signature_columns = {row[1] for row in connection.execute(text("PRAGMA table_info(signatures)")).all()}
+            if (
+                "signature_hash" not in signature_columns
+                and "signatures"
+                in connection.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table' AND name='signatures'").scalars().all()
+            ):
+                connection.execute(text("ALTER TABLE signatures ADD COLUMN signature_hash TEXT NOT NULL DEFAULT ''"))
+
             columns = {row[1] for row in connection.execute(text("PRAGMA table_info(user_config)")).all()}
             required_columns = {
                 "signature_path": "TEXT NOT NULL DEFAULT ''",

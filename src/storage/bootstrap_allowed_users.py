@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from pathlib import Path
 
 from src.constants import Dir
@@ -11,9 +12,11 @@ from src.storage.database import Database, build_sqlite_url
 from src.storage.orm import AllowedUser, Signature
 from src.utils.credentials import EnvVar
 
+LOGGER = logging.getLogger(__name__)
+
 
 def bootstrap_primary_admin(db_path: Path = Dir.STORAGE_DB) -> None:
-    """Создаёт primary admin и регистрирует его активную подпись."""
+    """Создаёт primary admin и, если доступна, регистрирует его подпись."""
 
     database = Database(build_sqlite_url(db_path))
     database.initialize_schema()
@@ -28,22 +31,30 @@ def bootstrap_primary_admin(db_path: Path = Dir.STORAGE_DB) -> None:
         user_name=user_name,
     )
 
+    # Signature bootstrap is optional for MVP.
+    # If no source file is present, admin bootstraps without a signature and the bot still starts.
     if not signature_destination.exists():
-        if not signature_source.exists():
-            msg = f"Signature source not found: {signature_source}"
-            raise FileNotFoundError(msg)
+        if signature_source.exists():
+            signature_destination = SignatureCipher.encrypt_file(signature_source, signature_destination)
 
-        signature_destination = SignatureCipher.encrypt_file(signature_source, signature_destination)
+            Signature.create(
+                owner_telegram_id=telegram_id,
+                signature_path=signature_destination,
+                signature_hash=hashlib.sha256(signature_destination.read_bytes()).hexdigest(),
+                active=True,
+            )
 
-    Signature.create(
-        owner_telegram_id=telegram_id,
-        signature_path=signature_destination,
-        signature_hash=hashlib.sha256(signature_destination.read_bytes()).hexdigest(),
-        active=True,
-    )
-
-    if signature_source.exists() and signature_source != signature_destination:
-        signature_source.unlink()
+            if signature_source.exists() and signature_source != signature_destination:
+                signature_source.unlink()
+        else:
+            LOGGER.info("Signature source is absent, skipping signature bootstrap for Telegram user %s", telegram_id)
+    else:
+        Signature.create(
+            owner_telegram_id=telegram_id,
+            signature_path=signature_destination,
+            signature_hash=hashlib.sha256(signature_destination.read_bytes()).hexdigest(),
+            active=True,
+        )
 
 
 def resolve_signature_source_path() -> Path:
