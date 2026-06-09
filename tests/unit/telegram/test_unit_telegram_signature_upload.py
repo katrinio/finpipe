@@ -128,5 +128,5 @@ def test_invalid_file_keeps_state(
     )
 
     assert tg_bot.handlers.get_user_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
-    assert telegram_client.sent_messages[0] == (BotInfo.SIGNATURE_REQUIREMENTS,)
+    assert telegram_client.sent_messages[0] == BotInfo.SIGNATURE_REQUIREMENTS
     assert fake_update_storage.processed == [43]
