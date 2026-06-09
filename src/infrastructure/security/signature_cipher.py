@@ -29,9 +29,11 @@ class SignatureCipher:
         return cls._cipher
 
     @classmethod
-    def encrypt_file(cls, source: Path, destination: Path) -> None:
+    def encrypt_file(cls, source: Path, destination: Path) -> Path:
         encrypted = cls._get_cipher().encrypt(source.read_bytes())
+        destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(encrypted)
+        return destination
 
     @classmethod
     def decrypt_bytes(cls, encrypted_file: Path) -> bytes:

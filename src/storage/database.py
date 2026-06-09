@@ -79,6 +79,7 @@ class Database:
             columns = {row[1] for row in connection.execute(text("PRAGMA table_info(user_config)")).all()}
             required_columns = {
                 "signature_path": "TEXT NOT NULL DEFAULT ''",
+                "signature_hash": "TEXT NOT NULL DEFAULT ''",
                 "gmail_email": "TEXT",
                 "gmail_refresh_token": "TEXT",
                 "gmail_connected_at": "DATETIME",
