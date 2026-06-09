@@ -9,18 +9,12 @@ from src.storage.orm.audit_log import AuditLog
 class Cmd(StrEnum):
     MENU = "/menu"
     INVOICE = "/invoice"
-    UPLOAD_SIGNATURE = "/upload_signature"
-    DELETE_SIGNATURE = "/delete_signature"
-    SIGNATURE_STATUS = "/signature_status"
 
     @property
     def description(self) -> str:
         descriptions = {
             Cmd.MENU: "menu",
             Cmd.INVOICE: "generate invoice",
-            Cmd.UPLOAD_SIGNATURE: "upload signature",
-            Cmd.DELETE_SIGNATURE: "delete signature",
-            Cmd.SIGNATURE_STATUS: "show signature status",
         }
 
         return descriptions[self]

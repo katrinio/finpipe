@@ -6,7 +6,8 @@ class MainMenuButtons:
     GMAIL = "📧 Gmail"
     SYSTEM = "ℹ️ Система"
 
-    # Signature menu
+
+class SignatureButtons:
     SIGNATURE_STATUS = "📋 Статус"
     SIGNATURE_UPLOAD = "📤 Загрузить"
     SIGNATURE_DELETE = "🗑 Удалить"
@@ -84,6 +85,22 @@ def build_gmail_menu() -> dict:
             [
                 {"text": NavigationButtons.BACK},
                 {"text": GmailButtons.GMAIL_STATUS},
+            ],
+        ],
+        "resize_keyboard": True,
+    }
+
+
+def build_signature_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": SignatureButtons.SIGNATURE_DELETE},
+                {"text": SignatureButtons.SIGNATURE_UPLOAD},
+            ],
+            [
+                {"text": NavigationButtons.BACK},
+                {"text": SignatureButtons.SIGNATURE_STATUS},
             ],
         ],
         "resize_keyboard": True,
