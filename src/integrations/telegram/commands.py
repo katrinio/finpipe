@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from src.storage.orm.audit_log import AuditLog
+
 
 class Cmd(StrEnum):
     STATUS = "/status"
@@ -11,6 +13,9 @@ class Cmd(StrEnum):
     ABOUT = "/about"
     WHOAMI = "/whoami"
     LAST_ACTION = "/last_action"
+    CONNECT_GMAIL = "/connect_gmail"
+    GMAIL_STATUS = "/gmail_status"
+    DISCONNECT_GMAIL = "/disconnect_gmail"
 
     @property
     def description(self) -> str:
@@ -22,6 +27,9 @@ class Cmd(StrEnum):
             Cmd.ABOUT: "project info",
             Cmd.WHOAMI: "show current Telegram identity",
             Cmd.LAST_ACTION: "show last action",
+            Cmd.CONNECT_GMAIL: "connect gmail",
+            Cmd.GMAIL_STATUS: "is gmail connected",
+            Cmd.DISCONNECT_GMAIL: "disconnect gmail",
         }
 
         return descriptions[self]
@@ -45,7 +53,10 @@ class BotInfo:
 
     WHOAMI_PREFIX = "👤 You are"
 
-    NO_AUDIT_LOG_RECORDS = "📝 No audit records found"
+    NO_AUDIT_LOG_RECORDS = "📝 No audit records found."
+    GMAIL_NOT_CONNECTED = "❌ Gmail is not connected."
+    GMAIL_CONNECTED = "✅ Gmail connected"
+    GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE = "⚠️ Gmail OAuth is temporarily unavailable."
 
 
 def build_help_message() -> str:
@@ -65,7 +76,7 @@ def format_whoami(telegram_id: int | None, username: str | None) -> str:
     return f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {telegram_id}\nusername: {username or 'unknown'}"
 
 
-def format_last_action(action) -> str:
+def format_last_action(action: AuditLog) -> str:
     """Форматирует последнюю запись аудитлога."""
 
     return (

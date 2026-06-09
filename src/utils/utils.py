@@ -4,7 +4,6 @@ import datetime
 import random
 import string
 
-import arrow
 from faker import Faker
 
 fake = Faker() if Faker is not None else None
@@ -48,16 +47,16 @@ class Utils:
         return fake.sentence() if fake is not None else "Test sentence."
 
     @staticmethod
-    def generate_iban():
+    def generate_iban() -> str:
         """Генерирует тестовый IBAN."""
 
         return fake.iban() if fake is not None else "RS35123456789012345678"
 
     @classmethod
-    def now(cls) -> arrow.Arrow:
-        """Возвращает текущее время в формате `arrow`."""
+    def now(cls) -> datetime.datetime:
+        """Возвращает текущее время в UTC."""
 
-        return arrow.now()
+        return datetime.datetime.now(datetime.UTC)
 
     @classmethod
     def format_status(cls, value: str) -> str:

@@ -7,7 +7,7 @@ __all__ = ["Utils"]
 from src.utils.utils import Utils
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
     if name == "Utils":
         return Utils
 

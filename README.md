@@ -1,51 +1,143 @@
-# FINPIPE 🚧 In progress! 🚧
-Automates invoice generation and accounting workflows based on bank emails.
+# FINPIPE  🚧 In progress! 🚧
 
-## Настройка локального окружения
+Автоматизация работы с инвойсами, банковскими PDF и Gmail.
 
-### Виртуальное окружение:
-1. Выполнить команду ```python -m venv .venv``` - создание виртуального окружения
-2. Выполнить команду ```. .venv/bin/activate``` - активация виртуального окружения
+Проект начинался как набор скриптов для подготовки документов, а постепенно вырос в единый сервис с 
+Telegram-ботом, локальной базой данных и интеграциями с Gmail.
 
-### Установка зависимостей:
-1. Выполнить команду ```pip install poetry==2.2.1``` - установка пакета poetry, который управляет зависимостями
-2. Выполнить команды для установки зависимостей ```poetry install --no-interaction --no-ansi --no-cache```
+---
 
-### Pre-commit:
+## Что уже умеет проект
 
-1. Установить pre-commit, если он еще не установлен ```poetry add --group dev pre-commit```
-2. Установить git hook ```poetry run pre-commit install```
+### 📄 Документы
 
-### Генерация инвойса:
-1. Выполнить команду:
-```bash
-poetry run generate-invoice --amount 1000
-```
+- Генерация инвойсов по шаблону.
+- Генерация transfer request.
+- Подготовка банковских PDF.
+- Вставка подписи в документы.
 
-2. Готовые файлы сохраняются в папку ```output/invoice```:
+### 📧 Gmail
 
-### Обработка банковского письма:
-1. Заполнить в ```.env``` переменные ```GMAIL_CREDENTIALS_PATH```, ```GMAIL_TOKEN_PATH```, ```BANK_EMAIL_SUBJECT``` и ```BANK_EMAIL_FROM```.
+- Поиск банковских писем.
+- Скачивание PDF-вложений.
+- Отправка писем через Gmail API.
 
-2. Выполнить команду:
-```bash
-poetry run process_bank_email
-```
+### 🤖 Telegram
 
-### Подготовка банковского PDF:
-1. Банковский PDF находится в папке ```attachments```.
+Telegram-бот является основной точкой входа в систему.
 
-2. Выполнить команду:
-```bash
-poetry run prepare_bank_pdf
-```
+Доступны команды:
 
-Команда берет самый новый PDF из ```attachments```, извлекает сумму и сохраняет заполненный файл в ```output/bank```.
+- /status — состояние проекта
+- /help — список команд
+- /health — проверка Telegram API
+- /invoice — генерация инвойса
+- /about — информация о проекте
+- /whoami — информация о пользователе
+- /last_action — последнее действие из журнала
 
-### Тесты:
-Unit-тесты лежат в папке ```tests/unit```, подключены в GitHub Actions и не требуют внешних сервисов.
+Команды Gmail:
 
-1. Запустить только unit-тесты:
-```bash
-pytest tests/unit
-```
+- /gmail_status
+- /connect_gmail
+- /disconnect_gmail
+
+---
+
+## Архитектура
+
+На текущий момент проект использует:
+
+- Telegram как пользовательский интерфейс
+- SQLite как основную базу данных
+- SQLAlchemy ORM
+- Gmail API
+- Active Record-подход для основных моделей
+
+Подготовлена инфраструктура для Gmail OAuth callback, но она пока отключена feature toggle и не используется в рабочем сценарии.
+
+---
+
+## Локальный запуск
+
+### 1. Создать виртуальное окружение
+```python -m venv .venv . .venv/bin/activate```
+
+### 2. Установить Poetry
+
+```pip install poetry==2.2.1 ```
+
+### 3. Установить зависимости
+
+```poetry install --no-interaction --no-ansi --no-cache ```
+
+### 4. Установить git hooks
+
+```poetry run pre-commit install ```
+
+---
+
+## Основные команды
+
+### Генерация инвойса
+
+bash poetry run gen_invoice --amount 1000 
+
+### Генерация transfer request
+
+bash poetry run gen_transfer_request --amount 1000 
+
+### Обработка банкового письма
+
+bash poetry run get_bank_email 
+
+### Подготовка банковского PDF
+
+bash poetry run fill_bank_pdf 
+
+### Запуск Telegram-бота
+
+bash poetry run start_bot 
+
+---
+
+## Переменные окружения
+
+Полный список в ```.env.dist```
+
+---
+
+## Тестирование
+
+Запуск unit-тестов:
+
+bash pytest tests/unit 
+
+Запуск всех тестов:
+
+bash pytest 
+
+---
+
+## CI
+
+Для каждого Pull Request выполняются:
+
+- Ruff
+- MyPy
+- Unit-тесты
+
+Проект старается поддерживать зелёный CI перед каждым merge в основную ветку.
+
+---
+
+## Статус проекта
+
+Проект находится в активной разработке.
+
+Сейчас основной фокус:
+
+- развитие Telegram-интерфейса;
+- подключение пользовательских Gmail-аккаунтов через OAuth;
+- улучшение структуры хранения данных;
+- дальнейшее покрытие тестами.
