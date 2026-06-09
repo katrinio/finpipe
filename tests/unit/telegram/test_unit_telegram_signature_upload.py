@@ -9,8 +9,8 @@ import pytest
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import Cmd
-from src.integrations.telegram.messages import BotInfo
 from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.messages import BotInfo
 from src.services.signing.exceptions import InvalidSignatureFormatError
 from src.storage.dependencies import StorageDependencies
 from src.storage.orm import AllowedUser

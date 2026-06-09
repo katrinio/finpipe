@@ -7,7 +7,7 @@ import time
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
-from src.integrations.telegram.handlers import TelegramHandlers
+from src.integrations.telegram.heandlers.handlers import TelegramHandlers
 from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (

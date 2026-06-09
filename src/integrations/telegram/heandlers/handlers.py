@@ -6,18 +6,15 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
-from src.integrations.telegram.menu import (
+from src.integrations.telegram.heandlers.menu_handlers import MenuHandler
+from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.menu import (
     GmailButtons,
     MainMenuButtons,
     NavigationButtons,
     SignatureButtons,
     SystemButtons,
-    build_gmail_menu,
-    build_main_menu,
-    build_signature_menu,
-    build_system_menu,
 )
-from src.integrations.telegram.states import UserState
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
@@ -41,6 +38,7 @@ class TelegramHandlers:
     def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]):
         self.telegram = telegram
         self.audit_log = audit_log
+        self.menu_handler = MenuHandler(self.telegram)
         # TODO:
         # User states are stored in memory only.
         # After process restart all active flows are lost.
@@ -215,30 +213,6 @@ class TelegramHandlers:
 
         self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
         return
-
-    def _menu(self) -> None:
-        self.telegram.send_message(
-            "🏠 Главное меню",
-            reply_markup=build_main_menu(),
-        )
-
-    def _system_menu(self) -> None:
-        self.telegram.send_message(
-            MainMenuButtons.SYSTEM,
-            reply_markup=build_system_menu(),
-        )
-
-    def _gmail_menu(self) -> None:
-        self.telegram.send_message(
-            MainMenuButtons.GMAIL,
-            reply_markup=build_gmail_menu(),
-        )
-
-    def _signature_menu(self) -> None:
-        self.telegram.send_message(
-            MainMenuButtons.SIGNATURE,
-            reply_markup=build_signature_menu(),
-        )
 
     def set_user_state(self, telegram_id: int, state: UserState) -> None:
         """Сохраняет простое состояние пользователя в памяти."""
