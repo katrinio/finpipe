@@ -6,6 +6,7 @@ from typing import cast
 
 import pytest
 
+import src.integrations.telegram.heandlers.handlers as telegram_handlers
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.states import UserState
@@ -62,7 +63,7 @@ def test_successful_signature_upload_clears_state(
     tg_bot.telegram = cast(TelegramClient, telegram_client)
     tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
 
-    monkeypatch.setattr("src.integrations.telegram.handlers.SignatureService.upload", lambda **kwargs: None)
+    monkeypatch.setattr(telegram_handlers.SignatureService, "upload", lambda **kwargs: None)
 
     tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice")
     tg_bot.process_update(
@@ -110,7 +111,7 @@ def test_invalid_file_keeps_state(
     def raise_invalid(**kwargs: object) -> None:
         raise InvalidSignatureFormatError("invalid signature")
 
-    monkeypatch.setattr("src.integrations.telegram.handlers.SignatureService.upload", raise_invalid)
+    monkeypatch.setattr(telegram_handlers.SignatureService, "upload", raise_invalid)
 
     tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice")
     tg_bot.process_update(

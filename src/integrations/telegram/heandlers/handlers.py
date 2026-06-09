@@ -41,7 +41,6 @@ class TelegramHandlers:
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
-        print(repr(text))
         if telegram_id is None:
             return False
 
@@ -53,7 +52,7 @@ class TelegramHandlers:
 
         handlers: dict[str, Callable[[], None]] = {
             Cmd.INVOICE: self._invoice,
-            Cmd.MENU: self.menu_handler.menu,
+            Cmd.MENU: self.menu_handler.main_menu,
             MainMenuButtons.GMAIL: self.menu_handler.gmail_menu,
             MainMenuButtons.SYSTEM: self.menu_handler.system_menu,
             MainMenuButtons.SIGNATURE: self.menu_handler.signature_menu,
@@ -69,7 +68,7 @@ class TelegramHandlers:
             SystemButtons.LAST_ACTION: self._last_action,
             SystemButtons.SYSTEM_STATUS: self._status,
             SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
-            NavigationButtons.BACK: self.menu_handler.menu,
+            NavigationButtons.BACK: self.menu_handler.main_menu,
         }
 
         try:
@@ -134,7 +133,7 @@ class TelegramHandlers:
         self.telegram.send_message(BotInfo.ABOUT)
 
     def _whoami(self, telegram_id: int | None, username: str | None) -> None:
-        self.telegram.send_message(f"{format_whoami(telegram_id, username)}")
+        self.telegram.send_message(format_whoami(telegram_id, username))
 
     def _last_action(self) -> None:
         actions = self.audit_log.list_recent(1)

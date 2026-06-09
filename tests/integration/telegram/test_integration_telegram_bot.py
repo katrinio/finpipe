@@ -69,7 +69,7 @@ class TestTelegramBot:
         tg_bot.poll()
 
         assert tg_bot.telegram.sent_messages == [
-            f"{BotInfo.WHOAMI_PREFIX}\n{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
+            f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
         ]
         assert tg_bot.update_storage.processed == [11]
 
