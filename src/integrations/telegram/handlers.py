@@ -6,6 +6,8 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
+from src.integrations.telegram.states import UserState
+from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
 from src.storage.orm.audit_log import AuditLog, AuditStatus
@@ -28,6 +30,11 @@ class TelegramHandlers:
     def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]):
         self.telegram = telegram
         self.audit_log = audit_log
+        # TODO:
+        # User states are stored in memory only.
+        # After process restart all active flows are lost.
+        # Persist states in DB if interactive Telegram workflows grow.
+        self._user_states: dict[int, UserState] = {}
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
@@ -143,22 +150,38 @@ class TelegramHandlers:
         self.telegram.send_message("✅ Gmail disconnected")
 
     def _upload_signature(self, telegram_id: int) -> None:
-        # TODO: download signature file from Telegram API and pass it to _handle_signature_upload.
-        self.telegram.send_message("✍️ Upload signature flow is prepared. File download will be connected next.")
+        self.set_user_state(telegram_id, UserState.WAITING_SIGNATURE_UPLOAD)
+        self.telegram.send_message("✍️ Пришлите подпись в PNG формате.\nТребования:\n- PNG\n- до 2 МБ\n- прозрачный фон рекомендуется")
 
     def _handle_signature_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
-        # TODO: connect Telegram file download to this method.
-        SignatureService.upload(
-            telegram_id=telegram_id,
-            file_name=file_name,
-            file_size=file_size,
-            file_bytes=file_bytes,
-        )
-        self.telegram.send_message("✅ Signature uploaded")
+        try:
+            SignatureService.upload(
+                telegram_id=telegram_id,
+                file_name=file_name,
+                file_size=file_size,
+                file_bytes=file_bytes,
+            )
+        except InvalidSignatureFormatError:
+            self.telegram.send_message("❌ Разрешены только PNG файлы")
+            return
+        except SignatureTooLargeError:
+            self.telegram.send_message("❌ Размер файла превышает 2 МБ")
+            return
+        except InvalidSignatureImageError:
+            self.telegram.send_message("❌ Не удалось обработать изображение")
+            return
+
+        self.clear_user_state(telegram_id)
+        self.telegram.send_message("✅ Подпись успешно обновлена")
 
     def _delete_signature(self, telegram_id: int) -> None:
+        signature = Signature.get_active(telegram_id)
+        if signature is None:
+            self.telegram.send_message(BotInfo.SIGNATURE_NOT_FOUND)
+            return
+
         Signature.delete(telegram_id)
-        self.telegram.send_message("✅ ")
+        self.telegram.send_message(BotInfo.SIGNATURE_DELETED)
 
     def _signature_status(self, telegram_id: int) -> None:
         if not Signature.exists(telegram_id):
@@ -167,3 +190,18 @@ class TelegramHandlers:
 
         self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
         return
+
+    def set_user_state(self, telegram_id: int, state: UserState) -> None:
+        """Сохраняет простое состояние пользователя в памяти."""
+
+        self._user_states[telegram_id] = state
+
+    def get_user_state(self, telegram_id: int) -> UserState | None:
+        """Возвращает текущее состояние пользователя."""
+
+        return self._user_states.get(telegram_id)
+
+    def clear_user_state(self, telegram_id: int) -> None:
+        """Сбрасывает состояние пользователя."""
+
+        self._user_states.pop(telegram_id, None)

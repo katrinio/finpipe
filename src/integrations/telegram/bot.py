@@ -8,6 +8,7 @@ from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.handlers import TelegramHandlers
+from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
@@ -53,8 +54,8 @@ class TelegramBot:
 
         return len(result)
 
-    def extract_message_data(self, update: dict) -> tuple[str, int, str | None] | None:
-        """Извлекает данные пользователя и команду из update."""
+    def extract_message_data(self, update: dict) -> tuple[str | None, int, str | None] | None:
+        """Извлекает текст, пользователя и команду из update."""
 
         message = update.get("message")
         if not message:
@@ -64,10 +65,35 @@ class TelegramBot:
         user = message.get("from", {})
 
         telegram_id = user.get("id")
-        if not text or telegram_id is None:
+        if telegram_id is None:
             return None
 
         return text, telegram_id, user.get("username")
+
+    def extract_signature_upload_data(self, update: dict) -> tuple[str, int, str, bytes] | None:
+        """Извлекает данные файла подписи из Telegram update."""
+
+        message = update.get("message")
+        if not message:
+            return None
+
+        document = message.get("document")
+        if document is not None:
+            file_id = document.get("file_id")
+            file_name = document.get("file_name")
+            file_size = document.get("file_size")
+            if file_id and file_name and file_size is not None:
+                return file_name, int(file_size), file_id, b""
+
+        photo = message.get("photo")
+        if photo:
+            last_photo = photo[-1]
+            file_id = last_photo.get("file_id")
+            file_size = last_photo.get("file_size")
+            if file_id and file_size is not None:
+                return "signature.png", int(file_size), file_id, b""
+
+        return None
 
     def process_update(self, update: dict) -> None:
         """Обрабатывает один Telegram update."""
@@ -81,6 +107,24 @@ class TelegramBot:
         if not self.is_authorized(telegram_id):
             LOGGER.warning("Access denied for Telegram user %s (@%s)", telegram_id, username)
             self.telegram.send_message(BotInfo.ACCESS_DENIED)
+            return
+
+        if self.handlers.get_user_state(telegram_id) == UserState.WAITING_SIGNATURE_UPLOAD:
+            file_data = self.extract_signature_upload_data(update)
+            if file_data is not None:
+                file_name, file_size, file_id, _ = file_data
+                file_path = self.telegram.get_file(file_id)
+                file_bytes = self.telegram.download_file(file_path)
+                self.handlers._handle_signature_upload(telegram_id, file_name, file_size, file_bytes)
+                self.update_storage.mark_processed(update["update_id"])
+                return
+
+            self.telegram.send_message("✍️ Пришлите подпись в PNG формате.")
+            self.update_storage.mark_processed(update["update_id"])
+            return
+
+        if text is None:
+            self.update_storage.mark_processed(update["update_id"])
             return
 
         LOGGER.info("Processing Telegram command: %s", text)
