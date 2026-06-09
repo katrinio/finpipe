@@ -47,8 +47,9 @@ class TestTelegramBot:
             "get_by_telegram_id",
             classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
         )
-
-        tg_bot = TelegramBot(fake_storage({123}))
+        user_name = "alice"
+        user_id = 123
+        tg_bot = TelegramBot(fake_storage({user_id}))
         tg_bot.telegram = fake_telegram_client(
             {
                 "result": [
@@ -56,7 +57,7 @@ class TestTelegramBot:
                         "update_id": 11,
                         "message": {
                             "text": Cmd.WHOAMI,
-                            "from": {"id": 123, "username": "alice"},
+                            "from": {"id": user_id, "username": user_name},
                         },
                     }
                 ]
@@ -66,7 +67,9 @@ class TestTelegramBot:
 
         tg_bot.poll()
 
-        assert tg_bot.telegram.sent_messages == BotInfo.WHOAMI_PREFIX
+        assert tg_bot.telegram.sent_messages == [
+            f"{BotInfo.WHOAMI_PREFIX}\n{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
+        ]
         assert tg_bot.update_storage.processed == [11]
 
     def test_handle_message_last_action_uses_storage_audit_log(self, fake_telegram_client) -> None:
