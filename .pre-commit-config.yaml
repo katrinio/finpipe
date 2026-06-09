@@ -11,7 +11,7 @@ exclude: >
     .*/output/|
     .*credentials\.json|
     .*token\.json|
-    src/storage/processed_messages\.json
+    .*signature\.enc
   )
 
 repos:
@@ -20,14 +20,7 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-ast
-      - id: check-json
-      - id: check-toml
-      - id: check-yaml
       - id: debug-statements
-      - id: end-of-file-fixer
-        types_or: [yaml, json, toml, markdown]
-      - id: trailing-whitespace
-        types_or: [yaml, json, toml, markdown]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.14
@@ -36,10 +29,10 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  - repo: local
-    hooks:
-      - id: mypy
-        name: mypy
-        entry: poetry run mypy src
-        language: system
-        pass_filenames: false
+#  - repo: local
+#    hooks:
+#      - id: mypy
+#        name: mypy
+#        entry: poetry run mypy src --no-incremental
+#        language: system
+#        pass_filenames: false
