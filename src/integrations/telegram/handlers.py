@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from src.integrations.oauth.gmail_oauth import GmailOAuth
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
+from src.storage.orm import UserConfig
 from src.storage.orm.audit_log import AuditStatus
 from src.storage.repositories.audit_log_repository import AuditLogRepository
 from src.utils.credentials import LOGGER
@@ -47,6 +48,7 @@ class TelegramHandlers:
             Cmd.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
             Cmd.LAST_ACTION: self._last_action,
             Cmd.CONNECT_GMAIL: self._gmail_connect,
+            Cmd.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
         }
 
         try:
@@ -116,3 +118,10 @@ class TelegramHandlers:
     def _gmail_connect(self) -> None:
         authorization_url = GmailOAuth.build_authorization_url()
         self.telegram.send_message(f"Open this URL:\n{authorization_url}")
+
+    def _gmail_status(self, telegram_id: int) -> None:
+        user_config = UserConfig.get_by_telegram_id(telegram_id)
+        if user_config is None:
+            self.telegram.send_message(BotInfo.GMAIL_NOT_CONNECTED)
+            return
+        self.telegram.send_message(f"{BotInfo.GMAIL_CONNECTED}\n{user_config.gmail_email}")

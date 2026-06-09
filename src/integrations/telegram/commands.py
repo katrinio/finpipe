@@ -12,6 +12,7 @@ class Cmd(StrEnum):
     WHOAMI = "/whoami"
     LAST_ACTION = "/last_action"
     CONNECT_GMAIL = "/connect_gmail"
+    GMAIL_STATUS = "/gmail_status"
 
     @property
     def description(self) -> str:
@@ -24,6 +25,7 @@ class Cmd(StrEnum):
             Cmd.WHOAMI: "show current Telegram identity",
             Cmd.LAST_ACTION: "show last action",
             Cmd.CONNECT_GMAIL: "connect gmail",
+            Cmd.GMAIL_STATUS: "is gmail connected",
         }
 
         return descriptions[self]
@@ -47,7 +49,9 @@ class BotInfo:
 
     WHOAMI_PREFIX = "👤 You are"
 
-    NO_AUDIT_LOG_RECORDS = "📝 No audit records found"
+    NO_AUDIT_LOG_RECORDS = "📝 No audit records found."
+    GMAIL_NOT_CONNECTED = "❌ Gmail is not connected."
+    GMAIL_CONNECTED = "✅ Gmail connected"
 
 
 def build_help_message() -> str:
