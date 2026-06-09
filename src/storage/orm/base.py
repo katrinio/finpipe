@@ -69,7 +69,7 @@ class BaseModel(BaseStorage):
         session.add_all(cls(**{cls.__pk_column_name__: value}) for value in values)
 
     @classmethod
-    def clear(cls, session: Session) -> None:
+    def delete_all(cls, session: Session) -> None:
         """Удаляет все строки таблицы."""
 
         session.execute(delete(cls))

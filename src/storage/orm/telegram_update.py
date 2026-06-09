@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Integer, func
+from sqlalchemy import Integer, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
@@ -29,6 +29,12 @@ class TelegramUpdate(BaseModel):
     def is_processed(cls, update_id: int) -> bool:
         with cls.session() as session:
             return TelegramUpdate.exists_by_primary_key(session, update_id)
+
+    @classmethod
+    def get_by_update_id(cls, update_id: int) -> "TelegramUpdate | None":
+        with cls.session() as session:
+            statement = select(cls).where(cls.update_id == update_id).limit(1)
+            return session.scalar(statement)
 
     @classmethod
     def get_last_processed_update_id(cls) -> int | None:
