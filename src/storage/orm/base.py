@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from typing import Any, ClassVar
 
@@ -24,7 +24,7 @@ class BaseModel(BaseStorage):
 
     @classmethod
     @contextmanager
-    def session(cls):
+    def session(cls) -> Generator[Session]:
         with cls.database.session() as session:
             yield session
 

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.storage.orm import BaseStorage
@@ -38,6 +39,8 @@ class Database:
         database_exists = self._sqlite_file_path().exists() if self._is_sqlite() else True
         BaseStorage.metadata.create_all(self._engine)
         BaseModel.database = self
+        if self._is_sqlite():
+            self._sync_sqlite_schema()
         if not database_exists:
             LOGGER.info("Initialized SQLAlchemy storage at %s", self._database_url)
 
@@ -54,7 +57,7 @@ class Database:
         sqlite_path.parent.mkdir(parents=True, exist_ok=True)
 
         @event.listens_for(self._engine, "connect")
-        def _set_sqlite_pragmas(dbapi_connection, _connection_record) -> None:
+        def _set_sqlite_pragmas(dbapi_connection: Any, _connection_record: Any) -> None:
             cursor = dbapi_connection.cursor()
             cursor.execute("PRAGMA foreign_keys = ON")
             cursor.execute("PRAGMA journal_mode = WAL")
@@ -69,6 +72,22 @@ class Database:
             msg = "Only sqlite file URLs are supported by this helper"
             raise ValueError(msg)
         return Path(self._database_url.removeprefix(prefix))
+
+    def _sync_sqlite_schema(self) -> None:
+        """Добавляет новые nullable-колонки в старую SQLite-схему."""
+
+        with self._engine.begin() as connection:
+            columns = {row[1] for row in connection.execute(text("PRAGMA table_info(user_config)")).all()}
+            required_columns = {
+                "signature_path": "TEXT NOT NULL DEFAULT ''",
+                "gmail_email": "TEXT",
+                "gmail_refresh_token": "TEXT",
+                "gmail_connected_at": "DATETIME",
+                "gmail_last_error": "TEXT",
+            }
+            for column_name, column_sql in required_columns.items():
+                if column_name not in columns:
+                    connection.execute(text(f"ALTER TABLE user_config ADD COLUMN {column_name} {column_sql}"))
 
 
 def build_sqlite_url(db_path: Path) -> str:
