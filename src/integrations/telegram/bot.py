@@ -8,7 +8,6 @@ from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.heandlers.handlers import TelegramHandlers
-from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
@@ -70,8 +69,8 @@ class TelegramBot:
 
         return text, telegram_id, user.get("username")
 
-    def extract_signature_upload_data(self, update: dict) -> tuple[str, int, str, bytes] | None:
-        """Извлекает данные файла подписи из Telegram update."""
+    def extract_file_upload_data(self, update: dict) -> tuple[str, int, str, bytes] | None:
+        """Извлекает данные файла из Telegram update."""
 
         message = update.get("message")
         if not message:
@@ -109,18 +108,10 @@ class TelegramBot:
             self.telegram.send_message(BotInfo.ACCESS_DENIED)
             return
 
-        if self.handlers.get_user_state(telegram_id) == UserState.WAITING_SIGNATURE_UPLOAD:
-            file_data = self.extract_signature_upload_data(update)
-            if file_data is not None:
-                file_name, file_size, file_id, _ = file_data
-                file_path = self.telegram.get_file(file_id)
-                file_bytes = self.telegram.download_file(file_path)
-                self.handlers._handle_signature_upload(telegram_id, file_name, file_size, file_bytes)
-                self.update_storage.mark_processed(update["update_id"])
-                return
-
-            self.telegram.send_message("✍️ Пришлите подпись в PNG формате.")
-            self.update_storage.mark_processed(update["update_id"])
+        if self._process_waiting_state(
+            telegram_id=telegram_id,
+            update=update,
+        ):
             return
 
         if text is None:
