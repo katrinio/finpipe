@@ -11,6 +11,7 @@ class ProfileTemplateService:
     @classmethod
     def upload(
         cls,
+        telegram_id: int,
         file_name: str,
         file_size: int,
         file_bytes: bytes,

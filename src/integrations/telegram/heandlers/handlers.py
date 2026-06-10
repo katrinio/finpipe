@@ -17,7 +17,7 @@ from src.integrations.telegram.ui.buttons import (
     SignatureButtons,
     SystemButtons,
 )
-from src.services.profile_template.exceptions import InvalidProfileTemplateFormatError, InvalidProfileTemplateImageError, ProfileTemplateTooLargeError
+from src.services.profile_template.exceptions import InvalidProfileTemplateError, InvalidProfileTemplateFormatError, ProfileTemplateTooLargeError
 from src.services.profile_template.profile_template_service import ProfileTemplateService
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
@@ -227,7 +227,7 @@ class TelegramHandlers:
         except ProfileTemplateTooLargeError:
             self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_TOO_LARGE)
             return
-        except InvalidProfileTemplateImageError:
+        except InvalidProfileTemplateError:
             self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPLOAD_ERROR)
             return
 
