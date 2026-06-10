@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
-from dataclasses import dataclass
 
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.heandlers.handlers import TelegramHandlers
+from src.integrations.telegram.heandlers.state_handlers import StateHandler
 from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
@@ -21,21 +20,15 @@ from src.storage.orm.telegram_update import TelegramUpdate
 from src.utils.credentials import LOGGER
 
 
-@dataclass(frozen=True)
-class StateHandler:
-    handler: Callable[[int, str, int, bytes], None]
-    error_message: str
-
-
 class TelegramBot:
     """Telegram listener и обработчик команд."""
 
     def __init__(self, storage_dependencies: StorageDependencies) -> None:
-        self.telegram = TelegramClient()
+        self._telegram = TelegramClient()
         self.dependencies = storage_dependencies
         self.update_storage = TelegramUpdate
         self.handlers = TelegramHandlers(
-            telegram=self.telegram,
+            telegram=self._telegram,
             audit_log=self.dependencies.audit_log,
         )
         self._state_handlers: dict[UserState, StateHandler] = {
@@ -43,7 +36,21 @@ class TelegramBot:
                 handler=self.handlers._handle_signature_upload,
                 error_message="✍️ Пришлите подпись в PNG формате.",
             ),
+            UserState.WAITING_PROFILE_TEMPLATE_UPLOAD: StateHandler(
+                handler=self.handlers._handle_profile_template_upload,
+                error_message="📄 Пришлите заполненный шаблон в YAML формате.",
+            ),
         }
+
+    @property
+    def telegram(self) -> TelegramClient:
+        return self._telegram
+
+    @telegram.setter
+    def telegram(self, telegram: TelegramClient) -> None:
+        self._telegram = telegram
+        self.handlers.telegram = telegram
+        self.handlers.menu_handler.telegram = telegram
 
     def poll(self) -> int:
         """Получает и обрабатывает новые Telegram updates."""
@@ -120,6 +127,7 @@ class TelegramBot:
         if state_handler is None:
             return False
 
+        LOGGER.info("Processing state %s for Telegram user %s", state.name, telegram_id)
         file_data = self.extract_document_upload_data(update)
         if file_data is None:
             self.telegram.send_message(state_handler.error_message)
@@ -127,9 +135,16 @@ class TelegramBot:
             return True
 
         file_name, file_size, file_id, _ = file_data
+        LOGGER.info(
+            "Received upload: file=%s size=%s state=%s",
+            file_name,
+            file_size,
+            state.name,
+        )
         file_path = self.telegram.get_file(file_id)
         file_bytes = self.telegram.download_file(file_path)
         state_handler.handler(telegram_id, file_name, file_size, file_bytes)
+        LOGGER.info("Successfully processed upload for Telegram user %s", telegram_id)
         self.update_storage.mark_processed(update["update_id"])
         return True
 
@@ -147,6 +162,8 @@ class TelegramBot:
             self.telegram.send_message(BotInfo.ACCESS_DENIED)
             return
 
+        LOGGER.info("Authorized Telegram user %s (@%s)", telegram_id, username)
+
         if self._process_waiting_state(telegram_id=telegram_id, update=update):
             return
 
@@ -154,7 +171,7 @@ class TelegramBot:
             self.update_storage.mark_processed(update["update_id"])
             return
 
-        LOGGER.info("Processing Telegram command: %s", text)
+        LOGGER.info("Processing Telegram command %r from user %s (@%s)", text, telegram_id, username)
 
         if self.handle_message(text=text, telegram_id=telegram_id, username=username):
             self.update_storage.mark_processed(update["update_id"])
@@ -162,7 +179,6 @@ class TelegramBot:
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Делегирует команду вынесенным handlers, сохраняя совместимый API."""
 
-        self.handlers.telegram = self.telegram
         return self.handlers.handle_message(text=text, telegram_id=telegram_id, username=username)
 
     def mark_initial_updates_as_processed(self, updates: list[dict]) -> int:
