@@ -17,6 +17,18 @@ def build_main_menu() -> dict:
     }
 
 
+def build_integration_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": NavigationButtons.BACK},
+                {"text": MainMenuButtons.GMAIL},
+            ],
+        ],
+        "resize_keyboard": True,
+    }
+
+
 def build_system_menu() -> dict:
     return {
         "keyboard": [
@@ -33,7 +45,7 @@ def build_system_menu() -> dict:
     }
 
 
-def build_integration_menu() -> dict:
+def build_gmail_menu() -> dict:
     return {
         "keyboard": [
             [
