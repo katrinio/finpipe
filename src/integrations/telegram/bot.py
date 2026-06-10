@@ -31,10 +31,7 @@ class TelegramBot:
             telegram=self._telegram,
             audit_log=self.dependencies.audit_log,
         )
-        # TODO(HIGH):
-        # Состояния upload-flow сейчас живут только в памяти процесса.
-        # После рестарта активные ожидания загрузки теряются.
-        # Вынести хранение состояний в БД, когда появится больше интерактивных сценариев.
+
         self._state_handlers: dict[UserState, StateHandler] = {
             UserState.WAITING_SIGNATURE_UPLOAD: StateHandler(
                 handler=self.handlers._handle_signature_upload,

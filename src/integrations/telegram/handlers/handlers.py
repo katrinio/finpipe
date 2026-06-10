@@ -44,7 +44,7 @@ class TelegramHandlers:
         self.telegram = telegram
         self.audit_log = audit_log
         self.menu_handler = MenuHandler(self.telegram)
-        # TODO(MEDIUM):
+        # TODO(LOW):
         # Список команд уже заметно вырос и смешивает навигацию, сервисные действия и upload-flow.
         # После стабилизации интерфейса нужно разнести команды и UI-кнопки по отдельным модулям.
         self.state_service = UserStateService()
