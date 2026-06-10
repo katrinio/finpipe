@@ -31,7 +31,7 @@ class GmailAccount(BaseModel):
     created_at: Mapped[datetime] = mapped_column(DateTime)
 
     @classmethod
-    def get_by_telegram_id(cls, telegram_id: int) -> GmailAccount | None:
+    def get_by_owner(cls, telegram_id: int) -> GmailAccount | None:
         """Возвращает запись пользователя по Telegram id."""
 
         with cls.session() as session:
@@ -70,7 +70,7 @@ class GmailAccount(BaseModel):
 
     @classmethod
     def has_gmail_connection(cls, telegram_id: int) -> bool:
-        user_config = cls.get_by_telegram_id(telegram_id)
+        user_config = cls.get_by_owner(telegram_id)
         return bool(user_config and user_config.gmail_refresh_token)
 
     @classmethod
