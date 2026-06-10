@@ -1,26 +1,33 @@
+from collections.abc import Callable
 from datetime import UTC, datetime
-from types import SimpleNamespace
+from typing import cast
+
+import pytest
 
 from src.integrations.telegram.bot import TelegramBot
+from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.ui.buttons import SystemButtons
+from src.storage.dependencies import StorageDependencies
 from src.storage.orm import AllowedUser
 from src.storage.orm.system.audit_log import AuditLog
+from src.storage.orm.system.telegram_update import TelegramUpdate
+from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
+from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 class TestTelegramBot:
     def test_poll_denies_unauthorized_user(
         self,
-        caplog,
-        fake_telegram_client,
-        fake_storage,
-        fake_update_storage,
-        monkeypatch,
+        caplog: pytest.LogCaptureFixture,
+        fake_telegram_client: Callable[..., FakeTelegramClient],
+        fake_storage: Callable[[set[int] | None], FakeStorage],
+        fake_update_storage: FakeTelegramUpdateStorage,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setattr(AllowedUser, "get_by_telegram_id", classmethod(lambda cls, telegram_id: None))
 
-        tg_bot = TelegramBot(fake_storage(set()))
-        tg_bot.telegram = fake_telegram_client(
+        telegram_client = fake_telegram_client(
             {
                 "result": [
                     {
@@ -33,25 +40,31 @@ class TestTelegramBot:
                 ]
             }
         )
-        tg_bot.update_storage = fake_update_storage
+        tg_bot = TelegramBot(cast(StorageDependencies, fake_storage(set())), telegram=cast(TelegramClient, telegram_client))
+        tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
 
         caplog.clear()
         tg_bot.poll()
 
         assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
-        assert tg_bot.telegram.sent_messages == [BotInfo.ACCESS_DENIED]
-        assert tg_bot.update_storage.processed == []
+        assert telegram_client.sent_messages == [BotInfo.ACCESS_DENIED]
+        assert fake_update_storage.processed == []
 
-    def test_poll_processes_authorized_user_and_whoami(self, fake_telegram_client, fake_storage, fake_update_storage, monkeypatch) -> None:
+    def test_poll_processes_authorized_user_and_whoami(
+        self,
+        fake_telegram_client: Callable[..., FakeTelegramClient],
+        fake_storage: Callable[[set[int] | None], FakeStorage],
+        fake_update_storage: FakeTelegramUpdateStorage,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         monkeypatch.setattr(
             AllowedUser,
             "get_by_telegram_id",
-            classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
+            classmethod(lambda cls, telegram_id: AllowedUser(telegram_id=telegram_id, user_name="alice")),
         )
         user_name = "alice"
         user_id = 123
-        tg_bot = TelegramBot(fake_storage({user_id}))
-        tg_bot.telegram = fake_telegram_client(
+        telegram_client = fake_telegram_client(
             {
                 "result": [
                     {
@@ -64,17 +77,23 @@ class TestTelegramBot:
                 ]
             }
         )
-        tg_bot.update_storage = fake_update_storage
+        tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({user_id})), telegram=cast(TelegramClient, telegram_client))
+        tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
 
         tg_bot.poll()
 
-        assert tg_bot.telegram.sent_messages == [
+        assert telegram_client.sent_messages == [
             f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
         ]
-        assert tg_bot.update_storage.processed == [11]
+        assert fake_update_storage.processed == [11]
 
-    def test_handle_message_last_action_uses_storage_audit_log(self, fake_telegram_client) -> None:
-        telegram_client = fake_telegram_client()
+    def test_handle_message_last_action_uses_storage_audit_log(
+        self,
+        fake_telegram_client: Callable[..., FakeTelegramClient],
+        fake_storage: Callable[[set[int] | None], FakeStorage],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        telegram_client = cast(FakeTelegramClient, fake_telegram_client())
         audit_action = AuditLog(
             user_name="alice",
             command="/invoice",
@@ -90,16 +109,11 @@ class TestTelegramBot:
             ),
         )
 
-        tg_bot = TelegramBot(
-            SimpleNamespace(
-                allowed_users=AllowedUser(get_by_telegram_id=lambda telegram_id: True),
-                audit_log=SimpleNamespace(
-                    create=lambda *args, **kwargs: None,
-                    list_recent=lambda limit=50: [audit_action],
-                ),
-            )
-        )
-        tg_bot.telegram = telegram_client
+        storage = cast(StorageDependencies, fake_storage(set()))
+        storage.audit_log.records = [audit_action]
+        monkeypatch.setattr(AllowedUser, "get_by_telegram_id", classmethod(lambda cls, telegram_id: True))
+
+        tg_bot = TelegramBot(storage, telegram=cast(TelegramClient, telegram_client))
 
         assert tg_bot.handle_message(SystemButtons.LAST_ACTION, telegram_id=1, username="alice") is True
         assert telegram_client.sent_messages == [

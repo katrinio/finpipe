@@ -7,7 +7,7 @@ import time
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
-from src.integrations.telegram.handlers.command_handlers import TelegramHandlers
+from src.integrations.telegram.handlers.command_router import CommandRouter
 from src.integrations.telegram.handlers.state_handlers import StateHandler
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
@@ -24,11 +24,15 @@ from src.utils.credentials import LOGGER
 class TelegramBot:
     """Telegram listener и обработчик команд."""
 
-    def __init__(self, storage_dependencies: StorageDependencies) -> None:
-        self._telegram = TelegramClient()
+    def __init__(
+        self,
+        storage_dependencies: StorageDependencies,
+        telegram: TelegramClient | None = None,
+    ) -> None:
+        self._telegram = telegram or TelegramClient()
         self.dependencies = storage_dependencies
         self.update_storage = TelegramUpdate
-        self.handlers = TelegramHandlers(
+        self.handlers = CommandRouter(
             telegram=self._telegram,
             audit_log=self.dependencies.audit_log,
         )
@@ -47,12 +51,6 @@ class TelegramBot:
     @property
     def telegram(self) -> TelegramClient:
         return self._telegram
-
-    @telegram.setter
-    def telegram(self, telegram: TelegramClient) -> None:
-        self._telegram = telegram
-        self.handlers.telegram = telegram
-        self.handlers.menu_handler.telegram = telegram
 
     def poll(self) -> int:
         """Получает и обрабатывает новые Telegram updates."""
