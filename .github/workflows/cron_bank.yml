@@ -76,7 +76,7 @@ jobs:
 
       - name: Process Bank Flow and Send Documents
         run: |
-          poetry run python -m src.workflows.process_bank_request
+          poetry run python -m src.workflows.run_bank_request
 
       - name: Send Success Notification
         if: success()
@@ -89,10 +89,18 @@ jobs:
       - name: Send Failure Notification
         if: failure()
         run: |
+          PIPELINE_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      
           curl -X POST \
-            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TELEGRAM_CHAT_ID}" \
-            -d text="❌ Finpipe Process Bank Flow failed"
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="❌ Process Bank Flow Failure
+      
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          
+          🔗 Pipeline: ${PIPELINE_URL}"
 
       - name: Cleanup secrets
         if: always()

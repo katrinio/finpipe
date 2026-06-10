@@ -10,16 +10,7 @@ jobs:
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      ACCOUNT_HOLDER: ${{ secrets.ACCOUNT_HOLDER }}
-      ACCOUNT_HOLDER_ADDRESS: ${{ secrets.ACCOUNT_HOLDER_ADDRESS }}
-      ACCOUNT_BIC: ${{ secrets.ACCOUNT_BIC }}
-      ACCOUNT_IBAN: ${{ secrets.ACCOUNT_IBAN }}
-      ACCOUNT_NUMBER: ${{ secrets.ACCOUNT_NUMBER }}
-      BANK_NAME: ${{ secrets.BANK_NAME }}
-      COMPANY_NAME: ${{ secrets.COMPANY_NAME }}
-      COMPANY_ADDRESS: ${{ secrets.COMPANY_ADDRESS }}
-      INVOICE_AMOUNT: ${{ secrets.INVOICE_AMOUNT }}
-      SERVICE_AGREEMENT_DATE: ${{ secrets.SERVICE_AGREEMENT_DATE }}
+
 
     steps:
       - uses: actions/checkout@v5
@@ -34,13 +25,25 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: Install LibreOffice
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libreoffice
 
       - name: Run Telegram Bot Listener
         id: telegram
         continue-on-error: true
         run: |
           poetry run python -m src.integrations.telegram.bot
+
+      - name: Send Telegram Bot Listener Failure
+        if: failure()
+        run: |
+          PIPELINE_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      
+          curl -X POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="❌ Telegram Bot Listener Failure
+      
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          
+          🔗 Pipeline: ${PIPELINE_URL}"

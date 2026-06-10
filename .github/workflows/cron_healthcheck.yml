@@ -56,11 +56,27 @@ jobs:
           echo "DURATION=$(( $(date +%s) - $START_TIME ))" >> $GITHUB_ENV
 
       - name: Send Health Report
-        if: always()
         env:
           UNIT_STATUS: ${{ steps.units.outcome }}
           INTEGRATION_STATUS: ${{ steps.integration.outcome }}
           TELEGRAM_STATUS: ${{ steps.telegram.outcome }}
           DURATION: ${{ env.DURATION }}
         run: |
-          poetry run python -m src.workflows.send_daily_healthcheck
+          poetry run python -m src.workflows.run_daily_healthcheck
+          
+
+      - name: Send Health Failure
+        if: failure()
+        run: |
+          PIPELINE_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      
+          curl -X POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="❌ Healthcheck failed
+      
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          
+          🔗 Pipeline: ${PIPELINE_URL}"
