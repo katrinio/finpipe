@@ -29,7 +29,6 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-# пока не хотим тут его гонять
   - repo: local
     hooks:
       - id: mypy
