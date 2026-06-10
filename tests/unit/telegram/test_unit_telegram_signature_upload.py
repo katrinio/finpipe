@@ -6,7 +6,7 @@ from typing import cast
 
 import pytest
 
-import src.integrations.telegram.handlers.handlers as telegram_handlers
+import src.integrations.telegram.handlers.command_handlers as telegram_handlers
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.states import UserState

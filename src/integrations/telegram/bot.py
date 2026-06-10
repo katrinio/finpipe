@@ -7,8 +7,9 @@ import time
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
-from src.integrations.telegram.handlers.handlers import TelegramHandlers
+from src.integrations.telegram.handlers.command_handlers import TelegramHandlers
 from src.integrations.telegram.handlers.state_handlers import StateHandler
+from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
@@ -34,11 +35,11 @@ class TelegramBot:
 
         self._state_handlers: dict[UserState, StateHandler] = {
             UserState.WAITING_SIGNATURE_UPLOAD: StateHandler(
-                handler=self.handlers._handle_signature_upload,
+                handler=self.handlers.signature_handler.handle_signature_upload,
                 error_message="✍️ Пришлите подпись в PNG формате.",
             ),
             UserState.WAITING_PROFILE_TEMPLATE_UPLOAD: StateHandler(
-                handler=self.handlers._handle_profile_template_upload,
+                handler=self.handlers.profile_handler.handle_profile_template_upload,
                 error_message="📄 Пришлите заполненный шаблон в YAML формате.",
             ),
         }
@@ -120,8 +121,13 @@ class TelegramBot:
     def _process_waiting_state(self, telegram_id: int, update: dict) -> bool:
         """Обрабатывает upload-состояния без дублирования логики."""
 
-        state = self.handlers.state_service.get_state(telegram_id)
-        if state is None:
+        state_name = UserStateService.get_state(telegram_id)
+        if state_name is None:
+            return False
+
+        try:
+            state = UserState(state_name)
+        except ValueError:
             return False
 
         state_handler = self._state_handlers.get(state)

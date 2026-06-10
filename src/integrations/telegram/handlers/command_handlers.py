@@ -1,0 +1,131 @@
+from collections.abc import Callable
+from dataclasses import dataclass
+
+from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message
+from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
+from src.integrations.telegram.handlers.menu_handlers import MenuHandler
+from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
+from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
+from src.integrations.telegram.handlers.system_handlers import SystemHandlers
+from src.integrations.telegram.state_service import UserStateService
+from src.integrations.telegram.ui.buttons import (
+    GmailButtons,
+    MainMenuButtons,
+    NavigationButtons,
+    SettingsButtons,
+    SignatureButtons,
+    SystemButtons,
+)
+from src.storage.orm.system.audit_log import AuditLog, AuditStatus
+from src.utils.credentials import LOGGER
+from src.workflows.run_invoice_delivery import generate_and_send_invoice
+
+
+@dataclass(frozen=True)
+class CommandContext:
+    """Контекст Telegram-команды для аудита."""
+
+    telegram_id: int
+    username: str | None
+    command: str
+
+
+class TelegramHandlers:
+    """Telegram handlers и действия бота."""
+
+    def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]):
+        self.telegram = telegram
+        self.menu_handler = MenuHandler(self.telegram)
+        self.system_handler = SystemHandlers(self.telegram, audit_log)
+        self.gmail_handler = GmailHandlers(self.telegram)
+        self.state_service = UserStateService()
+        self.signature_handler = SignatureHandlers(self.telegram, self.state_service)
+        self.profile_handler = ProfileHandlers(self.telegram, self.state_service)
+        self._command_handlers: dict[str, Callable[[CommandContext], None]] = {}
+        self._build_command_handlers()
+
+    def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
+        """Выполняет команду Telegram."""
+        if telegram_id is None:
+            return False
+
+        context = CommandContext(
+            telegram_id=telegram_id,
+            username=username,
+            command=text,
+        )
+
+        try:
+            handler = self._command_handlers.get(text)
+
+            if handler is None:
+                self.telegram.send_message(BotInfo.NO_SUCH_COMMAND)
+                self._audit(context, AuditStatus.FAILED, BotInfo.NO_SUCH_COMMAND)
+            else:
+                handler(context)
+                self._audit(context, AuditStatus.SUCCESS)
+
+        except Exception as error:
+            LOGGER.exception("Command failed: %s", text)
+            self.telegram.send_message(f"{BotInfo.SYSTEM_ERROR}\nCommand {text} failed:\n{error}")
+            self._audit(context, AuditStatus.FAILED, str(error))
+
+            return False
+
+        return True
+
+    def _build_command_handlers(self) -> None:
+        """Собирает таблицу команд один раз при инициализации."""
+
+        self._command_handlers = {
+            Cmd.INVOICE: lambda context: self._invoice(),
+            Cmd.MENU: lambda context: self.menu_handler.main_menu(),
+            MainMenuButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(),
+            MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(),
+            MainMenuButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(),
+            MainMenuButtons.SETTINGS: lambda context: self.menu_handler.settings_menu(),
+            GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
+            GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
+            GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
+            SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
+            SignatureButtons.SIGNATURE_STATUS: lambda context: self.signature_handler.signature_status(context.telegram_id),
+            SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
+            SystemButtons.ABOUT: lambda context: self.system_handler.about(),
+            SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(),
+            SystemButtons.HELP: lambda context: self._help(),
+            SystemButtons.LAST_ACTION: lambda context: self.system_handler.last_action(),
+            SystemButtons.SYSTEM_STATUS: lambda context: self.system_handler.status(),
+            SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
+            SettingsButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
+            SettingsButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
+            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(),
+        }
+
+    def _audit(
+        self,
+        context: CommandContext,
+        status: AuditStatus,
+        details: str = "",
+    ) -> None:
+        """Сохраняет запись аудита команды."""
+
+        self.system_handler.audit_log.create(
+            context.telegram_id,
+            context.username or "",
+            context.command,
+            status,
+            details or None,
+        )
+
+    def _help(self) -> None:
+        self.telegram.send_message(build_help_message())
+
+    def _invoice(self) -> None:
+        self.telegram.send_message(BotInfo.GENERATING_INVOICE)
+        try:
+            generate_and_send_invoice()
+        except ValueError as error:
+            self.telegram.send_message(str(error))
+            return
+        self.telegram.send_message(BotInfo.INVOICE_SENT)
