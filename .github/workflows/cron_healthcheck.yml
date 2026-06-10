@@ -62,7 +62,7 @@ jobs:
           TELEGRAM_STATUS: ${{ steps.telegram.outcome }}
           DURATION: ${{ env.DURATION }}
         run: |
-          poetry run python -m src.workflows.send_daily_healthcheck
+          poetry run python -m src.workflows.run_daily_healthcheck
           
 
       - name: Send Health Failure
