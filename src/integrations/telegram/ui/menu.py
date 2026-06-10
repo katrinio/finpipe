@@ -81,7 +81,10 @@ def build_settings_menu() -> dict:
         "keyboard": [
             [
                 {"text": SettingsButtons.DOWNLOAD_TEMPLATE},
-                {"text": NavigationButtons.BACK},
+                {"text": SettingsButtons.UPLOAD_TEMPLATE},
+            ],
+            [
+                {"text": NavigationButtons.HOME},
             ],
         ],
     }

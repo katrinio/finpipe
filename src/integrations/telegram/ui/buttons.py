@@ -36,3 +36,4 @@ class NavigationButtons:
 
 class SettingsButtons:
     DOWNLOAD_TEMPLATE = "📥 Скачать шаблон профиля"
+    UPLOAD_TEMPLATE = "📤 Загрузить шаблон профиля"

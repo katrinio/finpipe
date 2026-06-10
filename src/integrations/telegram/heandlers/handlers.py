@@ -17,6 +17,8 @@ from src.integrations.telegram.ui.buttons import (
     SignatureButtons,
     SystemButtons,
 )
+from src.services.profile_template.exceptions import InvalidProfileTemplateFormatError, InvalidProfileTemplateImageError, ProfileTemplateTooLargeError
+from src.services.profile_template.profile_template_service import ProfileTemplateService
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
@@ -79,6 +81,7 @@ class TelegramHandlers:
             SystemButtons.SYSTEM_STATUS: self._status,
             SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
             SettingsButtons.DOWNLOAD_TEMPLATE: lambda: self._download_template(context.telegram_id),
+            SettingsButtons.UPLOAD_TEMPLATE: lambda: self._upload_template(context.telegram_id),
             NavigationButtons.BACK: self.menu_handler.main_menu,
         }
 
@@ -216,6 +219,28 @@ class TelegramHandlers:
             return
 
         self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
+        return
+
+    def _handle_profile_template_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
+        try:
+            ProfileTemplateService.upload(
+                telegram_id=telegram_id,
+                file_name=file_name,
+                file_size=file_size,
+                file_bytes=file_bytes,
+            )
+        except InvalidProfileTemplateFormatError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_NOT_YAML)
+            return
+        except ProfileTemplateTooLargeError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_TOO_LARGE)
+            return
+        except InvalidProfileTemplateImageError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPLOAD_ERROR)
+            return
+
+        self.clear_user_state(telegram_id)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPDATED)
         return
 
     def _download_template(self, telegram_id: int) -> None:
