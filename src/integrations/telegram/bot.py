@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import time
-
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
@@ -210,7 +208,7 @@ def main() -> None:
         except Exception:
             LOGGER.exception("Telegram listener iteration failed")
 
-        time.sleep(5)
+        # time.sleep(5)
 
 
 if __name__ == "__main__":
