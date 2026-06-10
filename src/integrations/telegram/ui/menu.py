@@ -6,14 +6,10 @@ def build_main_menu() -> dict:
         "keyboard": [
             [
                 {"text": MainMenuButtons.DOCUMENTS},
-                {"text": MainMenuButtons.BANK},
+                {"text": MainMenuButtons.PROFILE},
             ],
             [
-                {"text": MainMenuButtons.SIGNATURE},
-                {"text": MainMenuButtons.GMAIL},
-            ],
-            [
-                {"text": MainMenuButtons.SETTINGS},
+                {"text": MainMenuButtons.INTEGRATIONS},
                 {"text": MainMenuButtons.SYSTEM},
             ],
         ],

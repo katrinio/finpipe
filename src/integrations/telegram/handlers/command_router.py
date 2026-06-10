@@ -87,7 +87,7 @@ class CommandRouter:
             MainMenuButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(),
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(),
             MainMenuButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(),
-            MainMenuButtons.SETTINGS: lambda context: self.menu_handler.settings_menu(),
+            MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(),
             GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),

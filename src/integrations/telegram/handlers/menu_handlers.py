@@ -39,6 +39,6 @@ class MenuHandler:
 
     def settings_menu(self) -> None:
         self.telegram.send_message(
-            MainMenuButtons.SETTINGS,
+            MainMenuButtons.PROFILE,
             reply_markup=build_settings_menu(),
         )

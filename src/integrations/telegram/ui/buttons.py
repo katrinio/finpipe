@@ -5,7 +5,8 @@ class MainMenuButtons:
     SIGNATURE = "✍️ Подпись"
     GMAIL = "📧 Gmail"
     SYSTEM = "ℹ️ Система"
-    SETTINGS = "⚙️ Настройки"
+    PROFILE = "⚙️ Профиль"
+    INTEGRATIONS = "📧 Интеграции"
 
 
 class SignatureButtons:
