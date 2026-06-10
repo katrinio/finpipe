@@ -35,11 +35,7 @@ jobs:
             --cov-report=xml \
             -ra
 
-      - name: Validate coverage threshold
+      - name: Validate coverage
         run: |
-          poetry run coverage report \
-            --fail-under=40
-
-      - name: Coverage summary
-        run: |
-          poetry run coverage report >> $GITHUB_STEP_SUMMARY
+          poetry run coverage report | tee -a "$GITHUB_STEP_SUMMARY"
+          poetry run coverage report --fail-under=60 > /dev/null
