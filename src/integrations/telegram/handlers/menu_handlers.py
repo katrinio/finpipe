@@ -1,7 +1,7 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.ui.buttons import MainMenuButtons
 from src.integrations.telegram.ui.menu import (
-    build_gmail_menu,
+    build_integration_menu,
     build_main_menu,
     build_settings_menu,
     build_signature_menu,
@@ -28,7 +28,7 @@ class MenuHandler:
     def gmail_menu(self) -> None:
         self.telegram.send_message(
             MainMenuButtons.GMAIL,
-            reply_markup=build_gmail_menu(),
+            reply_markup=build_integration_menu(),
         )
 
     def signature_menu(self) -> None:

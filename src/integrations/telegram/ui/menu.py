@@ -33,7 +33,7 @@ def build_system_menu() -> dict:
     }
 
 
-def build_gmail_menu() -> dict:
+def build_integration_menu() -> dict:
     return {
         "keyboard": [
             [
