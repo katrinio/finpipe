@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import GmailButtons, MainMenuButtons, NavigationButtons
+from src.integrations.telegram.ui.buttons import GmailButtons, IntegrationsButtons, NavigationButtons
 
 
 def build_integration_menu() -> dict:
@@ -6,7 +6,7 @@ def build_integration_menu() -> dict:
         "keyboard": [
             [
                 {"text": NavigationButtons.BACK},
-                {"text": MainMenuButtons.GMAIL},
+                {"text": IntegrationsButtons.GMAIL},
             ],
         ],
         "resize_keyboard": True,

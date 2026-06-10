@@ -1,15 +1,15 @@
-from src.integrations.telegram.ui.buttons import MainMenuButtons, NavigationButtons, SettingsButtons, SignatureButtons
+from src.integrations.telegram.ui.buttons import NavigationButtons, ProfileButtons, SignatureButtons
 
 
 def build_profile_menu() -> dict:
     return {
         "keyboard": [
             [
-                {"text": SettingsButtons.DOWNLOAD_TEMPLATE},
-                {"text": SettingsButtons.UPLOAD_TEMPLATE},
+                {"text": ProfileButtons.DOWNLOAD_TEMPLATE},
+                {"text": ProfileButtons.UPLOAD_TEMPLATE},
             ],
             [
-                {"text": MainMenuButtons.SIGNATURE},
+                {"text": ProfileButtons.SIGNATURE},
                 {"text": NavigationButtons.BACK},
             ],
         ],

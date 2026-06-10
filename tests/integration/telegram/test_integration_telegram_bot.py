@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from datetime import UTC, datetime
 from typing import cast
 
 import pytest
@@ -10,7 +9,6 @@ from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.ui.buttons import SystemButtons
 from src.storage.dependencies import StorageDependencies
 from src.storage.orm import AllowedUser
-from src.storage.orm.system.audit_log import AuditLog
 from src.storage.orm.system.telegram_update import TelegramUpdate
 from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
@@ -86,36 +84,3 @@ class TestTelegramBot:
             f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
         ]
         assert fake_update_storage.processed == [11]
-
-    def test_handle_message_last_action_uses_storage_audit_log(
-        self,
-        fake_telegram_client: Callable[..., FakeTelegramClient],
-        fake_storage: Callable[[set[int] | None], FakeStorage],
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        telegram_client = cast(FakeTelegramClient, fake_telegram_client())
-        audit_action = AuditLog(
-            user_name="alice",
-            command="/invoice",
-            status="SUCCESS",
-            created_at=datetime(
-                2026,
-                6,
-                8,
-                10,
-                30,
-                0,
-                tzinfo=UTC,
-            ),
-        )
-
-        storage = cast(StorageDependencies, fake_storage(set()))
-        storage.audit_log.records = [audit_action]
-        monkeypatch.setattr(AllowedUser, "get_by_telegram_id", classmethod(lambda cls, telegram_id: True))
-
-        tg_bot = TelegramBot(storage, telegram=cast(TelegramClient, telegram_client))
-
-        assert tg_bot.handle_message(SystemButtons.LAST_ACTION, telegram_id=1, username="alice") is True
-        assert telegram_client.sent_messages == [
-            ("📝 Last action\n\nUser: alice\nCommand: /invoice\nStatus: SUCCESS\nTime: 2026-06-08 10:30:00"),
-        ]

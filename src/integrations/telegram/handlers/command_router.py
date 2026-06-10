@@ -10,10 +10,12 @@ from src.integrations.telegram.handlers.signature_handlers import SignatureHandl
 from src.integrations.telegram.handlers.system_handlers import SystemHandlers
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
+    DocumentsMenuButtons,
     GmailButtons,
+    IntegrationsButtons,
     MainMenuButtons,
     NavigationButtons,
-    SettingsButtons,
+    ProfileButtons,
     SignatureButtons,
     SystemButtons,
 )
@@ -82,27 +84,25 @@ class CommandRouter:
         """Собирает таблицу команд один раз при инициализации."""
 
         self._command_handlers = {
-            Cmd.INVOICE: lambda context: self._invoice(),
             Cmd.MENU: lambda context: self.menu_handler.main_menu(),
-            MainMenuButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(),
-            MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(),
-            MainMenuButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(),
-            MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(),
+            DocumentsMenuButtons.INVOICE: lambda context: self._invoice(),
             GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
+            IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(),
+            MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(),
+            MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(),
+            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(),
+            ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
+            ProfileButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(),
+            ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
             SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_STATUS: lambda context: self.signature_handler.signature_status(context.telegram_id),
             SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
             SystemButtons.ABOUT: lambda context: self.system_handler.about(),
             SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(),
             SystemButtons.HELP: lambda context: self._help(),
-            SystemButtons.LAST_ACTION: lambda context: self.system_handler.last_action(),
-            SystemButtons.SYSTEM_STATUS: lambda context: self.system_handler.status(),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
-            SettingsButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
-            SettingsButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
-            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(),
         }
 
     def _audit(

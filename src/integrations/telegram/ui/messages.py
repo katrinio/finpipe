@@ -17,8 +17,18 @@
 
 
 class CommonMessages:
-    ABOUT = "🤖 Finpipe MVP\n\nFeatures:\n• Invoice generation\n• Gmail integration\n• Telegram bot\n• SQLite storage\n\nVersion: 0.1"
-
+    ABOUT = (
+        "🤖 Finpipe\n\n"
+        "Личный сервис для автоматизации документооборота.\n\n"
+        "Возможности:\n"
+        "• Генерация документов по шаблонам\n"
+        "• Заполнение банковских форм\n"
+        "• Хранение данных компании и реквизитов\n"
+        "• Шифрование и хранение электронной подписи\n"
+        "• Интеграция с Gmail\n"
+        "• Работа через Telegram\n\n"
+        "Версия: 0.1"
+    )
     HELP_HEADER = "📚 Доступные команды"
     WHOAMI_PREFIX = "👤 Вы"
 
