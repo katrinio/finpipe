@@ -9,8 +9,11 @@ def build_system_menu() -> dict:
                 {"text": SystemButtons.HEALTHCHECK},
             ],
             [
-                {"text": NavigationButtons.BACK},
+                {"text": SystemButtons.STATUS},
                 {"text": SystemButtons.WHOAMI},
+            ],
+            [
+                {"text": NavigationButtons.BACK},
             ],
         ],
         "resize_keyboard": True,

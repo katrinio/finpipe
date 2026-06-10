@@ -39,6 +39,12 @@ class GmailAccount(BaseModel):
             return session.scalar(statement)
 
     @classmethod
+    def exists(cls, owner_telegram_id: int) -> bool:
+        """Проверяет наличие gmail integration для владельца."""
+
+        return cls.get_by_owner(owner_telegram_id) is not None
+
+    @classmethod
     def update_gmail_credentials(cls, telegram_id: int, gmail_email: str, gmail_refresh_token: str) -> None:
         with cls.session() as session:
             session.execute(

@@ -39,6 +39,7 @@ class SystemButtons:
     HEALTHCHECK = "❤️ Healthcheck"
     ABOUT = "ℹ️ О проекте"
     WHOAMI = "👤 Кто я"
+    STATUS = "📊 Статус профиля"
 
 
 class NavigationButtons:
