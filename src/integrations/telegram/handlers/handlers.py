@@ -7,7 +7,7 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
-from src.integrations.telegram.heandlers.menu_handlers import MenuHandler
+from src.integrations.telegram.handlers.menu_handlers import MenuHandler
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import (
     GmailButtons,
@@ -43,7 +43,14 @@ class TelegramHandlers:
         self.telegram = telegram
         self.audit_log = audit_log
         self.menu_handler = MenuHandler(self.telegram)
+        # TODO(MEDIUM):
+        # Список команд уже заметно вырос и смешивает навигацию, сервисные действия и upload-flow.
+        # После стабилизации интерфейса нужно разнести команды и UI-кнопки по отдельным модулям.
         self._user_states: dict[int, UserState] = {}
+        # TODO(HIGH):
+        # Состояния ожидания загрузки пока хранятся в памяти процесса.
+        # При рестарте бота пользователь теряет активный сценарий.
+        # Перенести это в постоянное хранилище, когда будут добавляться новые upload-ветки.
         self._command_handlers: dict[str, Callable[[CommandContext], None]] = {}
         self._build_command_handlers()
 

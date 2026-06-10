@@ -8,6 +8,9 @@ class TokenCipher:
 
     @classmethod
     def _get_cipher(cls) -> Fernet:
+        # TODO(HIGH):
+        # Ключ шифрования читается из env и используется для чувствительных токенов.
+        # Перед VPS deployment нужно проверить, что секреты не попадают в репозиторий, логи и незашифрованные файлы.
         if cls._cipher is None:
             cls._cipher = Fernet(EnvVar.get_required_env("SIGNATURE_ENCRYPTION_KEY").encode())
 

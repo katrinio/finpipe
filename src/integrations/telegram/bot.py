@@ -7,8 +7,8 @@ import time
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
-from src.integrations.telegram.heandlers.handlers import TelegramHandlers
-from src.integrations.telegram.heandlers.state_handlers import StateHandler
+from src.integrations.telegram.handlers.handlers import TelegramHandlers
+from src.integrations.telegram.handlers.state_handlers import StateHandler
 from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
@@ -31,6 +31,10 @@ class TelegramBot:
             telegram=self._telegram,
             audit_log=self.dependencies.audit_log,
         )
+        # TODO(HIGH):
+        # Состояния upload-flow сейчас живут только в памяти процесса.
+        # После рестарта активные ожидания загрузки теряются.
+        # Вынести хранение состояний в БД, когда появится больше интерактивных сценариев.
         self._state_handlers: dict[UserState, StateHandler] = {
             UserState.WAITING_SIGNATURE_UPLOAD: StateHandler(
                 handler=self.handlers._handle_signature_upload,

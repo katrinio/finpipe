@@ -30,6 +30,10 @@ class ProfileTemplateService:
     def parse(cls, file_bytes: bytes) -> ProfileTemplate:
         """Преобразует YAML bytes в ProfileTemplate."""
 
+        # TODO(MEDIUM):
+        # Сейчас все поля профиля трактуются как optional.
+        # Перед следующими документными workflow нужно формализовать обязательные поля и явно валидировать их на этом этапе.
+
         data = yaml.safe_load(file_bytes.decode("utf-8"))
         profile_data = {
             "company_name": None,
@@ -57,6 +61,9 @@ class ProfileTemplateService:
 
     @classmethod
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
+        # TODO(HIGH):
+        # Импорт сейчас делает полный upsert целиком.
+        # Для re-import сценариев нужно перейти на обновление только изменённых значений, чтобы не затирать пользовательские данные.
         CompanyProfile.upsert(
             owner_telegram_id=telegram_id,
             company_name=profile.company_name,
