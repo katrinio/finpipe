@@ -21,14 +21,18 @@ class DocumentHandlers:
         self.telegram.send_message(BotInfo.INVOICE_SENT)
 
     def bank(self) -> None:
+        print("BANK HANDLER CALLED")
+
         self.telegram.send_message(BotInfo.FILL_BANK_PDF)
+
         try:
+            print("BEFORE FILL")
             bank_pdf_path = fill_bank_pdf_with_data()
-        except ValueError as error:
-            self.telegram.send_message(str(error))
-            return
-        self.telegram.send_document(bank_pdf_path)
-        self.telegram.send_message(BotInfo.BANK_PDF_SENT)
+            print("AFTER FILL")
+            self.telegram.send_document(bank_pdf_path)
+        except Exception as error:
+            print("BANK EXCEPTION:", repr(error))
+            raise
 
     def transfer_request(self) -> None:
         try:

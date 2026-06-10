@@ -176,7 +176,9 @@ class TelegramBot:
 
         LOGGER.info("Processing Telegram command %r from user %s (@%s)", text, telegram_id, username)
 
-        if self.handle_message(text=text, telegram_id=telegram_id, username=username):
+        try:
+            self.handle_message(text=text, telegram_id=telegram_id, username=username)
+        finally:
             self.update_storage.mark_processed(update["update_id"])
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:

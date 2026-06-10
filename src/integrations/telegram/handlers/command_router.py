@@ -54,6 +54,7 @@ class CommandRouter:
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
+        print(f"HANDLE: {text}")
         if telegram_id is None:
             return False
 
