@@ -69,7 +69,9 @@ class AuditLogMessages:
 
 class ProfileMessages:
     PROFILE_TEMPLATE_SENT = "📥 Шаблон профиля отправлен.\nЗаполните файл и загрузите его обратно."
-    PROFILE_TEMPLATE_AWAITING = "📤 Загрузить шаблон профиля."
+    PROFILE_TEMPLATE_AWAITING = (
+        "✍️ Пришлите заполненный шаблон в YAML формате.\n\nТребования:\n- YAML\n- до 2 МБ\n- заполнен словарем значений по ключам шаблона"
+    )
 
     PROFILE_TEMPLATE_UPDATED = "✅ Данные пользователя успешно обновлены."
 
