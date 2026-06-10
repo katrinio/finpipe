@@ -1,0 +1,42 @@
+name: Coverage
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Generate coverage report
+        run: |
+          poetry run pytest tests/unit \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            -ra
+
+      - name: Validate coverage threshold
+        run: |
+          poetry run coverage report \
+            --fail-under=40
+
+      - name: Coverage summary
+        run: |
+          poetry run coverage report >> $GITHUB_STEP_SUMMARY

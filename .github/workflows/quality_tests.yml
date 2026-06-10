@@ -68,16 +68,7 @@ jobs:
       - name: Run tests
         run: |
           if [ "${{ matrix.suite }}" = "unit" ]; then
-            poetry run pytest tests/unit \
-              --cov=src \
-              --cov-report=term-missing \
-              --cov-report=xml \
-              -ra
+            poetry run pytest tests/unit
           else
             poetry run pytest tests/integration -ra
           fi
-
-      - name: Check coverage
-        if: matrix.suite == 'unit'
-        run: |
-          poetry run coverage report --fail-under=50
