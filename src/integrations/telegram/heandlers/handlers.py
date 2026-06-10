@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from src.constants import Dir
 from src.integrations.gmail.account_service import GmailAccountService
 from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
@@ -8,7 +9,14 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
 from src.integrations.telegram.heandlers.menu_handlers import MenuHandler
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.buttons import GmailButtons, MainMenuButtons, NavigationButtons, SignatureButtons, SystemButtons
+from src.integrations.telegram.ui.buttons import (
+    GmailButtons,
+    MainMenuButtons,
+    NavigationButtons,
+    SettingsButtons,
+    SignatureButtons,
+    SystemButtons,
+)
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
@@ -41,6 +49,7 @@ class TelegramHandlers:
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
+        LOGGER.debug(f"handle_message: {text}")
         if telegram_id is None:
             return False
 
@@ -56,6 +65,7 @@ class TelegramHandlers:
             MainMenuButtons.GMAIL: self.menu_handler.gmail_menu,
             MainMenuButtons.SYSTEM: self.menu_handler.system_menu,
             MainMenuButtons.SIGNATURE: self.menu_handler.signature_menu,
+            MainMenuButtons.SETTINGS: self.menu_handler.settings_menu,
             GmailButtons.GMAIL_CONNECT: lambda: self._gmail_connect(context.telegram_id, context.username),
             GmailButtons.GMAIL_DISCONNECT: lambda: self._gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
@@ -68,6 +78,7 @@ class TelegramHandlers:
             SystemButtons.LAST_ACTION: self._last_action,
             SystemButtons.SYSTEM_STATUS: self._status,
             SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
+            SettingsButtons.DOWNLOAD_TEMPLATE: lambda: self._download_template(context.telegram_id),
             NavigationButtons.BACK: self.menu_handler.main_menu,
         }
 
@@ -206,6 +217,10 @@ class TelegramHandlers:
 
         self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
         return
+
+    def _download_template(self, telegram_id: int) -> None:
+        self.telegram.send_document(document_path=Dir.PROFILE_TEMPLATE)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
 
     def set_user_state(self, telegram_id: int, state: UserState) -> None:
         """Сохраняет простое состояние пользователя в памяти."""

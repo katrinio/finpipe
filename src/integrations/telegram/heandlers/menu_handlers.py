@@ -3,6 +3,7 @@ from src.integrations.telegram.ui.buttons import MainMenuButtons
 from src.integrations.telegram.ui.menu import (
     build_gmail_menu,
     build_main_menu,
+    build_settings_menu,
     build_signature_menu,
     build_system_menu,
 )
@@ -34,4 +35,10 @@ class MenuHandler:
         self.telegram.send_message(
             MainMenuButtons.SIGNATURE,
             reply_markup=build_signature_menu(),
+        )
+
+    def settings_menu(self) -> None:
+        self.telegram.send_message(
+            MainMenuButtons.SETTINGS,
+            reply_markup=build_settings_menu(),
         )

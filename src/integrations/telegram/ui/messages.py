@@ -67,6 +67,10 @@ class AuditLogMessages:
     NO_AUDIT_LOG_RECORDS = "📝 Записи аудита отсутствуют."
 
 
+class ProfileMessages:
+    PROFILE_TEMPLATE_SENT = "📥 Шаблон профиля отправлен.\nЗаполните файл и загрузите его обратно."
+
+
 class MenuMessages:
     MAIN_MENU = "🏠 Главное меню"
 
@@ -78,12 +82,5 @@ class MenuMessages:
     STATUS = "ℹ️ Статус"
 
 
-class BotInfo(
-    CommonMessages,
-    GmailMessages,
-    SignatureMessages,
-    InvoiceMessages,
-    AuditLogMessages,
-    MenuMessages,
-):
+class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages):
     pass

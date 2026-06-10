@@ -32,6 +32,8 @@ class Dir:
     SIGNATURE_ENC = STORAGE_DIR / "signatures" / "signature.enc"
     STORAGE_DB = STORAGE_DIR / "storage.sqlite3"
 
+    PROFILE_TEMPLATE = TEMPLATE_PATH / "profile_template.yaml"
+
 
 class TestData:
     """Пути к тестовым шаблонам и фикстурам."""
