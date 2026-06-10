@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import Integer, String, delete, select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -21,14 +21,14 @@ class BankDetails(BaseModel):
     )
 
     account_holder: Mapped[str] = mapped_column(String)
-    account_holder_email: Mapped[str] = mapped_column(String)
-    account_holder_address: Mapped[str] = mapped_column(String)
-    amount: Mapped[float] = mapped_column(Float)
+    account_holder_email: Mapped[str | None] = mapped_column(String, nullable=True)
+    account_holder_address: Mapped[str | None] = mapped_column(String, nullable=True)
+    amount: Mapped[float | None] = mapped_column(Float, nullable=True)
     bank_name: Mapped[str] = mapped_column(String)
     account_number: Mapped[str] = mapped_column(String)
     iban: Mapped[str] = mapped_column(String)
     bic: Mapped[str] = mapped_column(String)
-    created_at: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> BankDetails | None:
@@ -86,9 +86,12 @@ class BankDetails(BaseModel):
             entity = session.scalar(statement)
 
             if entity is None:
-                session.add(cls(owner_telegram_id=owner_telegram_id, **fields))
+                entity_fields = {field_name: value for field_name, value in fields.items() if value is not None}
+                session.add(cls(owner_telegram_id=owner_telegram_id, **entity_fields))
             else:
                 for field_name, value in fields.items():
+                    if value is None:
+                        continue
                     setattr(entity, field_name, value)
 
             session.commit()

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import Integer, String, delete, select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -25,8 +25,8 @@ class CompanyProfile(BaseModel):
     )
     company_name: Mapped[str] = mapped_column(String)
     company_address: Mapped[str] = mapped_column(String)
-    service_agreement_date: Mapped[datetime] = mapped_column(DateTime)
-    created_at: Mapped[datetime] = mapped_column(DateTime)
+    service_agreement_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> CompanyProfile | None:
@@ -81,9 +81,12 @@ class CompanyProfile(BaseModel):
             entity = session.scalar(statement)
 
             if entity is None:
-                session.add(cls(owner_telegram_id=owner_telegram_id, **fields))
+                entity_fields = {field_name: value for field_name, value in fields.items() if value is not None}
+                session.add(cls(owner_telegram_id=owner_telegram_id, **entity_fields))
             else:
                 for field_name, value in fields.items():
+                    if value is None:
+                        continue
                     setattr(entity, field_name, value)
 
             session.commit()
