@@ -13,5 +13,5 @@ class ProfileTemplateTooLargeError(ProfileTemplateError):
     """Файл подписи превышает допустимый размер."""
 
 
-class InvalidProfileTemplateImageError(ProfileTemplateError):
-    """Файл не может быть открыт как изображение."""
+class InvalidProfileTemplateError(ProfileTemplateError):
+    """Файл не может быть открыт как yaml."""
