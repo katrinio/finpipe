@@ -7,8 +7,9 @@ import time
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
-from src.integrations.telegram.handlers.handlers import TelegramHandlers
+from src.integrations.telegram.handlers.command_router import CommandRouter
 from src.integrations.telegram.handlers.state_handlers import StateHandler
+from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
@@ -23,25 +24,26 @@ from src.utils.credentials import LOGGER
 class TelegramBot:
     """Telegram listener и обработчик команд."""
 
-    def __init__(self, storage_dependencies: StorageDependencies) -> None:
-        self._telegram = TelegramClient()
+    def __init__(
+        self,
+        storage_dependencies: StorageDependencies,
+        telegram: TelegramClient | None = None,
+    ) -> None:
+        self._telegram = telegram or TelegramClient()
         self.dependencies = storage_dependencies
         self.update_storage = TelegramUpdate
-        self.handlers = TelegramHandlers(
+        self.handlers = CommandRouter(
             telegram=self._telegram,
             audit_log=self.dependencies.audit_log,
         )
-        # TODO(HIGH):
-        # Состояния upload-flow сейчас живут только в памяти процесса.
-        # После рестарта активные ожидания загрузки теряются.
-        # Вынести хранение состояний в БД, когда появится больше интерактивных сценариев.
+
         self._state_handlers: dict[UserState, StateHandler] = {
             UserState.WAITING_SIGNATURE_UPLOAD: StateHandler(
-                handler=self.handlers._handle_signature_upload,
+                handler=self.handlers.signature_handler.handle_signature_upload,
                 error_message="✍️ Пришлите подпись в PNG формате.",
             ),
             UserState.WAITING_PROFILE_TEMPLATE_UPLOAD: StateHandler(
-                handler=self.handlers._handle_profile_template_upload,
+                handler=self.handlers.profile_handler.handle_profile_template_upload,
                 error_message="📄 Пришлите заполненный шаблон в YAML формате.",
             ),
         }
@@ -49,12 +51,6 @@ class TelegramBot:
     @property
     def telegram(self) -> TelegramClient:
         return self._telegram
-
-    @telegram.setter
-    def telegram(self, telegram: TelegramClient) -> None:
-        self._telegram = telegram
-        self.handlers.telegram = telegram
-        self.handlers.menu_handler.telegram = telegram
 
     def poll(self) -> int:
         """Получает и обрабатывает новые Telegram updates."""
@@ -123,8 +119,13 @@ class TelegramBot:
     def _process_waiting_state(self, telegram_id: int, update: dict) -> bool:
         """Обрабатывает upload-состояния без дублирования логики."""
 
-        state = self.handlers.get_user_state(telegram_id)
-        if state is None:
+        state_name = UserStateService.get_state(telegram_id)
+        if state_name is None:
+            return False
+
+        try:
+            state = UserState(state_name)
+        except ValueError:
             return False
 
         state_handler = self._state_handlers.get(state)

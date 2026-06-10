@@ -1,0 +1,42 @@
+from src.constants import Dir
+from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.state_service import UserStateService
+from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.messages import BotInfo
+from src.services.profile_template.exceptions import InvalidProfileTemplateError, InvalidProfileTemplateFormatError, ProfileTemplateTooLargeError
+from src.services.profile_template.profile_template_service import ProfileTemplateService
+
+
+class ProfileHandlers:
+    def __init__(self, telegram: TelegramClient, state_service: UserStateService) -> None:
+        self.telegram = telegram
+        self.state_service = state_service
+
+    def handle_profile_template_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
+        try:
+            ProfileTemplateService.upload(
+                telegram_id=telegram_id,
+                file_name=file_name,
+                file_size=file_size,
+                file_bytes=file_bytes,
+            )
+        except InvalidProfileTemplateFormatError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_NOT_YAML)
+            return
+        except ProfileTemplateTooLargeError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_TOO_LARGE)
+            return
+        except InvalidProfileTemplateError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPLOAD_ERROR)
+            return
+
+        self.state_service.clear_state(telegram_id)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPDATED)
+
+    def upload_template(self, telegram_id: int) -> None:
+        self.state_service.set_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
+
+    def download_template(self, telegram_id: int) -> None:
+        self.telegram.send_document(document_path=Dir.PROFILE_TEMPLATE)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
