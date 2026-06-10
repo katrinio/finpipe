@@ -2,8 +2,9 @@ from datetime import datetime
 
 from sqlalchemy import Integer, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime, String
+from sqlalchemy.sql.sqltypes import DateTime, Enum
 
+from src.integrations.telegram.states import UserState
 from src.storage.orm.base import BaseModel
 
 
@@ -14,10 +15,15 @@ class UserStateStorage(BaseModel):
     __pk_column_name__ = "id"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    owner_telegram_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    state: Mapped[str] = mapped_column(String, nullable=False)
+    owner_telegram_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    state: Mapped[UserState] = mapped_column(Enum(UserState), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
-    updated_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True, server_default=func.current_timestamp())
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> UserStateStorage | None:
