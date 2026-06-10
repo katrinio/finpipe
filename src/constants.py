@@ -15,6 +15,7 @@ class Dir:
     """Ключевые директории и файлы, вычисляемые от корня проекта."""
 
     PROJECT_ROOT = Path(__file__).resolve().parents[1]
+    DATA_DIR = PROJECT_ROOT / "data"
     TEMPLATE_PATH = PROJECT_ROOT / "templates"
     OUTPUT_DIR = PROJECT_ROOT / "output"
     # invoice
@@ -30,7 +31,7 @@ class Dir:
     TRANSFER_REQUEST_OUTPUT_DIR = OUTPUT_DIR / "transfer_request"
     STORAGE_DIR = PROJECT_ROOT / "src" / "storage"
     SIGNATURE_ENC = STORAGE_DIR / "signatures" / "signature.enc"
-    STORAGE_DB = STORAGE_DIR / "storage.sqlite3"
+    STORAGE_DB = DATA_DIR / "finpipe.db"
 
     PROFILE_TEMPLATE = TEMPLATE_PATH / "profile_template.yaml"
 

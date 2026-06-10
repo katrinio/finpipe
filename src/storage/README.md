@@ -1,18 +1,14 @@
 # Storage
 
-<!-- TODO(HIGH):
-     README ещё описывает репозитории как основной слой доступа к данным.
-     После завершения миграции на Active Record нужно убрать устаревшие формулировки и сверить описание с реальными ORM-моделями. -->
+`data/finpipe.db` хранит локальное состояние проекта между запусками.
 
-`src/storage/storage.sqlite3` хранит локальное состояние проекта.
+Подробное описание хранения данных и восстановления находится в [docs/storage.md](../docs/storage.md).
 
 ## Structure
 
 - `database.py`
 - `dependencies.py`
 - `orm/`
-- `repositories/`
-- `storage.sqlite3`
 
 ## ORM
 
