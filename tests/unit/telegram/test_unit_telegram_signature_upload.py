@@ -15,7 +15,7 @@ from src.integrations.telegram.ui.messages import BotInfo
 from src.services.signing.exceptions import InvalidSignatureFormatError
 from src.storage.dependencies import StorageDependencies
 from src.storage.orm import AllowedUser
-from src.storage.orm.telegram_update import TelegramUpdate
+from src.storage.orm.system.telegram_update import TelegramUpdate
 from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 

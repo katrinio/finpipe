@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, ClassVar
 from sqlalchemy.orm import DeclarativeBase, Session
 
 if TYPE_CHECKING:
-    from src.storage.database import Database
+    from src.storage.orm.database import Database
 
 
 class BaseModel(DeclarativeBase):

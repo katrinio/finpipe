@@ -16,7 +16,7 @@ from src.storage.dependencies import (
     build_storage_dependencies,
 )
 from src.storage.orm import AllowedUser
-from src.storage.orm.telegram_update import TelegramUpdate
+from src.storage.orm.system.telegram_update import TelegramUpdate
 from src.utils.credentials import LOGGER
 
 

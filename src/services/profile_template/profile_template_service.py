@@ -6,8 +6,8 @@ import yaml
 
 from src.services.profile_template.profile_template import ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
-from src.storage.orm.bank_details import BankDetails
-from src.storage.orm.company_profile import CompanyProfile
+from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 
 
 class ProfileTemplateService:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import StrEnum
 
 from src.integrations.telegram.ui.messages import BotInfo
-from src.storage.orm.audit_log import AuditLog
+from src.storage.orm.system.audit_log import AuditLog
 
 
 class Cmd(StrEnum):

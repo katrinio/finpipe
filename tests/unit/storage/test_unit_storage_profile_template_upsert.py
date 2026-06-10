@@ -3,9 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from src.storage.database import Database, build_sqlite_url
-from src.storage.orm.bank_details import BankDetails
-from src.storage.orm.company_profile import CompanyProfile
+from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 
 
 def test_company_profile_upsert_creates_and_updates_without_overwriting_with_none(tmp_path: Path) -> None:
