@@ -40,14 +40,14 @@ class GmailAccountService:
 
     @classmethod
     def status(cls, telegram_id: int) -> GmailAccountStatus:
-        return cls._build_status(UserConfig.get_by_telegram_id(telegram_id))
+        return cls._build_status(GmailAccount.get_by_owner(telegram_id))
 
     @classmethod
     def _get_user_config(cls, telegram_id: int) -> UserConfig | None:
         return UserConfig.get_by_telegram_id(telegram_id)
 
     @classmethod
-    def _build_status(cls, user_config: UserConfig | None) -> GmailAccountStatus:
+    def _build_status(cls, user_config: GmailAccount | None) -> GmailAccountStatus:
         if user_config is None:
             return GmailAccountStatus(False, None, None, None)
         return GmailAccountStatus(
