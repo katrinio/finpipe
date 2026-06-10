@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.heandlers.handlers import TelegramHandlers
+from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
@@ -16,6 +19,12 @@ from src.storage.dependencies import (
 from src.storage.orm import AllowedUser
 from src.storage.orm.telegram_update import TelegramUpdate
 from src.utils.credentials import LOGGER
+
+
+@dataclass(frozen=True)
+class StateHandler:
+    handler: Callable[[int, str, int, bytes], None]
+    error_message: str
 
 
 class TelegramBot:
@@ -29,6 +38,12 @@ class TelegramBot:
             telegram=self.telegram,
             audit_log=self.dependencies.audit_log,
         )
+        self._state_handlers: dict[UserState, StateHandler] = {
+            UserState.WAITING_SIGNATURE_UPLOAD: StateHandler(
+                handler=self.handlers._handle_signature_upload,
+                error_message="✍️ Пришлите подпись в PNG формате.",
+            ),
+        }
 
     def poll(self) -> int:
         """Получает и обрабатывает новые Telegram updates."""
@@ -69,7 +84,7 @@ class TelegramBot:
 
         return text, telegram_id, user.get("username")
 
-    def extract_file_upload_data(self, update: dict) -> tuple[str, int, str, bytes] | None:
+    def extract_document_upload_data(self, update: dict) -> tuple[str, int, str, bytes] | None:
         """Извлекает данные файла из Telegram update."""
 
         message = update.get("message")
@@ -94,6 +109,30 @@ class TelegramBot:
 
         return None
 
+    def _process_waiting_state(self, telegram_id: int, update: dict) -> bool:
+        """Обрабатывает upload-состояния без дублирования логики."""
+
+        state = self.handlers.get_user_state(telegram_id)
+        if state is None:
+            return False
+
+        state_handler = self._state_handlers.get(state)
+        if state_handler is None:
+            return False
+
+        file_data = self.extract_document_upload_data(update)
+        if file_data is None:
+            self.telegram.send_message(state_handler.error_message)
+            self.update_storage.mark_processed(update["update_id"])
+            return True
+
+        file_name, file_size, file_id, _ = file_data
+        file_path = self.telegram.get_file(file_id)
+        file_bytes = self.telegram.download_file(file_path)
+        state_handler.handler(telegram_id, file_name, file_size, file_bytes)
+        self.update_storage.mark_processed(update["update_id"])
+        return True
+
     def process_update(self, update: dict) -> None:
         """Обрабатывает один Telegram update."""
 
@@ -108,10 +147,7 @@ class TelegramBot:
             self.telegram.send_message(BotInfo.ACCESS_DENIED)
             return
 
-        if self._process_waiting_state(
-            telegram_id=telegram_id,
-            update=update,
-        ):
+        if self._process_waiting_state(telegram_id=telegram_id, update=update):
             return
 
         if text is None:
