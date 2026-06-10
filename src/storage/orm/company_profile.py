@@ -66,3 +66,24 @@ class CompanyProfile(BaseModel):
                 setattr(entity, field_name, value)
 
             session.commit()
+
+    @classmethod
+    def upsert(
+        cls,
+        owner_telegram_id: int,
+        **fields: object,
+    ) -> None:
+        """Создаёт или обновляет запись владельца."""
+
+        with cls.session() as session:
+            statement = select(cls).where(cls.owner_telegram_id == owner_telegram_id).limit(1)
+
+            entity = session.scalar(statement)
+
+            if entity is None:
+                session.add(cls(owner_telegram_id=owner_telegram_id, **fields))
+            else:
+                for field_name, value in fields.items():
+                    setattr(entity, field_name, value)
+
+            session.commit()

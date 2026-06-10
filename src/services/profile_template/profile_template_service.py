@@ -6,6 +6,8 @@ import yaml
 
 from src.services.profile_template.profile_template import ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
+from src.storage.orm.bank_details import BankDetails
+from src.storage.orm.company_profile import CompanyProfile
 
 
 class ProfileTemplateService:
@@ -32,8 +34,17 @@ class ProfileTemplateService:
         return ProfileTemplate(**data)
 
     @classmethod
-    def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> ProfileTemplate:
-        # CompanyProfile.upsert(...)
-        #
-        # BankDetails.upsert(...)
-        ...
+    def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
+        CompanyProfile.upsert(
+            owner_telegram_id=telegram_id,
+            company_name=profile.company_name,
+            company_address=profile.company_address,
+            account_holder=profile.account_holder,
+        )
+
+        BankDetails.upsert(
+            owner_telegram_id=telegram_id,
+            bank_name=profile.bank_name,
+            iban=profile.iban,
+            bic=profile.bic,
+        )

@@ -9,9 +9,7 @@ from sqlalchemy.sql.sqltypes import DateTime, Float
 from src.storage.orm.base import BaseModel
 
 
-class BankAccount(BaseModel):
-    """BankAccount."""
-
+class BankDetails(BaseModel):
     __tablename__ = "bank_account"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
@@ -33,7 +31,7 @@ class BankAccount(BaseModel):
     created_at: Mapped[datetime] = mapped_column(DateTime)
 
     @classmethod
-    def get_by_owner(cls, telegram_id: int) -> BankAccount | None:
+    def get_by_owner(cls, telegram_id: int) -> BankDetails | None:
         """Возвращает запись пользователя по Telegram id."""
 
         with cls.session() as session:
@@ -71,5 +69,26 @@ class BankAccount(BaseModel):
 
             for field_name, value in fields.items():
                 setattr(entity, field_name, value)
+
+            session.commit()
+
+    @classmethod
+    def upsert(
+        cls,
+        owner_telegram_id: int,
+        **fields: object,
+    ) -> None:
+        """Создаёт или обновляет запись владельца."""
+
+        with cls.session() as session:
+            statement = select(cls).where(cls.owner_telegram_id == owner_telegram_id).limit(1)
+
+            entity = session.scalar(statement)
+
+            if entity is None:
+                session.add(cls(owner_telegram_id=owner_telegram_id, **fields))
+            else:
+                for field_name, value in fields.items():
+                    setattr(entity, field_name, value)
 
             session.commit()
