@@ -22,7 +22,7 @@ from src.services.profile_template.profile_template_service import ProfileTempla
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
-from src.storage.orm.audit_log import AuditLog, AuditStatus
+from src.storage.orm.system.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER, EnvVar
 from src.workflows.run_invoice_delivery import generate_and_send_invoice
 

@@ -5,7 +5,7 @@ from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.ui.buttons import SystemButtons
 from src.storage.orm import AllowedUser
-from src.storage.orm.audit_log import AuditLog
+from src.storage.orm.system.audit_log import AuditLog
 
 
 class TestTelegramBot:

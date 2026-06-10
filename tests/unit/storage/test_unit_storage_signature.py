@@ -7,8 +7,8 @@ import pytest
 
 from src.constants import Dir
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
-from src.storage.database import Database, build_sqlite_url
 from src.storage.orm import AllowedUser, Signature
+from src.storage.orm.database import Database, build_sqlite_url
 
 
 def test_signature_create_persists_and_reuses_owner(tmp_path: Path) -> None:

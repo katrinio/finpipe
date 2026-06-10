@@ -11,8 +11,8 @@ from pathlib import Path
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
-from src.storage.database import Database, build_sqlite_url
 from src.storage.orm import Signature
+from src.storage.orm.database import Database, build_sqlite_url
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)

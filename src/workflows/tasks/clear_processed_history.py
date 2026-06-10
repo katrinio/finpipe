@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from src.logging_config import configure_logging
-from src.storage.orm.processed_message import ProcessedMessage
+from src.storage.orm.system.processed_message import ProcessedMessage
 
 LOGGER = logging.getLogger(__name__)
 
