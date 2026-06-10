@@ -67,6 +67,17 @@ class AuditLogMessages:
     NO_AUDIT_LOG_RECORDS = "📝 Записи аудита отсутствуют."
 
 
+class ProfileMessages:
+    PROFILE_TEMPLATE_SENT = "📥 Шаблон профиля отправлен.\nЗаполните файл и загрузите его обратно."
+
+    PROFILE_TEMPLATE_UPDATED = "✅ Данные пользователя успешно обновлены."
+
+    # validation errors
+    PROFILE_TEMPLATE_NOT_YAML = "❌ Разрешены только YAML файлы."
+    PROFILE_TEMPLATE_TOO_LARGE = "❌ Размер файла превышает 2 МБ."
+    PROFILE_TEMPLATE_UPLOAD_ERROR = "❌ Не удалось обработать изображение."
+
+
 class MenuMessages:
     MAIN_MENU = "🏠 Главное меню"
 
@@ -78,12 +89,5 @@ class MenuMessages:
     STATUS = "ℹ️ Статус"
 
 
-class BotInfo(
-    CommonMessages,
-    GmailMessages,
-    SignatureMessages,
-    InvoiceMessages,
-    AuditLogMessages,
-    MenuMessages,
-):
+class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages):
     pass

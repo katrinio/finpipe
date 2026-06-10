@@ -1,14 +1,24 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from src.constants import Dir
 from src.integrations.gmail.account_service import GmailAccountService
 from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
-from src.integrations.telegram.heandlers.menu_handlers import MenuHandler
+from src.integrations.telegram.handlers.menu_handlers import MenuHandler
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.buttons import GmailButtons, MainMenuButtons, NavigationButtons, SignatureButtons, SystemButtons
+from src.integrations.telegram.ui.buttons import (
+    GmailButtons,
+    MainMenuButtons,
+    NavigationButtons,
+    SettingsButtons,
+    SignatureButtons,
+    SystemButtons,
+)
+from src.services.profile_template.exceptions import InvalidProfileTemplateError, InvalidProfileTemplateFormatError, ProfileTemplateTooLargeError
+from src.services.profile_template.profile_template_service import ProfileTemplateService
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature
@@ -33,11 +43,16 @@ class TelegramHandlers:
         self.telegram = telegram
         self.audit_log = audit_log
         self.menu_handler = MenuHandler(self.telegram)
-        # TODO:
-        # User states are stored in memory only.
-        # After process restart all active flows are lost.
-        # Persist states in DB if interactive Telegram workflows grow.
+        # TODO(MEDIUM):
+        # Список команд уже заметно вырос и смешивает навигацию, сервисные действия и upload-flow.
+        # После стабилизации интерфейса нужно разнести команды и UI-кнопки по отдельным модулям.
         self._user_states: dict[int, UserState] = {}
+        # TODO(HIGH):
+        # Состояния ожидания загрузки пока хранятся в памяти процесса.
+        # При рестарте бота пользователь теряет активный сценарий.
+        # Перенести это в постоянное хранилище, когда будут добавляться новые upload-ветки.
+        self._command_handlers: dict[str, Callable[[CommandContext], None]] = {}
+        self._build_command_handlers()
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
@@ -50,49 +65,51 @@ class TelegramHandlers:
             command=text,
         )
 
-        handlers: dict[str, Callable[[], None]] = {
-            Cmd.INVOICE: self._invoice,
-            Cmd.MENU: self.menu_handler.main_menu,
-            MainMenuButtons.GMAIL: self.menu_handler.gmail_menu,
-            MainMenuButtons.SYSTEM: self.menu_handler.system_menu,
-            MainMenuButtons.SIGNATURE: self.menu_handler.signature_menu,
-            GmailButtons.GMAIL_CONNECT: lambda: self._gmail_connect(context.telegram_id, context.username),
-            GmailButtons.GMAIL_DISCONNECT: lambda: self._gmail_disconnect(context.telegram_id),
-            GmailButtons.GMAIL_STATUS: lambda: self._gmail_status(context.telegram_id),
-            SignatureButtons.SIGNATURE_DELETE: lambda: self._delete_signature(context.telegram_id),
-            SignatureButtons.SIGNATURE_STATUS: lambda: self._signature_status(context.telegram_id),
-            SignatureButtons.SIGNATURE_UPLOAD: lambda: self._upload_signature(context.telegram_id),
-            SystemButtons.ABOUT: self._about,
-            SystemButtons.HEALTHCHECK: self._health,
-            SystemButtons.HELP: self._help,
-            SystemButtons.LAST_ACTION: self._last_action,
-            SystemButtons.SYSTEM_STATUS: self._status,
-            SystemButtons.WHOAMI: lambda: self._whoami(context.telegram_id, context.username),
-            NavigationButtons.BACK: self.menu_handler.main_menu,
-        }
-
         try:
-            handler = handlers.get(text)
+            handler = self._command_handlers.get(text)
 
             if handler is None:
                 self.telegram.send_message(BotInfo.NO_SUCH_COMMAND)
                 self._audit(context, AuditStatus.FAILED, BotInfo.NO_SUCH_COMMAND)
             else:
-                handler()
+                handler(context)
                 self._audit(context, AuditStatus.SUCCESS)
 
         except Exception as error:
             LOGGER.exception("Command failed: %s", text)
-            # TODO:
-            # Временный отладочный вывод.
-            # Перед запуском в производство скрыть подробности исключений от пользователей
-            # и отправлять только BotInfo.SYSTEM_ERROR.
             self.telegram.send_message(f"{BotInfo.SYSTEM_ERROR}\nCommand {text} failed:\n{error}")
             self._audit(context, AuditStatus.FAILED, str(error))
 
             return False
 
         return True
+
+    def _build_command_handlers(self) -> None:
+        """Собирает таблицу команд один раз при инициализации."""
+
+        self._command_handlers = {
+            Cmd.INVOICE: lambda context: self._invoice(),
+            Cmd.MENU: lambda context: self.menu_handler.main_menu(),
+            MainMenuButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(),
+            MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(),
+            MainMenuButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(),
+            MainMenuButtons.SETTINGS: lambda context: self.menu_handler.settings_menu(),
+            GmailButtons.GMAIL_CONNECT: lambda context: self._gmail_connect(context.telegram_id, context.username),
+            GmailButtons.GMAIL_DISCONNECT: lambda context: self._gmail_disconnect(context.telegram_id),
+            GmailButtons.GMAIL_STATUS: lambda context: self._gmail_status(context.telegram_id),
+            SignatureButtons.SIGNATURE_DELETE: lambda context: self._delete_signature(context.telegram_id),
+            SignatureButtons.SIGNATURE_STATUS: lambda context: self._signature_status(context.telegram_id),
+            SignatureButtons.SIGNATURE_UPLOAD: lambda context: self._upload_signature(context.telegram_id),
+            SystemButtons.ABOUT: lambda context: self._about(),
+            SystemButtons.HEALTHCHECK: lambda context: self._health(),
+            SystemButtons.HELP: lambda context: self._help(),
+            SystemButtons.LAST_ACTION: lambda context: self._last_action(),
+            SystemButtons.SYSTEM_STATUS: lambda context: self._status(),
+            SystemButtons.WHOAMI: lambda context: self._whoami(context.telegram_id, context.username),
+            SettingsButtons.DOWNLOAD_TEMPLATE: lambda context: self._download_template(context.telegram_id),
+            SettingsButtons.UPLOAD_TEMPLATE: lambda context: self._upload_template(context.telegram_id),
+            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(),
+        }
 
     def _audit(
         self,
@@ -142,7 +159,6 @@ class TelegramHandlers:
             return
 
         self.telegram.send_message(format_last_action(actions[0]))
-        return
 
     def _gmail_connect(self, telegram_id: int, username: str | None) -> None:
         if not GmailOAuthSettings.is_callback_enabled():
@@ -151,7 +167,6 @@ class TelegramHandlers:
         callback_url = EnvVar.get_optional_env("GMAIL_OAUTH_CALLBACK_URL", "http://localhost:8000/oauth/gmail/callback")
         authorization_url, _session = GmailOAuth.build_authorization_url(telegram_id, username, callback_url)
         self.telegram.send_message(f"Open this URL:\n{authorization_url}")
-        return
 
     def _gmail_status(self, telegram_id: int) -> None:
         status = GmailAccountService.status(telegram_id)
@@ -188,7 +203,6 @@ class TelegramHandlers:
 
         self.clear_user_state(telegram_id)
         self.telegram.send_message(BotInfo.SIGNATURE_UPDATED)
-        return
 
     def _delete_signature(self, telegram_id: int) -> None:
         signature = Signature.get_active(telegram_id)
@@ -205,7 +219,35 @@ class TelegramHandlers:
             return
 
         self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
-        return
+
+    def _handle_profile_template_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
+        try:
+            ProfileTemplateService.upload(
+                telegram_id=telegram_id,
+                file_name=file_name,
+                file_size=file_size,
+                file_bytes=file_bytes,
+            )
+        except InvalidProfileTemplateFormatError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_NOT_YAML)
+            return
+        except ProfileTemplateTooLargeError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_TOO_LARGE)
+            return
+        except InvalidProfileTemplateError:
+            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPLOAD_ERROR)
+            return
+
+        self.clear_user_state(telegram_id)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPDATED)
+
+    def _upload_template(self, telegram_id: int) -> None:
+        self.set_user_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
+
+    def _download_template(self, telegram_id: int) -> None:
+        self.telegram.send_document(document_path=Dir.PROFILE_TEMPLATE)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
 
     def set_user_state(self, telegram_id: int, state: UserState) -> None:
         """Сохраняет простое состояние пользователя в памяти."""

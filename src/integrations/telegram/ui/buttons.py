@@ -5,6 +5,7 @@ class MainMenuButtons:
     SIGNATURE = "✍️ Подпись"
     GMAIL = "📧 Gmail"
     SYSTEM = "ℹ️ Система"
+    SETTINGS = "⚙️ Настройки"
 
 
 class SignatureButtons:
@@ -31,3 +32,8 @@ class SystemButtons:
 class NavigationButtons:
     BACK = "⬅️ Назад"
     HOME = "🏠 Главное меню"
+
+
+class SettingsButtons:
+    DOWNLOAD_TEMPLATE = "📥 Скачать шаблон профиля"
+    UPLOAD_TEMPLATE = "📤 Загрузить шаблон профиля"

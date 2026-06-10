@@ -1,5 +1,9 @@
 # Storage
 
+<!-- TODO(HIGH):
+     README ещё описывает репозитории как основной слой доступа к данным.
+     После завершения миграции на Active Record нужно убрать устаревшие формулировки и сверить описание с реальными ORM-моделями. -->
+
 `src/storage/storage.sqlite3` хранит локальное состояние проекта.
 
 ## Structure
@@ -19,7 +23,3 @@
 - `processed_message.py` - обработанные письма банка
 - `telegram_update.py` - обработанные Telegram updates
 - `user_config.py` - пользовательские настройки
-
-## Repositories
-
-Репозитории скрывают SQLAlchemy от application-слоя и предоставляют высокоуровневые операции для workflow.

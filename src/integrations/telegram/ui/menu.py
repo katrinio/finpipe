@@ -1,19 +1,20 @@
-from src.integrations.telegram.ui.buttons import GmailButtons, NavigationButtons, SignatureButtons, SystemButtons
+from src.integrations.telegram.ui.buttons import GmailButtons, MainMenuButtons, NavigationButtons, SettingsButtons, SignatureButtons, SystemButtons
 
 
 def build_main_menu() -> dict:
     return {
         "keyboard": [
             [
-                {"text": "📄 Документы"},
-                {"text": "🏦 Банк"},
+                {"text": MainMenuButtons.DOCUMENTS},
+                {"text": MainMenuButtons.BANK},
             ],
             [
-                {"text": "✍️ Подпись"},
-                {"text": "📧 Gmail"},
+                {"text": MainMenuButtons.SIGNATURE},
+                {"text": MainMenuButtons.GMAIL},
             ],
             [
-                {"text": "ℹ️ Система"},
+                {"text": MainMenuButtons.SETTINGS},
+                {"text": MainMenuButtons.SYSTEM},
             ],
         ],
         "resize_keyboard": True,
@@ -72,4 +73,18 @@ def build_signature_menu() -> dict:
             ],
         ],
         "resize_keyboard": True,
+    }
+
+
+def build_settings_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": SettingsButtons.DOWNLOAD_TEMPLATE},
+                {"text": SettingsButtons.UPLOAD_TEMPLATE},
+            ],
+            [
+                {"text": NavigationButtons.HOME},
+            ],
+        ],
     }
