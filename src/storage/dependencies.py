@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from src.constants import Dir
-from src.storage.database import Database, build_sqlite_url
 from src.storage.orm import AuditLog, HistoryRecord, ProcessedMessage
+from src.storage.orm.database import Database, build_sqlite_url
 
 
 @dataclass(frozen=True)

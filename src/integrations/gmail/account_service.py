@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from src.infrastructure.security.token_cipher import TokenCipher
-from src.storage.orm.gmail_account import GmailAccount
-from src.storage.orm.user_config import UserConfig
+from src.storage.orm.user.gmail_account import GmailAccount
+from src.storage.orm.user.user_config import UserConfig
 
 
 @dataclass(frozen=True, slots=True)

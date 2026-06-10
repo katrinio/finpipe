@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from src.integrations.gmail.exceptions import GmailOAuthError
-from src.storage.orm.oauth_session import OAuthSession
+from src.storage.orm.system.oauth_session import OAuthSession
 from src.utils.credentials import EnvVar
 
 GMAIL_SCOPES = (

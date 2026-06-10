@@ -7,8 +7,8 @@ import pytest
 
 from src.constants import Dir
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
-from src.storage.database import Database, build_sqlite_url
 from src.storage.orm import AllowedUser, Signature
+from src.storage.orm.database import Database, build_sqlite_url
 
 
 def test_application_startup_bootstraps_admin_and_signature_on_sqlite(

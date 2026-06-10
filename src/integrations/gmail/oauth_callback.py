@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from src.integrations.gmail.account_service import GmailAccountService
 from src.integrations.gmail.exceptions import GmailOAuthError
 from src.integrations.gmail.gmail_oauth import GmailOAuth, GmailOAuthResult
-from src.storage.orm.oauth_session import OAuthSession
+from src.storage.orm.system.oauth_session import OAuthSession
 
 
 @dataclass(frozen=True, slots=True)
