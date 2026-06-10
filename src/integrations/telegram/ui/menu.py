@@ -21,19 +21,12 @@ def build_system_menu() -> dict:
     return {
         "keyboard": [
             [
-                {"text": SystemButtons.HELP},
                 {"text": SystemButtons.ABOUT},
-            ],
-            [
-                {"text": SystemButtons.LAST_ACTION},
-                {"text": SystemButtons.WHOAMI},
-            ],
-            [
-                {"text": SystemButtons.SYSTEM_STATUS},
                 {"text": SystemButtons.HEALTHCHECK},
             ],
             [
                 {"text": NavigationButtons.BACK},
+                {"text": SystemButtons.WHOAMI},
             ],
         ],
         "resize_keyboard": True,
