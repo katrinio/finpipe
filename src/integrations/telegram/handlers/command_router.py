@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message
+from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.handlers.menu_handlers import MenuHandler
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
@@ -22,7 +23,6 @@ from src.integrations.telegram.ui.buttons import (
 from src.services.signing.signature_service import SignatureService as _SignatureService
 from src.storage.orm.system.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER
-from src.workflows.run_invoice_delivery import generate_and_send_invoice
 
 SignatureService = _SignatureService
 
@@ -41,10 +41,12 @@ class CommandRouter:
 
     def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]):
         self.telegram = telegram
+        self.state_service = UserStateService()
+        # handlers
         self.menu_handler = MenuHandler(self.telegram)
         self.system_handler = SystemHandlers(self.telegram, audit_log)
         self.gmail_handler = GmailHandlers(self.telegram)
-        self.state_service = UserStateService()
+        self.document_handler = DocumentHandlers(self.telegram)
         self.signature_handler = SignatureHandlers(self.telegram, self.state_service)
         self.profile_handler = ProfileHandlers(self.telegram, self.state_service)
         self._command_handlers: dict[str, Callable[[CommandContext], None]] = {}
@@ -85,7 +87,9 @@ class CommandRouter:
 
         self._command_handlers = {
             Cmd.MENU: lambda context: self.menu_handler.main_menu(),
-            DocumentsMenuButtons.INVOICE: lambda context: self._invoice(),
+            DocumentsMenuButtons.INVOICE: lambda context: self.document_handler.invoice(),
+            DocumentsMenuButtons.BANK: lambda context: self.document_handler.bank(),
+            DocumentsMenuButtons.TRANSFER_REQUEST: lambda context: self.document_handler.transfer_request(),
             GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
@@ -124,15 +128,6 @@ class CommandRouter:
 
     def _help(self) -> None:
         self.telegram.send_message(build_help_message())
-
-    def _invoice(self) -> None:
-        self.telegram.send_message(BotInfo.GENERATING_INVOICE)
-        try:
-            generate_and_send_invoice()
-        except ValueError as error:
-            self.telegram.send_message(str(error))
-            return
-        self.telegram.send_message(BotInfo.INVOICE_SENT)
 
 
 TelegramHandlers = CommandRouter

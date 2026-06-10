@@ -73,6 +73,11 @@ class InvoiceMessages:
     INVOICE_SENT = "✅ Инвойс отправлен."
 
 
+class BankMessages:
+    FILL_BANK_PDF = "⏳ Заполняется PDF от банка..."
+    BANK_PDF_SENT = "✅ PDF банка отправлен."
+
+
 class AuditLogMessages:
     NO_AUDIT_LOG_RECORDS = "📝 Записи аудита отсутствуют."
 
@@ -102,5 +107,5 @@ class MenuMessages:
     STATUS = "ℹ️ Статус"
 
 
-class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages):
+class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages, BankMessages):
     pass
