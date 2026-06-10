@@ -1,4 +1,4 @@
-name: Coverage
+name: 🧪 Code Coverage
 
 on:
   pull_request:
