@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Integer, String, select, update
+from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -52,45 +52,4 @@ class UserConfig(BaseModel):
             else:
                 user.user_name = user_name
 
-            session.commit()
-
-    @classmethod
-    def update_gmail_credentials(cls, telegram_id: int, gmail_email: str, gmail_refresh_token: str) -> None:
-        with cls.session() as session:
-            session.execute(
-                update(cls)
-                .where(cls.telegram_id == telegram_id)
-                .values(
-                    gmail_refresh_token=gmail_refresh_token,
-                    gmail_email=gmail_email,
-                    gmail_connected_at=datetime.utcnow(),
-                    gmail_last_error=None,
-                )
-            )
-            session.commit()
-
-    @classmethod
-    def clear_gmail_credentials(cls, telegram_id: int) -> None:
-        with cls.session() as session:
-            session.execute(
-                update(cls)
-                .where(cls.telegram_id == telegram_id)
-                .values(
-                    gmail_refresh_token=None,
-                    gmail_email=None,
-                    gmail_connected_at=None,
-                    gmail_last_error=None,
-                )
-            )
-            session.commit()
-
-    @classmethod
-    def has_gmail_connection(cls, telegram_id: int) -> bool:
-        user_config = cls.get_by_telegram_id(telegram_id)
-        return bool(user_config and user_config.gmail_refresh_token)
-
-    @classmethod
-    def set_gmail_connection_error(cls, telegram_id: int, error_message: str) -> None:
-        with cls.session() as session:
-            session.execute(update(cls).where(cls.telegram_id == telegram_id).values(gmail_last_error=error_message))
             session.commit()
