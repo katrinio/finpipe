@@ -18,17 +18,6 @@ class UserConfig(BaseModel):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     telegram_id: Mapped[int] = mapped_column(Integer, index=True)
     user_name: Mapped[str] = mapped_column(String)
-    account_holder: Mapped[str] = mapped_column(String)
-    account_holder_email: Mapped[str] = mapped_column(String)
-    account_holder_address: Mapped[str] = mapped_column(String)
-    bank_name: Mapped[str] = mapped_column(String)
-    account_number: Mapped[str] = mapped_column(String)
-    iban: Mapped[str] = mapped_column(String)
-    bic: Mapped[str] = mapped_column(String)
-    gmail_email: Mapped[str | None] = mapped_column(String, nullable=True)
-    gmail_refresh_token: Mapped[str | None] = mapped_column(String, nullable=True)
-    gmail_connected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    gmail_last_error: Mapped[str | None] = mapped_column(String, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime)
 

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from src.infrastructure.security.token_cipher import TokenCipher
+from src.storage.orm.gmail_account import GmailAccount
 from src.storage.orm.user_config import UserConfig
 
 
@@ -27,7 +28,7 @@ class GmailAccountService:
     ) -> None:
         encrypted_token = TokenCipher.encrypt(refresh_token)
 
-        UserConfig.update_gmail_credentials(
+        GmailAccount.update_gmail_credentials(
             telegram_id=telegram_id,
             gmail_email=email,
             gmail_refresh_token=encrypted_token,
@@ -35,7 +36,7 @@ class GmailAccountService:
 
     @classmethod
     def disconnect(cls, telegram_id: int) -> None:
-        UserConfig.clear_gmail_credentials(telegram_id)
+        GmailAccount.clear_gmail_credentials(telegram_id)
 
     @classmethod
     def status(cls, telegram_id: int) -> GmailAccountStatus:
