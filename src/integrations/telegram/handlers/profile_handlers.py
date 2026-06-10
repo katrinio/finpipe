@@ -35,7 +35,7 @@ class ProfileHandlers:
 
     def upload_template(self, telegram_id: int) -> None:
         self.state_service.set_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
-        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_AWAITING)
+        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_REQUIREMENTS)
 
     def download_template(self, telegram_id: int) -> None:
         self.telegram.send_document(document_path=Dir.PROFILE_TEMPLATE)
