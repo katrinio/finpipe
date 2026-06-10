@@ -37,7 +37,7 @@ def test_upload_signature_sets_waiting_state(
     tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
 
     assert tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice") is True
-    assert tg_bot.handlers.get_user_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
+    assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
     assert telegram_client.sent_messages == [
         BotInfo.SIGNATURE_REQUIREMENTS,
     ]
@@ -80,7 +80,7 @@ def test_successful_signature_upload_clears_state(
         }
     )
 
-    assert tg_bot.handlers.get_user_state(123) is None
+    assert tg_bot.handlers.state_service.get_state(123) is None
     assert telegram_client.sent_messages == [
         BotInfo.SIGNATURE_REQUIREMENTS,
         BotInfo.SIGNATURE_UPDATED,
@@ -128,6 +128,6 @@ def test_invalid_file_keeps_state(
         }
     )
 
-    assert tg_bot.handlers.get_user_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
+    assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
     assert telegram_client.sent_messages[0] == BotInfo.SIGNATURE_REQUIREMENTS
     assert fake_update_storage.processed == [43]

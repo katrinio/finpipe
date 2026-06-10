@@ -8,6 +8,7 @@ from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message, format_last_action, format_whoami
 from src.integrations.telegram.handlers.menu_handlers import MenuHandler
+from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import (
     GmailButtons,
@@ -46,11 +47,7 @@ class TelegramHandlers:
         # TODO(MEDIUM):
         # Список команд уже заметно вырос и смешивает навигацию, сервисные действия и upload-flow.
         # После стабилизации интерфейса нужно разнести команды и UI-кнопки по отдельным модулям.
-        self._user_states: dict[int, UserState] = {}
-        # TODO(HIGH):
-        # Состояния ожидания загрузки пока хранятся в памяти процесса.
-        # При рестарте бота пользователь теряет активный сценарий.
-        # Перенести это в постоянное хранилище, когда будут добавляться новые upload-ветки.
+        self.state_service = UserStateService()
         self._command_handlers: dict[str, Callable[[CommandContext], None]] = {}
         self._build_command_handlers()
 
@@ -180,7 +177,7 @@ class TelegramHandlers:
         self.telegram.send_message(BotInfo.GMAIL_DISCONNECTED)
 
     def _upload_signature(self, telegram_id: int) -> None:
-        self.set_user_state(telegram_id, UserState.WAITING_SIGNATURE_UPLOAD)
+        self.state_service.set_state(telegram_id, UserState.WAITING_SIGNATURE_UPLOAD)
         self.telegram.send_message(BotInfo.SIGNATURE_REQUIREMENTS)
 
     def _handle_signature_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
@@ -201,7 +198,7 @@ class TelegramHandlers:
             self.telegram.send_message(BotInfo.SIGNATURE_UPLOAD_ERROR)
             return
 
-        self.clear_user_state(telegram_id)
+        self.state_service.clear_state(telegram_id)
         self.telegram.send_message(BotInfo.SIGNATURE_UPDATED)
 
     def _delete_signature(self, telegram_id: int) -> None:
@@ -238,28 +235,13 @@ class TelegramHandlers:
             self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPLOAD_ERROR)
             return
 
-        self.clear_user_state(telegram_id)
+        self.state_service.clear_state(telegram_id)
         self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPDATED)
 
     def _upload_template(self, telegram_id: int) -> None:
-        self.set_user_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
+        self.state_service.set_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
         self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
 
     def _download_template(self, telegram_id: int) -> None:
         self.telegram.send_document(document_path=Dir.PROFILE_TEMPLATE)
         self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
-
-    def set_user_state(self, telegram_id: int, state: UserState) -> None:
-        """Сохраняет простое состояние пользователя в памяти."""
-
-        self._user_states[telegram_id] = state
-
-    def get_user_state(self, telegram_id: int) -> UserState | None:
-        """Возвращает текущее состояние пользователя."""
-
-        return self._user_states.get(telegram_id)
-
-    def clear_user_state(self, telegram_id: int) -> None:
-        """Сбрасывает состояние пользователя."""
-
-        self._user_states.pop(telegram_id, None)

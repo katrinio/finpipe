@@ -123,7 +123,7 @@ class TelegramBot:
     def _process_waiting_state(self, telegram_id: int, update: dict) -> bool:
         """Обрабатывает upload-состояния без дублирования логики."""
 
-        state = self.handlers.get_user_state(telegram_id)
+        state = self.handlers.state_service.get_state(telegram_id)
         if state is None:
             return False
 
