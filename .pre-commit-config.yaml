@@ -29,11 +29,10 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-# пока не хотим тут его гонять
-#  - repo: local
-#    hooks:
-#      - id: mypy
-#        name: mypy
-#        entry: poetry run mypy src --no-incremental
-#        language: system
-#        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy src --no-incremental
+        language: system
+        pass_filenames: false
