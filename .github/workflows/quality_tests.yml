@@ -72,8 +72,12 @@ jobs:
               --cov=src \
               --cov-report=term-missing \
               --cov-report=xml \
-              --cov-fail-under=40 \
               -ra
           else
             poetry run pytest tests/integration -ra
           fi
+
+      - name: Check coverage
+        if: matrix.suite == 'unit'
+        run: |
+          poetry run coverage report --fail-under=50
