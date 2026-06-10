@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 
 from src.services.profile_template.profile_template_service import ProfileTemplateService
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from src.utils import Utils
 
 PROFILE_YAML = b"""
 company_name: Test Company
@@ -40,7 +40,7 @@ def test_profile_upload_persists_company_profile_and_bank_details(tmp_path: Path
     assert company_profile.company_name == "Test Company"
     assert company_profile.company_address == "Belgrade"
     assert company_profile.service_agreement_date is not None
-    assert company_profile.service_agreement_date == date(2026, 6, 10)
+    assert company_profile.service_agreement_date.date() == Utils.parse_iso_date("2026-06-10")
 
     assert bank_details is not None
     assert bank_details.account_holder == "Test User"
