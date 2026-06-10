@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sqlalchemy import text
+
+from src.storage.orm.base import BaseModel
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.company_profile import CompanyProfile
 
@@ -30,3 +33,17 @@ def test_sqlite_data_survives_database_reinitialization(tmp_path: Path) -> None:
     assert second_profile.company_name == "Test Company"
     assert second_profile.company_address == "Belgrade"
     assert second_profile.id == first_profile.id
+
+
+def test_sqlite_schema_matches_orm_models(tmp_path: Path) -> None:
+    db_path = tmp_path / "data" / "finpipe.db"
+
+    database = Database(build_sqlite_url(db_path))
+    database.initialize_schema()
+
+    with database.engine.connect() as connection:
+        for table in BaseModel.metadata.sorted_tables:
+            columns = {row[1] for row in connection.execute(text(f"PRAGMA table_info({table.name})")).all()}
+            model_columns = {column.name for column in table.columns}
+
+            assert columns == model_columns, table.name
