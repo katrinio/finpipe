@@ -7,6 +7,7 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.handlers.command_router import CommandRouter
 from src.integrations.telegram.handlers.state_handlers import StateHandler
+from src.integrations.telegram.settings import TelegramSettings
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
@@ -194,7 +195,7 @@ class TelegramBot:
 
     def is_authorized(self, telegram_id: int) -> bool:
         """Проверяет доступ пользователя."""
-        return AllowedUser.get_by_telegram_id(telegram_id) is not None
+        return telegram_id == TelegramSettings.owner_telegram_id() or AllowedUser.exists(telegram_id)
 
 
 def main() -> None:

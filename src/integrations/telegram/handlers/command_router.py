@@ -6,6 +6,7 @@ from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message
 from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.handlers.menu_handlers import MenuHandler
+from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
 from src.integrations.telegram.handlers.system_handlers import SystemHandlers
@@ -16,6 +17,7 @@ from src.integrations.telegram.ui.buttons import (
     IntegrationsButtons,
     MainMenuButtons,
     NavigationButtons,
+    OwnerButtons,
     ProfileButtons,
     SignatureButtons,
     SystemButtons,
@@ -42,11 +44,11 @@ class CommandRouter:
     def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]):
         self.telegram = telegram
         self.state_service = UserStateService()
-        # handlers
         self.menu_handler = MenuHandler(self.telegram)
         self.system_handler = SystemHandlers(self.telegram, audit_log)
         self.gmail_handler = GmailHandlers(self.telegram)
         self.document_handler = DocumentHandlers(self.telegram)
+        self.owner_handler = OwnerHandlers(self.telegram)
         self.signature_handler = SignatureHandlers(self.telegram, self.state_service)
         self.profile_handler = ProfileHandlers(self.telegram, self.state_service)
         self._command_handlers: dict[str, Callable[[CommandContext], None]] = {}
@@ -54,7 +56,6 @@ class CommandRouter:
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Выполняет команду Telegram."""
-        print(f"HANDLE: {text}")
         if telegram_id is None:
             return False
 
@@ -87,33 +88,30 @@ class CommandRouter:
         """Собирает таблицу команд один раз при инициализации."""
 
         self._command_handlers = {
-            # Main menu
+            OwnerButtons.ADD_USER: lambda context: self.owner_handler.add_user(
+                telegram_id=context.telegram_id,
+                command=context.command,
+                username=context.username,
+            ),
             Cmd.MENU: lambda context: self.menu_handler.main_menu(),
             MainMenuButtons.DOCUMENTS: lambda context: self.menu_handler.document_menu(),
             MainMenuButtons.INTEGRATIONS: lambda context: self.menu_handler.integration_menu(),
             MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(),
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(),
-            # Navigation
             NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(),
-            # Documents
             DocumentsMenuButtons.INVOICE: lambda context: self.document_handler.invoice(),
             DocumentsMenuButtons.BANK: lambda context: self.document_handler.bank(),
             DocumentsMenuButtons.TRANSFER_REQUEST: lambda context: self.document_handler.transfer_request(),
-            # Profile
             ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
             ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
             SystemButtons.STATUS: lambda context: self.system_handler.status(context.telegram_id),
-            # Signature
             SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_STATUS: lambda context: self.signature_handler.signature_status(context.telegram_id),
-            # Integrations
             IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(),
-            # Gmail
             GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
-            # System
             SystemButtons.ABOUT: lambda context: self.system_handler.about(),
             SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(),
             SystemButtons.HELP: lambda context: self._help(),

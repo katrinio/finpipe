@@ -1,29 +1,55 @@
+from __future__ import annotations
+
 from collections.abc import Callable
-from typing import cast
+from pathlib import Path
 
 import pytest
 
 from src.integrations.telegram.bot import TelegramBot
-from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
-from src.integrations.telegram.ui.buttons import SystemButtons
-from src.storage.dependencies import StorageDependencies
+from src.integrations.telegram.ui.buttons import OwnerButtons, SystemButtons
+from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
-from src.storage.orm.system.telegram_update import TelegramUpdate
-from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 class TestTelegramBot:
-    def test_poll_denies_unauthorized_user(
+    def test_owner_has_access_without_allowlist_entry(
+        self,
+        fake_telegram_client: Callable[..., FakeTelegramClient],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+        monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: False))
+
+        bot = TelegramBot(build_storage_dependencies(tmp_path / "storage.sqlite3"), telegram=fake_telegram_client())
+
+        assert bot.is_authorized(777) is True
+
+    def test_allowlisted_user_has_access(
+        self,
+        fake_telegram_client: Callable[..., FakeTelegramClient],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+        storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+        AllowedUser.create(123, "alice")
+
+        bot = TelegramBot(storage, telegram=fake_telegram_client())
+
+        assert bot.is_authorized(123) is True
+
+    def test_non_authorized_user_gets_access_denied(
         self,
         caplog: pytest.LogCaptureFixture,
         fake_telegram_client: Callable[..., FakeTelegramClient],
-        fake_storage: Callable[[set[int] | None], FakeStorage],
-        fake_update_storage: FakeTelegramUpdateStorage,
         monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
     ) -> None:
-        monkeypatch.setattr(AllowedUser, "get_by_telegram_id", classmethod(lambda cls, telegram_id: None))
+        monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+        monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: False))
 
         telegram_client = fake_telegram_client(
             {
@@ -38,49 +64,54 @@ class TestTelegramBot:
                 ]
             }
         )
-        tg_bot = TelegramBot(cast(StorageDependencies, fake_storage(set())), telegram=cast(TelegramClient, telegram_client))
-        tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
+        bot = TelegramBot(build_storage_dependencies(tmp_path / "storage.sqlite3"), telegram=telegram_client)
 
         caplog.clear()
-        tg_bot.poll()
+        bot.process_update(
+            {
+                "update_id": 11,
+                "message": {
+                    "text": SystemButtons.WHOAMI,
+                    "from": {"id": 999, "username": "intruder"},
+                },
+            }
+        )
 
         assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
         assert telegram_client.sent_messages == [BotInfo.ACCESS_DENIED]
-        assert fake_update_storage.processed == []
 
-    def test_poll_processes_authorized_user_and_whoami(
+    def test_owner_can_add_user_to_allowlist(
         self,
         fake_telegram_client: Callable[..., FakeTelegramClient],
-        fake_storage: Callable[[set[int] | None], FakeStorage],
-        fake_update_storage: FakeTelegramUpdateStorage,
+        tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        monkeypatch.setattr(
-            AllowedUser,
-            "get_by_telegram_id",
-            classmethod(lambda cls, telegram_id: AllowedUser(telegram_id=telegram_id, user_name="alice")),
-        )
-        user_name = "alice"
-        user_id = 123
+        monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+
         telegram_client = fake_telegram_client(
             {
                 "result": [
                     {
                         "update_id": 11,
                         "message": {
-                            "text": SystemButtons.WHOAMI,
-                            "from": {"id": user_id, "username": user_name},
+                            "text": f"{OwnerButtons.ADD_USER} 123456789",
+                            "from": {"id": 777, "username": "owner"},
                         },
                     }
                 ]
             }
         )
-        tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({user_id})), telegram=cast(TelegramClient, telegram_client))
-        tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
+        bot = TelegramBot(build_storage_dependencies(tmp_path / "storage.sqlite3"), telegram=telegram_client)
 
-        tg_bot.poll()
+        bot.process_update(
+            {
+                "update_id": 11,
+                "message": {
+                    "text": f"{OwnerButtons.ADD_USER} 123456789",
+                    "from": {"id": 777, "username": "owner"},
+                },
+            }
+        )
 
-        assert telegram_client.sent_messages == [
-            f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {user_id}\nusername: {user_name}",
-        ]
-        assert fake_update_storage.processed == [11]
+        assert AllowedUser.exists(123456789) is True
+        assert telegram_client.sent_messages == ["✅ Пользователь добавлен."]

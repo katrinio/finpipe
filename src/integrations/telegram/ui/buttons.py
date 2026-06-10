@@ -45,3 +45,7 @@ class SystemButtons:
 class NavigationButtons:
     BACK = "⬅️ Назад"
     HOME = "🏠 Главное меню"
+
+
+class OwnerButtons:
+    ADD_USER = "/add_user"
