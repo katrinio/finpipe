@@ -44,7 +44,7 @@ def main() -> int:
     transfer_request_pdf_path = generate_transfer_request_pdf(amount=transfer_amount_text)
     telegram_client.send_message(owner.telegram_id, Message.TRANSACTION_REQUEST_GENERATED)
 
-    invoice_pdf_path = generate_invoice_pdf(amount=transfer_amount_text)
+    invoice_pdf_path = generate_invoice_pdf(telegram_id=owner.telegram_id)
     telegram_client.send_message(owner.telegram_id, Message.INVOICE_GENERATED)
 
     send_bank_response(

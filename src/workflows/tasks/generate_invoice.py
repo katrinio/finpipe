@@ -11,7 +11,7 @@ from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generate import generate_invoice
 from src.services.invoice.models import InvoiceData
-from src.storage.orm import HistoryRecord
+from src.storage.orm import HistoryRecord, UserConfig
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ DEFAULT_SERVICE_AGREEMENT_DATE = "01.05.2025"
 
 
 def generate_invoice_pdf(
-    amount: str | None = None,
+    telegram_id: int,
     invoice_date: date | None = None,
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
@@ -32,13 +32,18 @@ def generate_invoice_pdf(
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
+    config = UserConfig.get_by_telegram_id(telegram_id)
+    if config is None or config.invoice_amount is None:
+        msg = "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
+        raise ValueError(msg)
+
     invoice_data = InvoiceData(
         account_holder=EnvVar.get_required_env("ACCOUNT_HOLDER"),
         account_holder_address=EnvVar.get_required_env("ACCOUNT_HOLDER_ADDRESS"),
         account_bic=EnvVar.get_required_env("ACCOUNT_BIC"),
         account_iban=EnvVar.get_required_env("ACCOUNT_IBAN"),
         account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
-        amount=amount or EnvVar.get_required_env("INVOICE_AMOUNT"),
+        amount=str(config.invoice_amount),
         bank_name=EnvVar.get_required_env("BANK_NAME"),
         company_address=EnvVar.get_required_env("COMPANY_ADDRESS"),
         company_name=EnvVar.get_required_env("COMPANY_NAME"),
@@ -79,8 +84,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
-
     if not args.template.exists():
         LOGGER.error("Invoice template not found: %s", args.template)
         return 1
@@ -94,7 +97,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_period.period_to,
     )
     pdf_path = generate_invoice_pdf(
-        amount=amount,
+        telegram_id=args.telegram_id,
         invoice_date=args.invoice_date,
         template_path=args.template,
         output_dir=args.output_dir,
@@ -111,8 +114,10 @@ def build_parser() -> argparse.ArgumentParser:
         description="Generate salary invoice PDF and DOCX files.",
     )
     parser.add_argument(
-        "--amount",
-        help="Invoice amount in EUR. Defaults to INVOICE_AMOUNT from .env.",
+        "--telegram-id",
+        type=int,
+        required=True,
+        help="Telegram user ID whose stored invoice amount should be used.",
     )
     parser.add_argument(
         "--date",

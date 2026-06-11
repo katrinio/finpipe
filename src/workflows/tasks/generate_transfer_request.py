@@ -65,7 +65,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
+    amount = args.amount
+    if amount is None:
+        LOGGER.error("Transfer Request amount is not provided")
+        return 1
 
     if not args.template.exists():
         LOGGER.error("Transfer Request template not found: %s", args.template)
@@ -97,7 +100,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--amount",
-        help="Transfer Request amount in EUR. Defaults to INVOICE_AMOUNT from .env.",
+        help="Transfer Request amount in EUR.",
     )
     parser.add_argument(
         "--date",
