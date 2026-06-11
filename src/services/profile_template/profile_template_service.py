@@ -2,6 +2,7 @@
 
 import yaml
 
+from src.services.profile_template.exceptions import InvalidProfileTemplateError
 from src.services.profile_template.profile_template import ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
 from src.storage.orm.user.bank_details import BankDetails
@@ -11,6 +12,16 @@ from src.utils import Utils
 
 class ProfileTemplateService:
     """Сервис загрузки пользовательской подписи."""
+
+    REQUIRED_PROFILE_FIELDS = (
+        "company_name",
+        "company_address",
+        "account_holder",
+        "account_number",
+        "iban",
+        "bic",
+        "bank_name",
+    )
 
     @classmethod
     def upload(
@@ -26,15 +37,12 @@ class ProfileTemplateService:
         ProfileTemplateValidator.validate_yaml_structure(file_bytes)
 
         profile = cls.parse(file_bytes)
+        cls.validate_required_fields(profile)
         cls.import_profile(telegram_id, profile)
 
     @classmethod
     def parse(cls, file_bytes: bytes) -> ProfileTemplate:
         """Преобразует YAML bytes в ProfileTemplate."""
-
-        # TODO(MEDIUM):
-        # Сейчас все поля профиля трактуются как optional.
-        # Перед следующими документными workflow нужно формализовать обязательные поля и явно валидировать их на этом этапе.
 
         data = yaml.safe_load(file_bytes.decode("utf-8"))
         profile_data = {
@@ -54,6 +62,24 @@ class ProfileTemplateService:
                 profile_data[key] = data.get(key)
 
         return ProfileTemplate(**profile_data)
+
+    @classmethod
+    def validate_required_fields(cls, profile: ProfileTemplate) -> None:
+        """Проверяет, что профиль заполнен целиком по обязательным полям."""
+
+        missing_fields = [field_name for field_name in cls.REQUIRED_PROFILE_FIELDS if cls._is_blank(getattr(profile, field_name))]
+        if missing_fields:
+            missing_fields_text = "\n".join(f"• {field_name}" for field_name in missing_fields)
+            msg = (
+                "❌ Профиль заполнен не полностью.\n"
+                f"Не заполнены обязательные поля:\n{missing_fields_text}\n"
+                "Исправьте шаблон и загрузите его повторно."
+            )
+            raise InvalidProfileTemplateError(msg)
+
+    @staticmethod
+    def _is_blank(value: str | None) -> bool:
+        return value is None or not value.strip()
 
     @classmethod
     def parse_profile_template(cls, file_bytes: bytes) -> ProfileTemplate:
