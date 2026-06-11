@@ -1,6 +1,7 @@
 """Команды владельца Telegram-бота."""
 
 from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.messages import BotInfo
 from src.storage.orm import AllowedUser
 
@@ -15,7 +16,7 @@ class OwnerHandlers:
         """Добавляет Telegram-пользователя в allowlist."""
 
         if not AllowedUser.is_owner(telegram_id):
-            self.telegram.send_message(telegram_id, BotInfo.ACCESS_DENIED)
+            self.telegram.send_message(telegram_id, BotInfo.ACCESS_DENIED, reply_markup=build_guest_menu())
             return
 
         parts = command.split()

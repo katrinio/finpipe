@@ -8,6 +8,7 @@ from src.integrations.telegram.handlers.state_handlers import StateHandler
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import PUBLIC_COMMANDS
+from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
@@ -179,7 +180,7 @@ class TelegramBot:
 
         if not self.is_authorized(telegram_id, text):
             LOGGER.warning("Access denied for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, BotInfo.ACCESS_DENIED)
+            self.telegram.send_message(telegram_id, BotInfo.ACCESS_DENIED, reply_markup=build_guest_menu())
             self.update_storage.mark_processed(update["update_id"])
             return
 

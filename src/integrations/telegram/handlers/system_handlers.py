@@ -1,5 +1,6 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_last_action, format_whoami
+from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.messages import BotInfo
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm.system.audit_log import AuditLog
@@ -20,7 +21,7 @@ class SystemHandlers:
     def whoami(self, telegram_id: int | None, username: str | None) -> None:
         if telegram_id is None:
             return
-        self.telegram.send_message(telegram_id, format_whoami(telegram_id, username))
+        self.telegram.send_message(telegram_id, format_whoami(telegram_id, username), reply_markup=build_guest_menu())
 
     def last_action(self, telegram_id: int) -> None:
         actions = self.audit_log.list_recent(1)

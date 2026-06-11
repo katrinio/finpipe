@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
+from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.messages import BotInfo
 from src.storage.orm import AllowedUser, UserRole
 from src.storage.orm.database import Database, build_sqlite_url
@@ -37,3 +38,4 @@ def test_add_user_denies_non_owner(tmp_path: Path) -> None:
     assert AllowedUser.exists(2) is False
     assert telegram.sent_messages == [BotInfo.ACCESS_DENIED]
     assert telegram.sent_messages_with_chat_ids == [(1, BotInfo.ACCESS_DENIED)]
+    assert telegram.sent_message_payloads == [(1, BotInfo.ACCESS_DENIED, build_guest_menu())]

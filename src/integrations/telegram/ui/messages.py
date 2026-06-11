@@ -32,12 +32,12 @@ class CommonMessages:
         "Версия: 0.1"
     )
     HELP_HEADER = "📚 Доступные команды"
-    WHOAMI_PREFIX = "👤 Вы"
+    WHOAMI_PREFIX = "👤 Информация о пользователе"
 
     PROJECT_RUNNING = "🟢 Finpipe работает."
     TELEGRAM_API_OK = "✅ Telegram API работает."
 
-    ACCESS_DENIED = "⛔ Доступ запрещён."
+    ACCESS_DENIED = "⛔ У вас пока нет доступа к Finpipe.\nНажмите «Кто я» и отправьте свой Telegram ID владельцу бота."
     NO_SUCH_COMMAND = "🫥 Неизвестная команда."
 
     SYSTEM_ERROR = "💥 Произошла внутренняя ошибка."
