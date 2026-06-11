@@ -17,27 +17,6 @@ jobs:
       BANK_EMAIL_SUBJECT: ${{ secrets.BANK_EMAIL_SUBJECT }}
       BANK_EMAIL_FROM: ${{ secrets.BANK_EMAIL_FROM }}
 
-      ACCOUNT_HOLDER: ${{ secrets.ACCOUNT_HOLDER }}
-      ACCOUNT_HOLDER_ADDRESS: ${{ secrets.ACCOUNT_HOLDER_ADDRESS }}
-      ACCOUNT_BIC: ${{ secrets.ACCOUNT_BIC }}
-      ACCOUNT_IBAN: ${{ secrets.ACCOUNT_IBAN }}
-      ACCOUNT_NUMBER: ${{ secrets.ACCOUNT_NUMBER }}
-
-      BANK_NAME: ${{ secrets.BANK_NAME }}
-
-      COMPANY_NAME: ${{ secrets.COMPANY_NAME }}
-      COMPANY_ADDRESS: ${{ secrets.COMPANY_ADDRESS }}
-
-      INVOICE_AMOUNT: ${{ secrets.INVOICE_AMOUNT }}
-      SERVICE_AGREEMENT_DATE: ${{ secrets.SERVICE_AGREEMENT_DATE }}
-
-      PAYMENT_NUMBER: ${{ secrets.PAYMENT_NUMBER }}
-      PAYMENT_CODE: ${{ secrets.PAYMENT_CODE }}
-      PAYMENT_DESCRIPTION: ${{ secrets.PAYMENT_DESCRIPTION }}
-
-      REGISTRATION_NUMBER: ${{ secrets.REGISTRATION_NUMBER }}
-      CITY: ${{ secrets.CITY }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5

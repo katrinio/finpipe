@@ -12,15 +12,11 @@ from src.infrastructure.document.sign_pdf import PdfSigner
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.services.bank.bank_models import BANK_FIELD_ORDER, PDF_FIELDS
 from src.services.signing.context import SignaturePositions
+from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
-
-
-def get_required_env(name: str) -> str:
-    """Возвращает обязательную переменную окружения для bank PDF."""
-
-    return EnvVar.get_required_env(name)
 
 
 def fill_bank_pdf(
@@ -28,6 +24,8 @@ def fill_bank_pdf(
     output_pdf: Path,
     amount: float,
     date: str,
+    company_profile: CompanyProfile,
+    bank_details: BankDetails,
     signature: Path | None = None,
 ) -> None:
     """
@@ -48,7 +46,7 @@ def fill_bank_pdf(
 
     packet = BytesIO()
     overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
-    draw_form_fields(overlay, build_bank_form_data(amount, date))
+    draw_form_fields(overlay, build_bank_form_data(amount, date, company_profile, bank_details))
     signature_bytes = SignatureCipher.decrypt_bytes(signature)
     PdfSigner.draw_signature(
         pdf_canvas=overlay,
@@ -73,16 +71,21 @@ def fill_bank_pdf(
     LOGGER.info("Generated filled bank PDF: %s", output_pdf)
 
 
-def build_bank_form_data(amount: float, date: str) -> dict[str, str]:
+def build_bank_form_data(
+    amount: float,
+    date: str,
+    company_profile: CompanyProfile,
+    bank_details: BankDetails,
+) -> dict[str, str]:
     """Собирает значения полей для наложения на PDF банка."""
 
-    payment_number = get_required_env("PAYMENT_NUMBER")
-    payment_code = get_required_env("PAYMENT_CODE")
-    payment_description = get_required_env("PAYMENT_DESCRIPTION")
-    recipient = get_required_env("ACCOUNT_HOLDER")
-    registration_number = get_required_env("REGISTRATION_NUMBER")
-    account_number = get_required_env("ACCOUNT_NUMBER")
-    city = get_required_env("CITY")
+    payment_number = company_profile.payment_number or ""
+    payment_code = company_profile.payment_code or ""
+    payment_description = company_profile.payment_description or ""
+    recipient = bank_details.account_holder
+    registration_number = company_profile.registration_number or ""
+    account_number = bank_details.account_number
+    city = company_profile.city or ""
 
     return {
         "number": payment_number,

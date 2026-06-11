@@ -19,12 +19,15 @@ from src.services.invoice.context import build_invoice_period
 from src.services.signing.context import SignaturePositions
 from src.services.transfer_request.generate import generate_transfer_request
 from src.services.transfer_request.models import TransferRequestData
+from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
 
 
 def generate_transfer_request_pdf(
+    telegram_id: int,
     amount: str,
     invoice_date: date | None = None,
     template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
@@ -39,12 +42,22 @@ def generate_transfer_request_pdf(
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
 
+    bank_details = BankDetails.get_by_owner(telegram_id)
+    if bank_details is None:
+        msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
+        raise ValueError(msg)
+
+    company_profile = CompanyProfile.get_by_owner(telegram_id)
+    if company_profile is None:
+        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+        raise ValueError(msg)
+
     transfer_request_data = TransferRequestData(
-        account_number=EnvVar.get_required_env("ACCOUNT_NUMBER"),
+        account_number=bank_details.account_number,
         amount=amount,
-        city=EnvVar.get_required_env("CITY"),
+        city=company_profile.city or "",
         date=invoice_period.invoice_date,
-        name=EnvVar.get_required_env("ACCOUNT_HOLDER"),
+        name=bank_details.account_holder,
     )
 
     generate_transfer_request(
@@ -65,7 +78,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    amount = args.amount or EnvVar.get_required_env("INVOICE_AMOUNT")
+    amount = args.amount
+    if amount is None:
+        LOGGER.error("Transfer Request amount is not provided")
+        return 1
 
     if not args.template.exists():
         LOGGER.error("Transfer Request template not found: %s", args.template)
@@ -79,6 +95,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         invoice_period.period_to,
     )
     output_pdf_path = generate_transfer_request_pdf(
+        telegram_id=args.telegram_id,
         amount=amount,
         invoice_date=args.invoice_date,
         template_path=args.template,
@@ -96,8 +113,14 @@ def build_parser() -> argparse.ArgumentParser:
         description="Generate salary invoice PDF and DOCX files.",
     )
     parser.add_argument(
+        "--telegram-id",
+        type=int,
+        required=True,
+        help="Telegram user ID whose stored bank details should be used.",
+    )
+    parser.add_argument(
         "--amount",
-        help="Transfer Request amount in EUR. Defaults to INVOICE_AMOUNT from .env.",
+        help="Transfer Request amount in EUR.",
     )
     parser.add_argument(
         "--date",

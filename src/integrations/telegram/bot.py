@@ -44,12 +44,17 @@ class TelegramBot:
                 handler=self.handlers.profile_handler.handle_profile_template_upload,
                 error_message="📄 Пришлите заполненный шаблон в YAML формате.",
             ),
+            UserState.WAITING_INVOICE_AMOUNT: StateHandler(
+                handler=self.handlers.document_handler.handle_invoice_amount_input,
+                error_message="❌ Сумма должна содержать только цифры.\nПример: 1500",
+            ),
         }
 
     @property
     def telegram(self) -> TelegramClient:
         return self._telegram
 
+    # polling
     def poll(self) -> int:
         """Получает и обрабатывает новые Telegram updates."""
 
@@ -73,6 +78,7 @@ class TelegramBot:
 
         return len(result)
 
+    # update extraction
     def extract_message_data(self, update: dict) -> tuple[str | None, int, str | None] | None:
         """Извлекает текст, пользователя и команду из update."""
 
@@ -114,6 +120,7 @@ class TelegramBot:
 
         return None
 
+    # state processing
     def _process_waiting_state(self, telegram_id: int, update: dict) -> bool:
         """Обрабатывает upload-состояния без дублирования логики."""
 
@@ -133,6 +140,20 @@ class TelegramBot:
         data = self.extract_message_data(update)
         if data is not None:
             text, _, _ = data
+
+            if state == UserState.WAITING_INVOICE_AMOUNT:
+                if text in self.handlers._command_handlers:
+                    LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
+
+                    UserStateService.clear_state(telegram_id)
+                    self.telegram.send_message(telegram_id, "Текущая операция отменена.")
+
+                    return False
+
+                LOGGER.info("Processing state %s for Telegram user %s", state.name, telegram_id)
+                state_handler.handler(telegram_id, text)
+                self.update_storage.mark_processed(update["update_id"])
+                return True
 
             if text in self.handlers._command_handlers:
                 LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
@@ -169,6 +190,7 @@ class TelegramBot:
         self.update_storage.mark_processed(update["update_id"])
         return True
 
+    # authorization and routing
     def process_update(self, update: dict) -> None:
         """Обрабатывает один Telegram update."""
 
@@ -211,6 +233,7 @@ class TelegramBot:
             self.update_storage.mark_processed(update["update_id"])
         return len(updates)
 
+    # authorization
     def is_authorized(self, telegram_id: int, text: str | None) -> bool:
         if text in PUBLIC_COMMANDS:
             return True

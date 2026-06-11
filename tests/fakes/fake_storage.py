@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 
-class FakeUserConfigRepository:
+class FakeAllowedUserRepository:
     def __init__(self, allowed_ids: set[int]) -> None:
         self.allowed_ids = allowed_ids
 
@@ -40,7 +40,7 @@ class FakeAuditLog:
 
 class FakeStorage:
     def __init__(self, allowed_ids: set[int]) -> None:
-        self.allowed_users = FakeUserConfigRepository(allowed_ids)
+        self.allowed_users = FakeAllowedUserRepository(allowed_ids)
         self.audit_log = FakeAuditLog()
 
 

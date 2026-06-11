@@ -10,16 +10,7 @@ jobs:
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
-      ACCOUNT_HOLDER: ${{ secrets.ACCOUNT_HOLDER }}
-      ACCOUNT_HOLDER_ADDRESS: ${{ secrets.ACCOUNT_HOLDER_ADDRESS }}
-      ACCOUNT_BIC: ${{ secrets.ACCOUNT_BIC }}
-      ACCOUNT_IBAN: ${{ secrets.ACCOUNT_IBAN }}
-      ACCOUNT_NUMBER: ${{ secrets.ACCOUNT_NUMBER }}
-      BANK_NAME: ${{ secrets.BANK_NAME }}
-      COMPANY_NAME: ${{ secrets.COMPANY_NAME }}
-      COMPANY_ADDRESS: ${{ secrets.COMPANY_ADDRESS }}
-      INVOICE_AMOUNT: ${{ secrets.INVOICE_AMOUNT }}
-      SERVICE_AGREEMENT_DATE: ${{ secrets.SERVICE_AGREEMENT_DATE }}
+
     steps:
       - uses: actions/checkout@v5
 

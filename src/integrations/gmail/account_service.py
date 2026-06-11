@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from src.infrastructure.security.token_cipher import TokenCipher
+from src.storage.orm import AllowedUser
 from src.storage.orm.user.gmail_account import GmailAccount
-from src.storage.orm.user.user_config import UserConfig
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,8 +41,8 @@ class GmailAccountService:
         return cls._build_status(GmailAccount.get_by_owner(telegram_id))
 
     @classmethod
-    def _get_user_config(cls, telegram_id: int) -> UserConfig | None:
-        return UserConfig.get_by_telegram_id(telegram_id)
+    def _get_user_config(cls, telegram_id: int) -> AllowedUser | None:
+        return AllowedUser.get_by_telegram_id(telegram_id)
 
     @classmethod
     def _build_status(cls, user_config: GmailAccount | None) -> GmailAccountStatus:

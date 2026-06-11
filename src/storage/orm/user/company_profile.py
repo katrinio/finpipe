@@ -23,6 +23,11 @@ class CompanyProfile(BaseModel):
     )
     company_name: Mapped[str] = mapped_column(String)
     company_address: Mapped[str] = mapped_column(String)
+    registration_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    city: Mapped[str | None] = mapped_column(String, nullable=True)
+    payment_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    payment_code: Mapped[str | None] = mapped_column(String, nullable=True)
+    payment_description: Mapped[str | None] = mapped_column(String, nullable=True)
     service_agreement_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 

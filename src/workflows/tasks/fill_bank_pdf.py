@@ -10,6 +10,8 @@ from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
 from src.services.invoice.context import build_invoice_period
+from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
 from src.utils.utils import Utils
 
@@ -20,6 +22,12 @@ def build_parser() -> argparse.ArgumentParser:
     """Создаёт CLI-парсер для генерации bank PDF."""
 
     parser = argparse.ArgumentParser(description="Extract amount and fill bank PDF.")
+    parser.add_argument(
+        "--telegram-id",
+        type=int,
+        required=True,
+        help="Telegram user ID whose stored bank details should be used.",
+    )
     parser.add_argument(
         "--bank-template",
         type=Path,
@@ -47,6 +55,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         fill_bank_pdf_with_data(
+            telegram_id=args.telegram_id,
             bank_template=args.bank_template,
             signature=args.signature,
             output_dir=args.output_dir,
@@ -60,6 +69,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def fill_bank_pdf_with_data(
+    telegram_id: int,
     bank_template: Path | None = None,
     signature: Path | None = Dir.SIGNATURE_ENC,
     output_dir: Path = Dir.BANK_OUTPUT_DIR,
@@ -76,17 +86,28 @@ def fill_bank_pdf_with_data(
 
     LOGGER.info("Preparing bank PDF from %s", bank_template)
     amount = amount or extract_amount(bank_template)
+    bank_details = BankDetails.get_by_owner(telegram_id)
+    if bank_details is None:
+        msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
+        raise ValueError(msg)
+    company_profile = CompanyProfile.get_by_owner(telegram_id)
+    if company_profile is None:
+        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+        raise ValueError(msg)
+
     invoice_period = build_invoice_period()
     period_suffix = Utils.today()
     bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
 
-    resolved_signature = resolve_signature(signature, include_signature)
+    resolved_signature = resolve_signature(signature)
 
     render_bank_pdf(
         input_pdf=bank_template,
         output_pdf=bank_output,
         amount=amount,
         date=invoice_period.invoice_date,
+        company_profile=company_profile,
+        bank_details=bank_details,
         signature=resolved_signature,
     )
 
@@ -130,24 +151,10 @@ def is_pdf_file(path: Path) -> bool:
         return file_handle.read(5) == b"%PDF-"
 
 
-def resolve_signature(signature: Path | None, include_signature: bool | None) -> Path | None:
-    """Возвращает путь к подписи или `None`, если подпись отключена."""
-
-    if include_signature is None:
-        include_signature = is_signature_enabled()
-
-    if not include_signature:
-        LOGGER.info("Bank PDF signature is disabled")
-        return None
+def resolve_signature(signature: Path | None) -> Path | None:
+    """Возвращает путь к подписи или None."""
 
     return signature
-
-
-def is_signature_enabled() -> bool:
-    """Читает feature toggle подписи из окружения."""
-
-    value = EnvVar.get_optional_env("BANK_PDF_WITH_SIGNATURE", "false").strip().lower()
-    return value not in {"0", "false", "no", "off"}
 
 
 if __name__ == "__main__":
