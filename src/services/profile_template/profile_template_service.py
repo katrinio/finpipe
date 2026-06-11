@@ -97,12 +97,6 @@ class ProfileTemplateService:
         return value if isinstance(value, str) else str(value)
 
     @classmethod
-    def parse_profile_template(cls, file_bytes: bytes) -> ProfileTemplate:
-        """Backward-compatible alias for parse(...)."""
-
-        return cls.parse(file_bytes)
-
-    @classmethod
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
         # TODO(HIGH):
         # Импорт сейчас делает полный upsert целиком.

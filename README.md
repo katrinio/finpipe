@@ -96,11 +96,11 @@ Telegram-бот является основной точкой входа в с�
 
 ### Генерация инвойса
 
-bash poetry run gen_invoice --amount 1000 
+bash poetry run gen_invoice --telegram-id 123
 
 ### Генерация transfer request
 
-bash poetry run gen_transfer_request --amount 1000 
+bash poetry run gen_transfer_request --telegram-id 123 --amount 1000
 
 ### Обработка банкового письма
 
@@ -108,7 +108,7 @@ bash poetry run get_bank_email
 
 ### Подготовка банковского PDF
 
-bash poetry run fill_bank_pdf 
+bash poetry run fill_bank_pdf --telegram-id 123
 
 ### Запуск Telegram-бота
 

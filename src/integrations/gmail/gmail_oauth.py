@@ -24,9 +24,6 @@ class GmailOAuthResult:
 
 
 class GmailOAuth:
-    # TODO(MEDIUM):
-    # Здесь сосредоточена вся OAuth-логика Gmail, а рядом уже есть legacy-обёртка `src.integrations.oauth.gmail_oauth`.
-    # После стабилизации API нужно оставить один публичный вход и удалить дублирующий путь.
     @classmethod
     def build_authorization_url(
         cls,

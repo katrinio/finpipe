@@ -50,12 +50,8 @@ class DocumentHandlers:
     def bank(self, telegram_id: int) -> None:
         self.telegram.send_message(telegram_id, BotInfo.FILL_BANK_PDF)
 
-        try:
-            bank_pdf_path = fill_bank_pdf_with_data(telegram_id)
-            self.telegram.send_document(telegram_id, bank_pdf_path)
-        except Exception as error:
-            print("BANK EXCEPTION:", repr(error))
-            raise
+        bank_pdf_path = fill_bank_pdf_with_data(telegram_id)
+        self.telegram.send_document(telegram_id, bank_pdf_path)
 
     def transfer_request(self, telegram_id: int) -> None:
         config = UserConfig.get_by_owner(telegram_id)
