@@ -99,7 +99,7 @@ def fill_bank_pdf_with_data(
     period_suffix = Utils.today()
     bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
 
-    resolved_signature = resolve_signature(signature, include_signature)
+    resolved_signature = resolve_signature(signature)
 
     render_bank_pdf(
         input_pdf=bank_template,
@@ -151,24 +151,10 @@ def is_pdf_file(path: Path) -> bool:
         return file_handle.read(5) == b"%PDF-"
 
 
-def resolve_signature(signature: Path | None, include_signature: bool | None) -> Path | None:
-    """Возвращает путь к подписи или `None`, если подпись отключена."""
-
-    if include_signature is None:
-        include_signature = is_signature_enabled()
-
-    if not include_signature:
-        LOGGER.info("Bank PDF signature is disabled")
-        return None
+def resolve_signature(signature: Path | None) -> Path | None:
+    """Возвращает путь к подписи или None."""
 
     return signature
-
-
-def is_signature_enabled() -> bool:
-    """Читает feature toggle подписи из окружения."""
-
-    value = EnvVar.get_optional_env("BANK_PDF_WITH_SIGNATURE", "false").strip().lower()
-    return value not in {"0", "false", "no", "off"}
 
 
 if __name__ == "__main__":
