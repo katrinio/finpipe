@@ -11,6 +11,7 @@ from src.services.bank.bank_extract import extract_amount
 from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
 from src.services.invoice.context import build_invoice_period
 from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
 from src.utils.utils import Utils
 
@@ -89,6 +90,10 @@ def fill_bank_pdf_with_data(
     if bank_details is None:
         msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
         raise ValueError(msg)
+    company_profile = CompanyProfile.get_by_owner(telegram_id)
+    if company_profile is None:
+        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+        raise ValueError(msg)
 
     invoice_period = build_invoice_period()
     period_suffix = Utils.today()
@@ -101,6 +106,7 @@ def fill_bank_pdf_with_data(
         output_pdf=bank_output,
         amount=amount,
         date=invoice_period.invoice_date,
+        company_profile=company_profile,
         bank_details=bank_details,
         signature=resolved_signature,
     )

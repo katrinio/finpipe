@@ -20,6 +20,7 @@ from src.services.signing.context import SignaturePositions
 from src.services.transfer_request.generate import generate_transfer_request
 from src.services.transfer_request.models import TransferRequestData
 from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -46,10 +47,15 @@ def generate_transfer_request_pdf(
         msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
         raise ValueError(msg)
 
+    company_profile = CompanyProfile.get_by_owner(telegram_id)
+    if company_profile is None:
+        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+        raise ValueError(msg)
+
     transfer_request_data = TransferRequestData(
         account_number=bank_details.account_number,
         amount=amount,
-        city=EnvVar.get_required_env("CITY"),
+        city=company_profile.city or "",
         date=invoice_period.invoice_date,
         name=bank_details.account_holder,
     )
