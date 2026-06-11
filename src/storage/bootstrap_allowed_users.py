@@ -1,7 +1,5 @@
 """Bootstrap для первичного админа и его подписи."""
 
-from __future__ import annotations
-
 import hashlib
 import logging
 from pathlib import Path
@@ -10,6 +8,7 @@ from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.orm import AllowedUser, Signature
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.user.allowed_user import UserRole
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -21,15 +20,13 @@ def bootstrap_primary_admin(db_path: Path = Dir.STORAGE_DB) -> None:
     database = Database(build_sqlite_url(db_path))
     database.initialize_schema()
 
-    telegram_id = int(EnvVar.get_required_env("TELEGRAM_ADMIN_ID"))
+    telegram_id = int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID"))
     user_name = EnvVar.get_required_env("TELEGRAM_ADMIN_USERNAME")
     signature_source = resolve_signature_source_path()
     signature_destination = Dir.SIGNATURE_ENC.parent / f"{telegram_id}_sign.enc"
 
-    AllowedUser.add(
-        telegram_id=telegram_id,
-        user_name=user_name,
-    )
+    if not AllowedUser.exists(telegram_id):
+        AllowedUser.create(telegram_id=telegram_id, username=user_name, role=UserRole.OWNER)
 
     # Signature bootstrap is optional for MVP.
     # If no source file is present, admin bootstraps without a signature and the bot still starts.

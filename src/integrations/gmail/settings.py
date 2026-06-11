@@ -1,7 +1,5 @@
 """Gmail integration feature toggles."""
 
-from __future__ import annotations
-
 from src.utils.credentials import EnvVar
 
 

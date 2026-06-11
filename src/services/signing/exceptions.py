@@ -1,7 +1,5 @@
 """Исключения для операций с пользовательской подписью."""
 
-from __future__ import annotations
-
 
 class SignatureError(Exception):
     """Базовая ошибка для подписи."""

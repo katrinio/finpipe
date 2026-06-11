@@ -1,7 +1,5 @@
 """Сборка MIME-писем для отправки через интеграции почты."""
 
-from __future__ import annotations
-
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart

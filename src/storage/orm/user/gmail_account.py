@@ -1,7 +1,5 @@
 """ORM-сущность пользовательских настроек."""
 
-from __future__ import annotations
-
 from datetime import datetime
 
 from sqlalchemy import Integer, String, select, update
@@ -37,6 +35,12 @@ class GmailAccount(BaseModel):
         with cls.session() as session:
             statement = select(cls).where(cls.owner_telegram_id == telegram_id).limit(1)
             return session.scalar(statement)
+
+    @classmethod
+    def exists(cls, owner_telegram_id: int) -> bool:
+        """Проверяет наличие gmail integration для владельца."""
+
+        return cls.get_by_owner(owner_telegram_id) is not None
 
     @classmethod
     def update_gmail_credentials(cls, telegram_id: int, gmail_email: str, gmail_refresh_token: str) -> None:

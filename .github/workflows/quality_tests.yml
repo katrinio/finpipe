@@ -43,7 +43,7 @@ jobs:
 
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
       SIGNATURE_ENCRYPTION_KEY: ${{ secrets.SIGNATURE_ENCRYPTION_KEY }}
 
     steps:

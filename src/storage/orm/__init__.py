@@ -6,7 +6,7 @@ from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.system.processed_message import ProcessedMessage
 from src.storage.orm.system.telegram_update import TelegramUpdate
 from src.storage.orm.system.user_state_storage import UserStateStorage
-from src.storage.orm.user.allowed_user import AllowedUser
+from src.storage.orm.user.allowed_user import AllowedUser, UserRole
 from src.storage.orm.user.signature import Signature
 from src.storage.orm.user.user_config import UserConfig
 
@@ -19,5 +19,6 @@ __all__ = [
     "Signature",
     "TelegramUpdate",
     "UserConfig",
+    "UserRole",
     "UserStateStorage",
 ]

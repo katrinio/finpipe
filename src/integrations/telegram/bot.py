@@ -1,9 +1,5 @@
 """Локальный Telegram listener и обработчик команд."""
 
-from __future__ import annotations
-
-import time
-
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
@@ -11,6 +7,8 @@ from src.integrations.telegram.handlers.command_router import CommandRouter
 from src.integrations.telegram.handlers.state_handlers import StateHandler
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.buttons import PUBLIC_COMMANDS
+from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
@@ -132,24 +130,42 @@ class TelegramBot:
         if state_handler is None:
             return False
 
+        data = self.extract_message_data(update)
+        if data is not None:
+            text, _, _ = data
+
+            if text in self.handlers._command_handlers:
+                LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
+
+                UserStateService.clear_state(telegram_id)
+                self.telegram.send_message(telegram_id, "Текущая операция отменена.")
+
+                return False
+
         LOGGER.info("Processing state %s for Telegram user %s", state.name, telegram_id)
+
         file_data = self.extract_document_upload_data(update)
         if file_data is None:
-            self.telegram.send_message(state_handler.error_message)
+            self.telegram.send_message(telegram_id, state_handler.error_message)
             self.update_storage.mark_processed(update["update_id"])
             return True
 
         file_name, file_size, file_id, _ = file_data
-        LOGGER.info(
-            "Received upload: file=%s size=%s state=%s",
-            file_name,
-            file_size,
-            state.name,
-        )
+
+        LOGGER.info("Received upload: file=%s size=%s state=%s", file_name, file_size, state.name)
+
         file_path = self.telegram.get_file(file_id)
         file_bytes = self.telegram.download_file(file_path)
-        state_handler.handler(telegram_id, file_name, file_size, file_bytes)
+
+        state_handler.handler(
+            telegram_id,
+            file_name,
+            file_size,
+            file_bytes,
+        )
+
         LOGGER.info("Successfully processed upload for Telegram user %s", telegram_id)
+
         self.update_storage.mark_processed(update["update_id"])
         return True
 
@@ -162,9 +178,10 @@ class TelegramBot:
 
         text, telegram_id, username = data
 
-        if not self.is_authorized(telegram_id):
-            LOGGER.warning("Access denied for Telegram user %s (@%s)", telegram_id, username)
-            self.telegram.send_message(BotInfo.ACCESS_DENIED)
+        if not self.is_authorized(telegram_id, text):
+            LOGGER.warning("Access denied for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, BotInfo.ACCESS_DENIED, reply_markup=build_guest_menu())
+            self.update_storage.mark_processed(update["update_id"])
             return
 
         LOGGER.info("Authorized Telegram user %s (@%s)", telegram_id, username)
@@ -178,7 +195,9 @@ class TelegramBot:
 
         LOGGER.info("Processing Telegram command %r from user %s (@%s)", text, telegram_id, username)
 
-        if self.handle_message(text=text, telegram_id=telegram_id, username=username):
+        try:
+            self.handle_message(text=text, telegram_id=telegram_id, username=username)
+        finally:
             self.update_storage.mark_processed(update["update_id"])
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
@@ -192,9 +211,10 @@ class TelegramBot:
             self.update_storage.mark_processed(update["update_id"])
         return len(updates)
 
-    def is_authorized(self, telegram_id: int) -> bool:
-        """Проверяет доступ пользователя."""
-        return AllowedUser.get_by_telegram_id(telegram_id) is not None
+    def is_authorized(self, telegram_id: int, text: str | None) -> bool:
+        if text in PUBLIC_COMMANDS:
+            return True
+        return AllowedUser.exists(telegram_id)
 
 
 def main() -> None:
@@ -209,8 +229,8 @@ def main() -> None:
             bot.poll()
         except Exception:
             LOGGER.exception("Telegram listener iteration failed")
-
-        time.sleep(5)
+            # TODO: DEV MOMENTS
+            raise
 
 
 if __name__ == "__main__":

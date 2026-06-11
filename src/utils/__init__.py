@@ -1,7 +1,5 @@
 """Утилиты общего назначения, используемые в разных слоях проекта."""
 
-from __future__ import annotations
-
 __all__ = ["Utils"]
 
 from src.utils.utils import Utils

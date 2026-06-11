@@ -1,7 +1,5 @@
 """Шаг workflow для генерации transfer request."""
 
-from __future__ import annotations
-
 import argparse
 import logging
 from collections.abc import Sequence

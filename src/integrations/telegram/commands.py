@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from enum import StrEnum
 
 from src.integrations.telegram.ui.messages import BotInfo
@@ -8,13 +6,13 @@ from src.storage.orm.system.audit_log import AuditLog
 
 class Cmd(StrEnum):
     MENU = "/menu"
-    INVOICE = "/invoice"
+    START = "/start"
 
     @property
     def description(self) -> str:
         descriptions = {
             Cmd.MENU: "menu",
-            Cmd.INVOICE: "generate invoice",
+            Cmd.START: "start the Finpipe bot",
         }
 
         return descriptions[self]
@@ -34,7 +32,8 @@ def build_help_message() -> str:
 def format_whoami(telegram_id: int | None, username: str | None) -> str:
     """Форматирует информацию о текущем пользователе."""
 
-    return f"{BotInfo.WHOAMI_PREFIX}\ntelegram_id: {telegram_id}\nusername: {username or 'unknown'}"
+    username_line = f"@{username}" if username else "unknown"
+    return f"{BotInfo.WHOAMI_PREFIX}\nTelegram ID: {telegram_id}\nUsername: {username_line}"
 
 
 def format_last_action(action: AuditLog) -> str:

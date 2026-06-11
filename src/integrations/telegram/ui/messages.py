@@ -17,15 +17,27 @@
 
 
 class CommonMessages:
-    ABOUT = "🤖 Finpipe MVP\n\nFeatures:\n• Invoice generation\n• Gmail integration\n• Telegram bot\n• SQLite storage\n\nVersion: 0.1"
+    WELCOME = "👋 Добро пожаловать в Finpipe!\nЛичный сервис для автоматизации документооборота.\n\n"
 
+    ABOUT = (
+        "🤖 Finpipe\n\n"
+        "Личный сервис для автоматизации документооборота.\n\n"
+        "Возможности:\n"
+        "• Генерация документов по шаблонам\n"
+        "• Заполнение банковских форм\n"
+        "• Хранение данных компании и реквизитов\n"
+        "• Шифрование и хранение электронной подписи\n"
+        "• Интеграция с Gmail\n"
+        "• Работа через Telegram\n\n"
+        "Версия: 0.1"
+    )
     HELP_HEADER = "📚 Доступные команды"
-    WHOAMI_PREFIX = "👤 Вы"
+    WHOAMI_PREFIX = "👤 Информация о пользователе"
 
     PROJECT_RUNNING = "🟢 Finpipe работает."
     TELEGRAM_API_OK = "✅ Telegram API работает."
 
-    ACCESS_DENIED = "⛔ Доступ запрещён."
+    ACCESS_DENIED = "⛔ У вас пока нет доступа к Finpipe.\nНажмите «Кто я» и отправьте свой Telegram ID владельцу бота."
     NO_SUCH_COMMAND = "🫥 Неизвестная команда."
 
     SYSTEM_ERROR = "💥 Произошла внутренняя ошибка."
@@ -63,12 +75,21 @@ class InvoiceMessages:
     INVOICE_SENT = "✅ Инвойс отправлен."
 
 
+class BankMessages:
+    FILL_BANK_PDF = "⏳ Заполняется PDF от банка..."
+    BANK_PDF_SENT = "✅ PDF банка отправлен."
+
+
 class AuditLogMessages:
     NO_AUDIT_LOG_RECORDS = "📝 Записи аудита отсутствуют."
 
 
 class ProfileMessages:
     PROFILE_TEMPLATE_SENT = "📥 Шаблон профиля отправлен.\nЗаполните файл и загрузите его обратно."
+    PROFILE_TEMPLATE_REQUIREMENTS = (
+        "✍️ Пришлите заполненный шаблон в YAML формате.\n\nТребования:\n- YAML\n- до 2 МБ\n- заполнен словарем значений по ключам шаблона"
+    )
+    PROFILE_STATUS = "✅ Компания✅ Банковские реквизиты✅ Подпись ❌ Gmail Готовность: 3/4"
 
     PROFILE_TEMPLATE_UPDATED = "✅ Данные пользователя успешно обновлены."
 
@@ -89,5 +110,5 @@ class MenuMessages:
     STATUS = "ℹ️ Статус"
 
 
-class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages):
+class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages, BankMessages):
     pass

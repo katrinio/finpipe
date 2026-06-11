@@ -1,7 +1,5 @@
 """Генерация инвойса из шаблона с fallback на простой PDF."""
 
-from __future__ import annotations
-
 import logging
 from collections.abc import Mapping
 from pathlib import Path

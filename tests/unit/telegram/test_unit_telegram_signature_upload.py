@@ -30,6 +30,7 @@ def test_upload_signature_sets_waiting_state(
         "get_by_telegram_id",
         classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
     )
+    monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
 
     telegram_client = FakeTelegramClient()
     tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
@@ -40,6 +41,7 @@ def test_upload_signature_sets_waiting_state(
     assert telegram_client.sent_messages == [
         BotInfo.SIGNATURE_REQUIREMENTS,
     ]
+    assert telegram_client.sent_messages_with_chat_ids == [(123, BotInfo.SIGNATURE_REQUIREMENTS)]
 
 
 def test_successful_signature_upload_clears_state(
@@ -52,6 +54,7 @@ def test_successful_signature_upload_clears_state(
         "get_by_telegram_id",
         classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
     )
+    monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
 
     telegram_client = FakeTelegramClient(
         files={
@@ -83,6 +86,10 @@ def test_successful_signature_upload_clears_state(
         BotInfo.SIGNATURE_REQUIREMENTS,
         BotInfo.SIGNATURE_UPDATED,
     ]
+    assert telegram_client.sent_messages_with_chat_ids == [
+        (123, BotInfo.SIGNATURE_REQUIREMENTS),
+        (123, BotInfo.SIGNATURE_UPDATED),
+    ]
     assert fake_update_storage.processed == [42]
 
 
@@ -96,6 +103,7 @@ def test_invalid_file_keeps_state(
         "get_by_telegram_id",
         classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
     )
+    monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
 
     telegram_client = FakeTelegramClient(
         files={
@@ -127,4 +135,5 @@ def test_invalid_file_keeps_state(
 
     assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
     assert telegram_client.sent_messages[0] == BotInfo.SIGNATURE_REQUIREMENTS
+    assert telegram_client.sent_messages_with_chat_ids[0] == (123, BotInfo.SIGNATURE_REQUIREMENTS)
     assert fake_update_storage.processed == [43]

@@ -1,7 +1,5 @@
 """Подготовка словаря замен для DOCX-шаблонов."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from dataclasses import asdict, is_dataclass
 from typing import Any, cast

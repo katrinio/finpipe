@@ -1,13 +1,12 @@
 """Загрузка пользовательской подписи в encrypted storage и БД."""
 
-from __future__ import annotations
-
 import yaml
 
 from src.services.profile_template.profile_template import ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from src.utils import Utils
 
 
 class ProfileTemplateService:
@@ -25,6 +24,9 @@ class ProfileTemplateService:
         ProfileTemplateValidator.validate_yaml(file_name)
         ProfileTemplateValidator.validate_size(file_size)
         ProfileTemplateValidator.validate_yaml_structure(file_bytes)
+
+        profile = cls.parse(file_bytes)
+        cls.import_profile(telegram_id, profile)
 
     @classmethod
     def parse(cls, file_bytes: bytes) -> ProfileTemplate:
@@ -63,12 +65,13 @@ class ProfileTemplateService:
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
         # TODO(HIGH):
         # Импорт сейчас делает полный upsert целиком.
-        # Для re-import сценариев нужно перейти на обновление только изменённых значений, чтобы не затирать пользовательские данные.
+        # Для re-import сценариев нужно перейти на обновление только изменённых значений,
+        # чтобы не затирать пользовательские данные.
         CompanyProfile.upsert(
             owner_telegram_id=telegram_id,
             company_name=profile.company_name,
             company_address=profile.company_address,
-            service_agreement_date=profile.service_agreement_date,
+            service_agreement_date=Utils.parse_iso_date(profile.service_agreement_date),
         )
 
         BankDetails.upsert(

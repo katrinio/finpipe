@@ -12,8 +12,8 @@ fake = Faker() if Faker is not None else None
 class Utils:
     """Общие небольшие утилиты, используемые в проекте."""
 
-    @classmethod
-    def today(cls) -> datetime.date:
+    @staticmethod
+    def today() -> datetime.date:
         """Возвращает текущую дату в UTC."""
 
         return datetime.datetime.now(datetime.UTC).date()
@@ -52,14 +52,26 @@ class Utils:
 
         return fake.iban() if fake is not None else "RS35123456789012345678"
 
-    @classmethod
-    def now(cls) -> datetime.datetime:
+    @staticmethod
+    def now() -> datetime.datetime:
         """Возвращает текущее время в UTC."""
 
         return datetime.datetime.now(datetime.UTC)
 
-    @classmethod
-    def format_status(cls, value: str) -> str:
+    @staticmethod
+    def format_status(value: str) -> str:
         """Преобразует внутренний статус в текст для отчёта."""
 
         return "SUCCESS" if value == "success" else "FAILURE"
+
+    @staticmethod
+    def parse_iso_date(value: str | datetime.date | None) -> datetime.date | None:
+        """Преобразует ISO-дату в datetime.date."""
+
+        if value is None:
+            return None
+
+        if isinstance(value, datetime.date):
+            return value
+
+        return datetime.date.fromisoformat(value)

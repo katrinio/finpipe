@@ -1,7 +1,5 @@
 """Настройка SQLAlchemy engine, session factory и инициализации схемы."""
 
-from __future__ import annotations
-
 import logging
 from pathlib import Path
 from typing import Any

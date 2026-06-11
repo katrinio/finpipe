@@ -1,7 +1,5 @@
 """ORM-сущность для OAuth state сессий."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Integer, String, select, update

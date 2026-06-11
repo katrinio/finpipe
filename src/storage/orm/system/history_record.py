@@ -1,7 +1,5 @@
 """ORM-сущность записи истории инвойсов."""
 
-from __future__ import annotations
-
 from datetime import datetime
 
 from sqlalchemy import String, func, select

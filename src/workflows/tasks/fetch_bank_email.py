@@ -1,7 +1,5 @@
 """Шаг workflow для поиска письма банка и загрузки вложения."""
 
-from __future__ import annotations
-
 import logging
 from pathlib import Path
 
