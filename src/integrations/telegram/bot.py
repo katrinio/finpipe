@@ -50,6 +50,7 @@ class TelegramBot:
     def telegram(self) -> TelegramClient:
         return self._telegram
 
+    # polling
     def poll(self) -> int:
         """Получает и обрабатывает новые Telegram updates."""
 
@@ -73,6 +74,7 @@ class TelegramBot:
 
         return len(result)
 
+    # update extraction
     def extract_message_data(self, update: dict) -> tuple[str | None, int, str | None] | None:
         """Извлекает текст, пользователя и команду из update."""
 
@@ -114,6 +116,7 @@ class TelegramBot:
 
         return None
 
+    # state processing
     def _process_waiting_state(self, telegram_id: int, update: dict) -> bool:
         """Обрабатывает upload-состояния без дублирования логики."""
 
@@ -169,6 +172,7 @@ class TelegramBot:
         self.update_storage.mark_processed(update["update_id"])
         return True
 
+    # authorization and routing
     def process_update(self, update: dict) -> None:
         """Обрабатывает один Telegram update."""
 
@@ -211,6 +215,7 @@ class TelegramBot:
             self.update_storage.mark_processed(update["update_id"])
         return len(updates)
 
+    # authorization
     def is_authorized(self, telegram_id: int, text: str | None) -> bool:
         if text in PUBLIC_COMMANDS:
             return True
