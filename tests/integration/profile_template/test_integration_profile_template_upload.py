@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+from src.services.profile_template.exceptions import InvalidProfileTemplateError
 from src.services.profile_template.profile_template_service import ProfileTemplateService
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.bank_details import BankDetails
@@ -50,3 +53,55 @@ def test_profile_upload_persists_company_profile_and_bank_details(tmp_path: Path
     assert bank_details.account_number == "123"
     assert bank_details.iban == "RS123"
     assert bank_details.bic == "TESTRSBG"
+
+
+@pytest.mark.parametrize(
+    ("file_bytes", "missing_fields"),
+    [
+        (
+            b"""
+company_name: Test Company
+company_address: Belgrade
+account_holder: Test User
+bank_name: Test Bank
+account_number: "123"
+bic: TESTRSBG
+""",
+            ["iban"],
+        ),
+        (
+            b"""
+company_name: ""
+company_address: Belgrade
+account_holder: Test User
+bank_name: ""
+account_number: "123"
+iban: RS123
+bic: TESTRSBG
+""",
+            ["company_name", "bank_name"],
+        ),
+    ],
+)
+def test_profile_upload_rejects_incomplete_profile_without_persisting_data(
+    tmp_path: Path,
+    file_bytes: bytes,
+    missing_fields: list[str],
+) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+
+    with pytest.raises(InvalidProfileTemplateError) as exc_info:
+        ProfileTemplateService.upload(
+            telegram_id=123,
+            file_name="profile.yaml",
+            file_size=len(file_bytes),
+            file_bytes=file_bytes,
+        )
+
+    message = str(exc_info.value)
+    for field_name in missing_fields:
+        assert f"• {field_name}" in message
+
+    assert CompanyProfile.get_by_owner(123) is None
+    assert BankDetails.get_by_owner(123) is None

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pytest
+
+from src.services.profile_template.exceptions import InvalidProfileTemplateError
 from src.services.profile_template.profile_template_service import ProfileTemplateService
 
 
@@ -49,3 +52,69 @@ bank_name: Test Bank
     assert profile.iban is None
     assert profile.bic is None
     assert profile.service_agreement_date is None
+
+
+def test_validate_required_fields_accepts_complete_profile() -> None:
+    profile = ProfileTemplateService.parse(
+        b"""
+company_name: Test Company
+company_address: Belgrade
+account_holder: Test User
+bank_name: Test Bank
+account_number: "123"
+iban: RS123
+bic: TESTRSBG
+""",
+    )
+
+    ProfileTemplateService.validate_required_fields(profile)
+
+
+@pytest.mark.parametrize(
+    ("yaml_bytes", "expected_fields"),
+    [
+        (
+            b"""
+company_name: Test Company
+company_address: Belgrade
+account_holder: Test User
+bank_name: Test Bank
+account_number: "123"
+bic: TESTRSBG
+""",
+            ["iban"],
+        ),
+        (
+            b"""
+company_name: ""
+company_address: Belgrade
+account_holder: Test User
+bank_name: Test Bank
+account_number: "123"
+iban: RS123
+bic: TESTRSBG
+""",
+            ["company_name"],
+        ),
+        (
+            b"""
+company_name: "   "
+company_address: ""
+account_holder: Test User
+bank_name: Test Bank
+account_number: "123"
+iban: RS123
+bic: TESTRSBG
+""",
+            ["company_name", "company_address"],
+        ),
+    ],
+)
+def test_validate_required_fields_rejects_missing_values(yaml_bytes: bytes, expected_fields: list[str]) -> None:
+    profile = ProfileTemplateService.parse(yaml_bytes)
+
+    with pytest.raises(InvalidProfileTemplateError) as exc_info:
+        ProfileTemplateService.validate_required_fields(profile)
+
+    for field_name in expected_fields:
+        assert f"• {field_name}" in str(exc_info.value)
