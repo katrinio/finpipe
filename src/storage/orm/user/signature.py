@@ -59,13 +59,13 @@ class Signature(BaseModel):
                         active=active,
                     )
                 )
-                LOGGER.info("Created signature for Telegram user %s: %s", owner_telegram_id, resolved_signature_path)
+                LOGGER.info("Created signature for Telegram user %s", owner_telegram_id)
             else:
                 signature.signature_path = resolved_signature_path
                 signature.signature_hash = resolved_signature_hash
                 signature.active = active
                 signature.updated_at = datetime.now(UTC)
-                LOGGER.info("Updated signature for Telegram user %s: %s", owner_telegram_id, resolved_signature_path)
+                LOGGER.info("Updated signature for Telegram user %s", owner_telegram_id)
 
             session.commit()
 

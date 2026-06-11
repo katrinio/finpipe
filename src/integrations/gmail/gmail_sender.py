@@ -41,8 +41,7 @@ class GmailSender:
         dry_run = EnvVar.get_optional_env("EMAIL_DRY_RUN", DRY_RUN_DEFAULT).lower() == "true"
         attachment_list = list(attachments or [])
 
-        LOGGER.info("Sending email to %s", resolved_to_email)
-        LOGGER.info("Email subject: %s", subject)
+        LOGGER.info("Sending Gmail message")
         LOGGER.info("Attachments count: %s", len(attachment_list))
 
         if dry_run:
@@ -73,7 +72,7 @@ class GmailSender:
             raise GmailSendError(SEND_FAILURE_MESSAGE) from error
 
         message_id = self._extract_message_id(response)
-        LOGGER.info("Email successfully sent to %s", resolved_to_email)
+        LOGGER.info("Gmail message sent successfully")
         LOGGER.info("Returned Gmail message id: %s", message_id)
         return message_id
 

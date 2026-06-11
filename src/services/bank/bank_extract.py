@@ -22,7 +22,7 @@ def extract_amount(pdf_path: Path) -> float:
 
     amount_text = match.group(1).replace(",", "")
     amount = float(amount_text)
-    LOGGER.info("Extracted amount %.2f from %s", amount, pdf_path)
+    LOGGER.info("Extracted amount from bank PDF")
     return amount
 
 

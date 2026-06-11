@@ -1,5 +1,7 @@
 """Загрузка пользовательской подписи в encrypted storage и БД."""
 
+import logging
+
 import yaml
 
 from src.services.profile_template.exceptions import InvalidProfileTemplateError
@@ -8,6 +10,8 @@ from src.services.profile_template.profile_template_validator import ProfileTemp
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils import Utils
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ProfileTemplateService:
@@ -31,7 +35,7 @@ class ProfileTemplateService:
         file_size: int,
         file_bytes: bytes,
     ) -> None:
-
+        LOGGER.info("Validating profile template for Telegram user %s", telegram_id)
         ProfileTemplateValidator.validate_yaml(file_name)
         ProfileTemplateValidator.validate_size(file_size)
         ProfileTemplateValidator.validate_yaml_structure(file_bytes)
@@ -39,6 +43,7 @@ class ProfileTemplateService:
         profile = cls.parse(file_bytes)
         cls.validate_required_fields(profile)
         cls.import_profile(telegram_id, profile)
+        LOGGER.info("Profile template persisted for Telegram user %s", telegram_id)
 
     @classmethod
     def parse(cls, file_bytes: bytes) -> ProfileTemplate:
@@ -74,6 +79,7 @@ class ProfileTemplateService:
 
         missing_fields = [field_name for field_name in cls.REQUIRED_PROFILE_FIELDS if cls._is_blank(getattr(profile, field_name))]
         if missing_fields:
+            LOGGER.warning("Profile template missing required fields for Telegram user input")
             missing_fields_text = "\n".join(f"• {field_name}" for field_name in missing_fields)
             msg = (
                 "❌ Профиль заполнен не полностью.\n"
@@ -125,3 +131,4 @@ class ProfileTemplateService:
             iban=profile.iban,
             bic=profile.bic,
         )
+        LOGGER.info("Profile data imported for Telegram user %s", telegram_id)
