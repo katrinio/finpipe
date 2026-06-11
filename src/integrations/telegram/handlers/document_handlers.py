@@ -51,7 +51,7 @@ class DocumentHandlers:
         self.telegram.send_message(telegram_id, BotInfo.FILL_BANK_PDF)
 
         try:
-            bank_pdf_path = fill_bank_pdf_with_data()
+            bank_pdf_path = fill_bank_pdf_with_data(telegram_id)
             self.telegram.send_document(telegram_id, bank_pdf_path)
         except Exception as error:
             print("BANK EXCEPTION:", repr(error))
@@ -65,6 +65,7 @@ class DocumentHandlers:
 
         try:
             transfer_request_pdf_path = generate_transfer_request_pdf(
+                telegram_id=telegram_id,
                 amount=str(config.invoice_amount),
             )
         except ValueError as error:

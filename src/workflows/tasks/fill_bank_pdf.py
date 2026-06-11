@@ -10,6 +10,7 @@ from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
 from src.services.invoice.context import build_invoice_period
+from src.storage.orm.user.bank_details import BankDetails
 from src.utils.credentials import EnvVar
 from src.utils.utils import Utils
 
@@ -20,6 +21,12 @@ def build_parser() -> argparse.ArgumentParser:
     """Создаёт CLI-парсер для генерации bank PDF."""
 
     parser = argparse.ArgumentParser(description="Extract amount and fill bank PDF.")
+    parser.add_argument(
+        "--telegram-id",
+        type=int,
+        required=True,
+        help="Telegram user ID whose stored bank details should be used.",
+    )
     parser.add_argument(
         "--bank-template",
         type=Path,
@@ -47,6 +54,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         fill_bank_pdf_with_data(
+            telegram_id=args.telegram_id,
             bank_template=args.bank_template,
             signature=args.signature,
             output_dir=args.output_dir,
@@ -60,6 +68,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def fill_bank_pdf_with_data(
+    telegram_id: int,
     bank_template: Path | None = None,
     signature: Path | None = Dir.SIGNATURE_ENC,
     output_dir: Path = Dir.BANK_OUTPUT_DIR,
@@ -76,6 +85,11 @@ def fill_bank_pdf_with_data(
 
     LOGGER.info("Preparing bank PDF from %s", bank_template)
     amount = amount or extract_amount(bank_template)
+    bank_details = BankDetails.get_by_owner(telegram_id)
+    if bank_details is None:
+        msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
+        raise ValueError(msg)
+
     invoice_period = build_invoice_period()
     period_suffix = Utils.today()
     bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
@@ -87,6 +101,7 @@ def fill_bank_pdf_with_data(
         output_pdf=bank_output,
         amount=amount,
         date=invoice_period.invoice_date,
+        bank_details=bank_details,
         signature=resolved_signature,
     )
 

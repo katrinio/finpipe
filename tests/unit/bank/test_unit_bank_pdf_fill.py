@@ -1,11 +1,16 @@
 import pytest
 
 from src.services.bank import bank_fill as fill
+from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.user.bank_details import BankDetails
 from src.utils import Utils
 from src.utils.credentials import ENV_PATH_OVERRIDE, EnvVar
 
 
-def test_build_bank_form_data_reads_required_env(monkeypatch) -> None:
+def test_build_bank_form_data_reads_bank_details_from_orm(tmp_path, monkeypatch) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+
     payment_number = Utils.generate_int_string(2)
     payment_code = Utils.generate_int_string(3)
     payment_description = Utils.generate_random_sentence()
@@ -17,12 +22,25 @@ def test_build_bank_form_data_reads_required_env(monkeypatch) -> None:
     monkeypatch.setenv("PAYMENT_NUMBER", payment_number)
     monkeypatch.setenv("PAYMENT_CODE", payment_code)
     monkeypatch.setenv("PAYMENT_DESCRIPTION", payment_description)
-    monkeypatch.setenv("ACCOUNT_HOLDER", recipient)
     monkeypatch.setenv("REGISTRATION_NUMBER", registration_number)
-    monkeypatch.setenv("ACCOUNT_NUMBER", account_number)
     monkeypatch.setenv("CITY", city)
 
-    form_data = fill.build_bank_form_data(5480, "29.05.2026")
+    BankDetails.upsert(
+        owner_telegram_id=123,
+        account_holder=recipient,
+        account_holder_email="test@example.com",
+        account_holder_address="Serbia",
+        amount=123.45,
+        bank_name="Test Bank",
+        account_number=account_number,
+        iban="RS123",
+        bic="TESTRSBG",
+    )
+
+    bank_details = BankDetails.get_by_owner(123)
+    assert bank_details is not None
+
+    form_data = fill.build_bank_form_data(5480, "29.05.2026", bank_details)
 
     assert form_data == {
         "number": payment_number,
