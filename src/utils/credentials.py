@@ -46,7 +46,6 @@ class EnvVar:
     PROJECT_ROOT = find_project_root()
     ENV_PATH = PROJECT_ROOT / ".env"
     _DOTENV_LOADED = False
-    _LOADED_DOTENV_PATHS: tuple[Path, ...] = ()
 
     @classmethod
     def get_dotenv(cls) -> None:
@@ -72,12 +71,11 @@ class EnvVar:
             loaded_paths.append(path)
             LOGGER.debug("Loaded environment variables from %s", path)
 
-        cls._LOADED_DOTENV_PATHS = tuple(loaded_paths)
         cls._DOTENV_LOADED = True
 
     @classmethod
     def get_dotenv_paths(cls) -> tuple[Path, ...]:
-        """Возвращает список .env-файлов, которые нужно проверить."""
+        """Возвращает кортеж .env-файлов, которые нужно проверить."""
 
         paths: list[Path] = []
         override_path = os.getenv(ENV_PATH_OVERRIDE)
@@ -102,7 +100,6 @@ class EnvVar:
         """Сбрасывает кэш загрузки .env для тестов и повторных запусков."""
 
         cls._DOTENV_LOADED = False
-        cls._LOADED_DOTENV_PATHS = ()
 
     @classmethod
     def get_required_env(cls, name: str) -> str:
@@ -128,11 +125,11 @@ class EnvVar:
     def get_env_path(cls, name: str) -> Path:
         """Преобразует env-переменную с путём в абсолютный `Path`."""
 
-        env_path_value = EnvVar.get_required_env(name)
+        env_path_value = cls.get_required_env(name)
         path = Path(env_path_value).expanduser()
         if not path.is_absolute():
             # В CI и локально разрешаем относительные пути от корня проекта.
-            path = EnvVar.PROJECT_ROOT / path
+            path = cls.PROJECT_ROOT / path
         return path
 
     @classmethod
@@ -143,7 +140,7 @@ class EnvVar:
 
     @classmethod
     def load_credentials(cls, token_path: Path, scopes: Sequence[str] | None = None) -> Credentials | None:
-        """Читает Gmail OAuth token из файла, если он валиден."""
+        """Читает Gmail OAuth token из файла и возвращает его, если он валиден."""
 
         if not token_path.exists():
             LOGGER.info("Gmail OAuth token not found at %s", token_path)
