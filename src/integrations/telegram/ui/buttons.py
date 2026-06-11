@@ -7,9 +7,15 @@ class MainMenuButtons:
 
 
 class DocumentsMenuButtons:
-    INVOICE = "📄 Инвойс"
+    INVOICE = "🧾 Invoice"
     BANK = "🏦 Банк PDF"
     TRANSFER_REQUEST = "💸 Запрос перевода"
+
+
+class InvoiceMenuButtons:
+    SET_INVOICE_AMOUNT = "💰 Указать сумму"
+    GET_INVOICE_AMOUNT = "💶 Текущая сумма"
+    GENERATE_INVOICE = "📄 Сгенерировать Invoice"
 
 
 class ProfileButtons:

@@ -20,6 +20,12 @@ class DocumentHandlers:
             return
         self.telegram.send_message(telegram_id, BotInfo.INVOICE_SENT)
 
+    def set_invoice_amount(self, telegram_id: int) -> None:
+        self.telegram.send_message(telegram_id, "set_invoice_amount")
+
+    def get_invoice_amount(self, telegram_id: int) -> None:
+        self.telegram.send_message(telegram_id, "get_invoice_amount")
+
     def bank(self, telegram_id: int) -> None:
 
         self.telegram.send_message(telegram_id, BotInfo.FILL_BANK_PDF)

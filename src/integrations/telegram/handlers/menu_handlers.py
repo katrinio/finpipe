@@ -1,6 +1,6 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.ui.buttons import IntegrationsButtons, MainMenuButtons, NavigationButtons, ProfileButtons
-from src.integrations.telegram.ui.menu.document_menu import build_document_menu
+from src.integrations.telegram.ui.buttons import DocumentsMenuButtons, IntegrationsButtons, MainMenuButtons, NavigationButtons, ProfileButtons
+from src.integrations.telegram.ui.menu.document_menu import build_document_menu, build_invoice_menu
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu, build_integration_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
@@ -59,6 +59,13 @@ class MenuHandler:
             telegram_id,
             MainMenuButtons.DOCUMENTS,
             reply_markup=build_document_menu(),
+        )
+
+    def invoice_menu(self, telegram_id: int) -> None:
+        self.telegram.send_message(
+            telegram_id,
+            DocumentsMenuButtons.INVOICE,
+            reply_markup=build_invoice_menu(),
         )
 
     def integration_menu(self, telegram_id: int) -> None:
