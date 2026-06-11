@@ -27,8 +27,6 @@ jobs:
 
       COMPANY_NAME: ${{ secrets.COMPANY_NAME }}
       COMPANY_ADDRESS: ${{ secrets.COMPANY_ADDRESS }}
-
-      INVOICE_AMOUNT: ${{ secrets.INVOICE_AMOUNT }}
       SERVICE_AGREEMENT_DATE: ${{ secrets.SERVICE_AGREEMENT_DATE }}
 
       PAYMENT_NUMBER: ${{ secrets.PAYMENT_NUMBER }}

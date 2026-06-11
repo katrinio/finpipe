@@ -18,7 +18,6 @@ jobs:
       BANK_NAME: ${{ secrets.BANK_NAME }}
       COMPANY_NAME: ${{ secrets.COMPANY_NAME }}
       COMPANY_ADDRESS: ${{ secrets.COMPANY_ADDRESS }}
-      INVOICE_AMOUNT: ${{ secrets.INVOICE_AMOUNT }}
       SERVICE_AGREEMENT_DATE: ${{ secrets.SERVICE_AGREEMENT_DATE }}
     steps:
       - uses: actions/checkout@v5
