@@ -131,7 +131,20 @@ class TelegramBot:
         if state_handler is None:
             return False
 
+        data = self.extract_message_data(update)
+        if data is not None:
+            text, _, _ = data
+
+            if text in self.handlers._command_handlers:
+                LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
+
+                UserStateService.clear_state(telegram_id)
+                self.telegram.send_message("Текущая операция отменена.")
+
+                return False
+
         LOGGER.info("Processing state %s for Telegram user %s", state.name, telegram_id)
+
         file_data = self.extract_document_upload_data(update)
         if file_data is None:
             self.telegram.send_message(state_handler.error_message)
@@ -139,16 +152,21 @@ class TelegramBot:
             return True
 
         file_name, file_size, file_id, _ = file_data
-        LOGGER.info(
-            "Received upload: file=%s size=%s state=%s",
-            file_name,
-            file_size,
-            state.name,
-        )
+
+        LOGGER.info("Received upload: file=%s size=%s state=%s", file_name, file_size, state.name)
+
         file_path = self.telegram.get_file(file_id)
         file_bytes = self.telegram.download_file(file_path)
-        state_handler.handler(telegram_id, file_name, file_size, file_bytes)
+
+        state_handler.handler(
+            telegram_id,
+            file_name,
+            file_size,
+            file_bytes,
+        )
+
         LOGGER.info("Successfully processed upload for Telegram user %s", telegram_id)
+
         self.update_storage.mark_processed(update["update_id"])
         return True
 
