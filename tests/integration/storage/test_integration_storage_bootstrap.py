@@ -7,7 +7,7 @@ import pytest
 
 from src.constants import Dir
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
-from src.storage.orm import AllowedUser, Signature
+from src.storage.orm import AllowedUser, Signature, UserRole
 from src.storage.orm.database import Database, build_sqlite_url
 
 
@@ -15,7 +15,7 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("TELEGRAM_ADMIN_ID", "9001")
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "9001")
     monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "primary-admin")
     source = tmp_path / "signature.png"
     source.write_bytes(b"signature-bytes")
@@ -30,6 +30,7 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
     first_signature = Signature.get_active(9001)
 
     assert first_admin is not None
+    assert first_admin.role == UserRole.OWNER
     assert first_signature is not None
     assert first_signature.signature_path.endswith("signatures/9001_sign.enc")
     assert first_signature.signature_hash == hashlib.sha256((tmp_path / "signatures" / "9001_sign.enc").read_bytes()).hexdigest()
@@ -44,8 +45,29 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
 
     assert second_admin is not None
     assert second_signature is not None
-    assert second_admin.id == first_admin.id
+    assert second_admin.telegram_id == first_admin.telegram_id
     assert second_signature.id == first_signature.id
     assert len(AllowedUser.list_all()) == 1
     assert Signature.exists(9001)
     assert not source.exists()
+
+
+def test_bootstrap_primary_admin_does_not_overwrite_existing_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "9001")
+    monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "primary-admin")
+    monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "9001_sign.enc")
+
+    db_path = tmp_path / "storage.sqlite3"
+    database = Database(build_sqlite_url(db_path))
+    database.initialize_schema()
+    AllowedUser.create(9001, "existing", UserRole.USER)
+
+    bootstrap_primary_admin(db_path)
+
+    admin = AllowedUser.get_by_telegram_id(9001)
+    assert admin is not None
+    assert admin.username == "existing"
+    assert admin.role == UserRole.USER

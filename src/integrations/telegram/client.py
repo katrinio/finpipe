@@ -15,7 +15,6 @@ class TelegramClient:
 
     def __init__(self) -> None:
         self.token = EnvVar.get_required_env("TELEGRAM_BOT_TOKEN")
-        self.chat_id = EnvVar.get_required_env("TELEGRAM_CHAT_ID")
 
     def healthcheck(self) -> None:
         """Проверяет, что токен Telegram-бота валиден."""
@@ -32,11 +31,11 @@ class TelegramClient:
             msg = "Telegram API healthcheck failed"
             raise RuntimeError(msg)
 
-    def send_message(self, text: str, reply_markup: dict | None = None) -> None:
+    def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None) -> None:
         """Отправляет текстовое сообщение в целевой Telegram-чат."""
 
         payload: dict[str, object] = {
-            "chat_id": self.chat_id,
+            "chat_id": chat_id,
             "text": text,
         }
         if reply_markup is not None:
@@ -50,13 +49,13 @@ class TelegramClient:
 
         response.raise_for_status()
 
-    def send_document(self, document_path: Path) -> None:
+    def send_document(self, chat_id: int, document_path: Path) -> None:
         """Отправляет PDF-файл в Telegram как документ."""
 
         with open(document_path, "rb") as document:
             response = requests.post(
                 f"https://api.telegram.org/bot{self.token}/sendDocument",
-                data={"chat_id": self.chat_id},
+                data={"chat_id": chat_id},
                 files={
                     "document": (
                         document_path.name,
@@ -111,6 +110,7 @@ class TelegramClient:
 
     def send_daily_report(
         self,
+        chat_id: int,
         unit_status: str,
         integration_status: str,
         telegram_status: str,
@@ -138,4 +138,4 @@ class TelegramClient:
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
         )
 
-        self.send_message(report_message)
+        self.send_message(chat_id, report_message)

@@ -1,7 +1,5 @@
 """Сборка storage-зависимостей для composition root workflow-слоя."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
 

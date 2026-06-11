@@ -7,7 +7,8 @@ import pytest
 
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo
-from src.integrations.telegram.ui.buttons import OwnerButtons, SystemButtons
+from src.integrations.telegram.ui.buttons import OwnerButtons
+from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
 from tests.fakes.fake_telegram import FakeTelegramClient
@@ -21,43 +22,40 @@ class TestTelegramBot:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-        monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: False))
+        monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "owner")
+        bootstrap_primary_admin(tmp_path / "storage.sqlite3")
+        storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
 
-        bot = TelegramBot(build_storage_dependencies(tmp_path / "storage.sqlite3"), telegram=fake_telegram_client())
+        bot = TelegramBot(storage, telegram=fake_telegram_client())
 
-        assert bot.is_authorized(777) is True
+        assert bot.is_authorized(777, f"{OwnerButtons.ADD_USER} 2") is True
 
     def test_allowlisted_user_has_access(
         self,
         fake_telegram_client: Callable[..., FakeTelegramClient],
         tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
         storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
         AllowedUser.create(123, "alice")
 
         bot = TelegramBot(storage, telegram=fake_telegram_client())
 
-        assert bot.is_authorized(123) is True
+        assert bot.is_authorized(123, f"{OwnerButtons.ADD_USER} 2") is True
 
     def test_non_authorized_user_gets_access_denied(
         self,
         caplog: pytest.LogCaptureFixture,
         fake_telegram_client: Callable[..., FakeTelegramClient],
-        monkeypatch: pytest.MonkeyPatch,
         tmp_path: Path,
     ) -> None:
-        monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-        monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: False))
-
+        build_storage_dependencies(tmp_path / "storage.sqlite3")
         telegram_client = fake_telegram_client(
             {
                 "result": [
                     {
                         "update_id": 11,
                         "message": {
-                            "text": SystemButtons.WHOAMI,
+                            "text": OwnerButtons.ADD_USER,
                             "from": {"id": 999, "username": "intruder"},
                         },
                     }
@@ -71,14 +69,15 @@ class TestTelegramBot:
             {
                 "update_id": 11,
                 "message": {
-                    "text": SystemButtons.WHOAMI,
+                    "text": OwnerButtons.ADD_USER,
                     "from": {"id": 999, "username": "intruder"},
                 },
             }
         )
 
-        assert "Access denied for Telegram user 999 (@intruder)" in caplog.text
+        assert "Access denied for Telegram user 999" in caplog.text
         assert telegram_client.sent_messages == [BotInfo.ACCESS_DENIED]
+        assert telegram_client.sent_messages_with_chat_ids == [(999, BotInfo.ACCESS_DENIED)]
 
     def test_owner_can_add_user_to_allowlist(
         self,
@@ -87,6 +86,8 @@ class TestTelegramBot:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+        monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "owner")
+        bootstrap_primary_admin(tmp_path / "storage.sqlite3")
 
         telegram_client = fake_telegram_client(
             {
@@ -113,5 +114,5 @@ class TestTelegramBot:
             }
         )
 
-        assert AllowedUser.exists(123456789) is True
         assert telegram_client.sent_messages == ["✅ Пользователь добавлен."]
+        assert telegram_client.sent_messages_with_chat_ids == [(777, "✅ Пользователь добавлен.")]

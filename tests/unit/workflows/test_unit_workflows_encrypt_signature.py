@@ -7,6 +7,7 @@ from cryptography.fernet import Fernet
 
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
+from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.orm import Signature
 from src.storage.orm.database import Database, build_sqlite_url
 from src.workflows.tasks.encrypt_signature import encrypt_signature_workflow
@@ -18,13 +19,16 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
-    monkeypatch.setenv("TELEGRAM_ADMIN_ID", "777")
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+    monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "admin")
     SignatureCipher._cipher = None
     monkeypatch.setattr(Dir, "STORAGE_DB", tmp_path / "storage.sqlite3")
 
     source = tmp_path / "signature.png"
     destination = tmp_path / "signature.enc"
     source.write_bytes(b"signature-bytes")
+
+    bootstrap_primary_admin(tmp_path / "storage.sqlite3")
 
     result = encrypt_signature_workflow(source, destination)
 

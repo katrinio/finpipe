@@ -21,22 +21,22 @@ class ProfileHandlers:
                 file_bytes=file_bytes,
             )
         except InvalidProfileTemplateFormatError:
-            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_NOT_YAML)
+            self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_NOT_YAML)
             return
         except ProfileTemplateTooLargeError:
-            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_TOO_LARGE)
+            self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_TOO_LARGE)
             return
         except InvalidProfileTemplateError:
-            self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPLOAD_ERROR)
+            self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_UPLOAD_ERROR)
             return
 
         self.state_service.clear_state(telegram_id)
-        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_UPDATED)
+        self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_UPDATED)
 
     def upload_template(self, telegram_id: int) -> None:
         self.state_service.set_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
-        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_REQUIREMENTS)
+        self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_REQUIREMENTS)
 
     def download_template(self, telegram_id: int) -> None:
-        self.telegram.send_document(document_path=Dir.PROFILE_TEMPLATE)
-        self.telegram.send_message(BotInfo.PROFILE_TEMPLATE_SENT)
+        self.telegram.send_document(telegram_id, document_path=Dir.PROFILE_TEMPLATE)
+        self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_SENT)

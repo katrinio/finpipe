@@ -1,7 +1,5 @@
 """Callback processing for Gmail OAuth."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 from src.integrations.gmail.account_service import GmailAccountService

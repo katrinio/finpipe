@@ -49,3 +49,8 @@ class NavigationButtons:
 
 class OwnerButtons:
     ADD_USER = "/add_user"
+
+
+PUBLIC_COMMANDS = {
+    SystemButtons.WHOAMI,
+}

@@ -1,7 +1,5 @@
 """Валидация пользовательской подписи перед сохранением."""
 
-from __future__ import annotations
-
 from io import BytesIO
 
 from PIL import Image, UnidentifiedImageError

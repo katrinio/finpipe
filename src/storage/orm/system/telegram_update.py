@@ -1,7 +1,5 @@
 """ORM-сущность обработанных Telegram update_id."""
 
-from __future__ import annotations
-
 from datetime import datetime
 
 from sqlalchemy import Integer, func, select

@@ -1,7 +1,5 @@
 """HTTP callback entrypoint for Gmail OAuth."""
 
-from __future__ import annotations
-
 from src.integrations.gmail.oauth_callback import GmailOAuthCallbackService
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.utils.credentials import EnvVar

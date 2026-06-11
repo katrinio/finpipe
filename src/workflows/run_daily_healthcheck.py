@@ -4,6 +4,7 @@ import os
 
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
+from src.storage.orm import AllowedUser
 from src.utils.credentials import LOGGER
 
 
@@ -13,7 +14,11 @@ def main() -> int:
     configure_logging()
 
     try:
+        owner = AllowedUser.get_owner()
+        if owner is None:
+            raise RuntimeError("Owner is not bootstrapped in storage")
         TelegramClient().send_daily_report(
+            owner.telegram_id,
             unit_status=os.environ["UNIT_STATUS"],
             integration_status=os.environ["INTEGRATION_STATUS"],
             telegram_status=os.environ["TELEGRAM_STATUS"],

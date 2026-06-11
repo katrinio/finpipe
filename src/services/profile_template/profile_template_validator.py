@@ -1,7 +1,5 @@
 """Валидация пользовательской подписи перед сохранением."""
 
-from __future__ import annotations
-
 import yaml
 
 from src.services.profile_template.exceptions import InvalidProfileTemplateError, InvalidProfileTemplateFormatError, ProfileTemplateTooLargeError

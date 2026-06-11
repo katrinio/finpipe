@@ -1,7 +1,5 @@
 """Загрузка пользовательской подписи в encrypted storage и БД."""
 
-from __future__ import annotations
-
 import yaml
 
 from src.services.profile_template.profile_template import ProfileTemplate

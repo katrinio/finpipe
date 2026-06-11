@@ -14,7 +14,7 @@ class SignatureHandlers:
 
     def upload_signature(self, telegram_id: int) -> None:
         self.state_service.set_state(telegram_id, UserState.WAITING_SIGNATURE_UPLOAD)
-        self.telegram.send_message(BotInfo.SIGNATURE_REQUIREMENTS)
+        self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_REQUIREMENTS)
 
     def handle_signature_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
         try:
@@ -25,30 +25,30 @@ class SignatureHandlers:
                 file_bytes=file_bytes,
             )
         except InvalidSignatureFormatError:
-            self.telegram.send_message(BotInfo.SIGNATURE_NOT_PNG)
+            self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_NOT_PNG)
             return
         except SignatureTooLargeError:
-            self.telegram.send_message(BotInfo.SIGNATURE_TOO_LARGE)
+            self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_TOO_LARGE)
             return
         except InvalidSignatureImageError:
-            self.telegram.send_message(BotInfo.SIGNATURE_UPLOAD_ERROR)
+            self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_UPLOAD_ERROR)
             return
 
         self.state_service.clear_state(telegram_id)
-        self.telegram.send_message(BotInfo.SIGNATURE_UPDATED)
+        self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_UPDATED)
 
     def delete_signature(self, telegram_id: int) -> None:
         signature = Signature.get_active(telegram_id)
         if signature is None:
-            self.telegram.send_message(BotInfo.SIGNATURE_NOT_FOUND)
+            self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_NOT_FOUND)
             return
 
         Signature.delete(telegram_id)
-        self.telegram.send_message(BotInfo.SIGNATURE_DELETED)
+        self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_DELETED)
 
     def signature_status(self, telegram_id: int) -> None:
         if not Signature.exists(telegram_id):
-            self.telegram.send_message(BotInfo.SIGNATURE_NOT_FOUND)
+            self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_NOT_FOUND)
             return
 
-        self.telegram.send_message(BotInfo.SIGNATURE_FOUND)
+        self.telegram.send_message(telegram_id, BotInfo.SIGNATURE_FOUND)

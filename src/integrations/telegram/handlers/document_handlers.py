@@ -11,36 +11,36 @@ class DocumentHandlers:
     def __init__(self, telegram: TelegramClient) -> None:
         self.telegram = telegram
 
-    def invoice(self) -> None:
-        self.telegram.send_message(BotInfo.GENERATING_INVOICE)
+    def invoice(self, telegram_id: int) -> None:
+        self.telegram.send_message(telegram_id, BotInfo.GENERATING_INVOICE)
         try:
-            generate_and_send_invoice()
+            generate_and_send_invoice(telegram_id)
         except ValueError as error:
-            self.telegram.send_message(str(error))
+            self.telegram.send_message(telegram_id, str(error))
             return
-        self.telegram.send_message(BotInfo.INVOICE_SENT)
+        self.telegram.send_message(telegram_id, BotInfo.INVOICE_SENT)
 
-    def bank(self) -> None:
+    def bank(self, telegram_id: int) -> None:
         print("BANK HANDLER CALLED")
 
-        self.telegram.send_message(BotInfo.FILL_BANK_PDF)
+        self.telegram.send_message(telegram_id, BotInfo.FILL_BANK_PDF)
 
         try:
             print("BEFORE FILL")
             bank_pdf_path = fill_bank_pdf_with_data()
             print("AFTER FILL")
-            self.telegram.send_document(bank_pdf_path)
+            self.telegram.send_document(telegram_id, bank_pdf_path)
         except Exception as error:
             print("BANK EXCEPTION:", repr(error))
             raise
 
-    def transfer_request(self) -> None:
+    def transfer_request(self, telegram_id: int) -> None:
         try:
             transfer_request_pdf_path = generate_transfer_request_pdf(
                 amount=EnvVar.get_required_env("INVOICE_AMOUNT"),
             )
         except ValueError as error:
-            self.telegram.send_message(str(error))
+            self.telegram.send_message(telegram_id, str(error))
             return
-        self.telegram.send_document(transfer_request_pdf_path)
-        self.telegram.send_message(Message.TRANSACTION_REQUEST_GENERATED)
+        self.telegram.send_document(telegram_id, transfer_request_pdf_path)
+        self.telegram.send_message(telegram_id, Message.TRANSACTION_REQUEST_GENERATED)

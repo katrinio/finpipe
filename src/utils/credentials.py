@@ -1,7 +1,5 @@
 """Загрузка .env, путей и OAuth-учётных данных проекта."""
 
-from __future__ import annotations
-
 import logging
 import os
 from collections.abc import Sequence

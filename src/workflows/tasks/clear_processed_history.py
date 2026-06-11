@@ -1,7 +1,5 @@
 """CLI-шаг для очистки истории уже обработанных писем банка."""
 
-from __future__ import annotations
-
 import logging
 
 from src.logging_config import configure_logging

@@ -12,50 +12,58 @@ class MenuHandler:
     def __init__(self, telegram: TelegramClient) -> None:
         self.telegram = telegram
 
-    def main_start(self) -> None:
+    def main_start(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             CommonMessages.WELCOME,
             reply_markup=build_main_menu(),
         )
 
-    def main_menu(self) -> None:
+    def main_menu(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             NavigationButtons.HOME,
             reply_markup=build_main_menu(),
         )
 
-    def system_menu(self) -> None:
+    def system_menu(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             MainMenuButtons.SYSTEM,
             reply_markup=build_system_menu(),
         )
 
-    def gmail_menu(self) -> None:
+    def gmail_menu(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             IntegrationsButtons.GMAIL,
             reply_markup=build_gmail_menu(),
         )
 
-    def signature_menu(self) -> None:
+    def signature_menu(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             ProfileButtons.SIGNATURE,
             reply_markup=build_signature_menu(),
         )
 
-    def settings_menu(self) -> None:
+    def settings_menu(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             MainMenuButtons.PROFILE,
             reply_markup=build_profile_menu(),
         )
 
-    def document_menu(self) -> None:
+    def document_menu(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             MainMenuButtons.DOCUMENTS,
             reply_markup=build_document_menu(),
         )
 
-    def integration_menu(self) -> None:
+    def integration_menu(self, telegram_id: int) -> None:
         self.telegram.send_message(
+            telegram_id,
             MainMenuButtons.INTEGRATIONS,
             reply_markup=build_integration_menu(),
         )

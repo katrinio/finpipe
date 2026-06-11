@@ -1,7 +1,5 @@
 """ORM-сущность пользовательских настроек."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 
 from sqlalchemy import Integer, String, delete, select

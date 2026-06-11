@@ -67,9 +67,11 @@ class CommandRouter:
 
         try:
             handler = self._command_handlers.get(text)
+            if handler is None and text.startswith(f"{OwnerButtons.ADD_USER} "):
+                handler = self._command_handlers.get(OwnerButtons.ADD_USER)
 
             if handler is None:
-                self.telegram.send_message(BotInfo.NO_SUCH_COMMAND)
+                self.telegram.send_message(context.telegram_id, BotInfo.NO_SUCH_COMMAND)
                 self._audit(context, AuditStatus.FAILED, BotInfo.NO_SUCH_COMMAND)
             else:
                 handler(context)
@@ -77,7 +79,7 @@ class CommandRouter:
 
         except Exception as error:
             LOGGER.exception("Command failed: %s", text)
-            self.telegram.send_message(f"{BotInfo.SYSTEM_ERROR}\nCommand {text} failed:\n{error}")
+            self.telegram.send_message(context.telegram_id, f"{BotInfo.SYSTEM_ERROR}\nCommand {text} failed:\n{error}")
             self._audit(context, AuditStatus.FAILED, str(error))
 
             return False
@@ -93,29 +95,29 @@ class CommandRouter:
                 command=context.command,
                 username=context.username,
             ),
-            Cmd.START: lambda context: self.menu_handler.main_start(),
-            Cmd.MENU: lambda context: self.menu_handler.main_menu(),
-            MainMenuButtons.DOCUMENTS: lambda context: self.menu_handler.document_menu(),
-            MainMenuButtons.INTEGRATIONS: lambda context: self.menu_handler.integration_menu(),
-            MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(),
-            MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(),
-            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(),
-            DocumentsMenuButtons.INVOICE: lambda context: self.document_handler.invoice(),
-            DocumentsMenuButtons.BANK: lambda context: self.document_handler.bank(),
-            DocumentsMenuButtons.TRANSFER_REQUEST: lambda context: self.document_handler.transfer_request(),
+            Cmd.START: lambda context: self.menu_handler.main_start(context.telegram_id),
+            Cmd.MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            MainMenuButtons.DOCUMENTS: lambda context: self.menu_handler.document_menu(context.telegram_id),
+            MainMenuButtons.INTEGRATIONS: lambda context: self.menu_handler.integration_menu(context.telegram_id),
+            MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
+            MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
+            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            DocumentsMenuButtons.INVOICE: lambda context: self.document_handler.invoice(context.telegram_id),
+            DocumentsMenuButtons.BANK: lambda context: self.document_handler.bank(context.telegram_id),
+            DocumentsMenuButtons.TRANSFER_REQUEST: lambda context: self.document_handler.transfer_request(context.telegram_id),
             ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
             ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
             SystemButtons.STATUS: lambda context: self.system_handler.status(context.telegram_id),
             SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_STATUS: lambda context: self.signature_handler.signature_status(context.telegram_id),
-            IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(),
+            IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
             GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
-            SystemButtons.ABOUT: lambda context: self.system_handler.about(),
-            SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(),
-            SystemButtons.HELP: lambda context: self._help(),
+            SystemButtons.ABOUT: lambda context: self.system_handler.about(context.telegram_id),
+            SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(context.telegram_id),
+            SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
         }
 
@@ -135,8 +137,8 @@ class CommandRouter:
             details or None,
         )
 
-    def _help(self) -> None:
-        self.telegram.send_message(build_help_message())
+    def _help(self, telegram_id: int) -> None:
+        self.telegram.send_message(telegram_id, build_help_message())
 
 
 TelegramHandlers = CommandRouter
