@@ -8,7 +8,7 @@ from src.storage.orm.base import BaseModel
 
 
 class UserConfig(BaseModel):
-    """Пользовательские настройки."""
+    """Хранит пользовательские настройки Telegram-аккаунта."""
 
     __tablename__ = "user_config"
 

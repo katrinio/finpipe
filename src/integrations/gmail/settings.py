@@ -1,4 +1,4 @@
-"""Gmail integration feature toggles."""
+"""Feature toggle для Gmail OAuth callback."""
 
 from src.utils.credentials import EnvVar
 

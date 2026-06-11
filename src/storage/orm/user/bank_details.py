@@ -1,3 +1,5 @@
+"""ORM-модель банковских реквизитов пользователя."""
+
 from datetime import UTC, datetime
 
 from sqlalchemy import Integer, String, delete, select
@@ -8,6 +10,8 @@ from src.storage.orm.base import BaseModel
 
 
 class BankDetails(BaseModel):
+    """Хранит банковские реквизиты, используемые в документах."""
+
     __tablename__ = "bank_account"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 

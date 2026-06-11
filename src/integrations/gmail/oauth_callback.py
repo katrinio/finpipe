@@ -1,4 +1,4 @@
-"""Callback processing for Gmail OAuth."""
+"""Обработка callback-запроса Gmail OAuth."""
 
 from dataclasses import dataclass
 
@@ -10,6 +10,8 @@ from src.storage.orm.system.oauth_session import OAuthSession
 
 @dataclass(frozen=True, slots=True)
 class OAuthCallbackResult:
+    """Результат обработки Gmail OAuth callback."""
+
     ok: bool
     message: str
     telegram_id: int | None
@@ -17,6 +19,8 @@ class OAuthCallbackResult:
 
 
 class GmailOAuthCallbackService:
+    """Связывает callback Gmail OAuth с локальным хранилищем."""
+
     @classmethod
     def handle_callback(
         cls,
@@ -25,6 +29,8 @@ class GmailOAuthCallbackService:
         error: str | None,
         callback_url: str,
     ) -> OAuthCallbackResult:
+        """Обрабатывает callback целиком и сохраняет Gmail-подключение."""
+
         if error:
             return OAuthCallbackResult(False, f"OAuth error: {error}", None, None)
         if not code or not state:
@@ -49,6 +55,8 @@ class GmailOAuthCallbackService:
         state: str | None,
         error: str | None,
     ) -> None:
+        """Проверяет обязательные параметры callback-запроса."""
+
         if error:
             raise GmailOAuthError(error)
         if not code or not state:
@@ -56,6 +64,8 @@ class GmailOAuthCallbackService:
 
     @classmethod
     def load_session(cls, state: str) -> OAuthSession:
+        """Загружает и валидирует OAuth-сессию по state."""
+
         return GmailOAuth.validate_state(state)
 
     @classmethod
@@ -64,6 +74,8 @@ class GmailOAuthCallbackService:
         session: OAuthSession,
         result: GmailOAuthResult,
     ) -> None:
+        """Сохраняет успешное Gmail-подключение пользователя."""
+
         GmailAccountService.connect(
             telegram_id=session.telegram_id,
             email=result.email or "unknown",
@@ -76,4 +88,6 @@ class GmailOAuthCallbackService:
         session: OAuthSession,
         error_message: str,
     ) -> None:
+        """Помечает OAuth-сессию завершившейся ошибкой."""
+
         OAuthSession.mark_failed(session.state, error_message)

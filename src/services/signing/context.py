@@ -1,16 +1,20 @@
-"""Координаты подписей гп PDF-доках."""
+"""Координаты размещения подписи в PDF-документах."""
 
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class PdfSignaturePosition:
+    """Координаты и размер блока подписи на странице PDF."""
+
     x: int
     y: int
     height: int
 
 
 class SignaturePositions:
+    """Набор позиций подписи для поддерживаемых документов."""
+
     BANK = PdfSignaturePosition(
         x=420,
         y=100,

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ProfileTemplate:
+    """Нормализованные поля профиля из YAML-шаблона."""
+
     company_name: str | None
     company_address: str | None
     account_holder: str | None

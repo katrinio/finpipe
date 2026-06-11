@@ -9,6 +9,8 @@ from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 
 
 def generate_and_send_invoice(chat_id: int) -> None:
+    """Генерирует инвойс пользователя и отправляет файлы в Telegram."""
+
     telegram_client = TelegramClient()
 
     pdf_path = generate_invoice_pdf(telegram_id=chat_id)

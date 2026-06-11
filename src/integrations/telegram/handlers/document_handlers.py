@@ -14,14 +14,20 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DocumentHandlers:
+    """Запускает документные workflow из Telegram-команд."""
+
     def __init__(self, telegram: TelegramClient) -> None:
         self.telegram = telegram
 
     def start_invoice_amount_input(self, telegram_id: int) -> None:
+        """Переводит пользователя в режим ввода суммы Invoice."""
+
         UserStateService.set_state(telegram_id, UserState.WAITING_INVOICE_AMOUNT)
         self.telegram.send_message(telegram_id, "💰 Введите сумму Invoice:")
 
     def handle_invoice_amount_input(self, telegram_id: int, text: str | None) -> None:
+        """Сохраняет сумму Invoice после валидации текстового ввода."""
+
         if text is None or not text.isdigit() or int(text) <= 0:
             self.telegram.send_message(
                 telegram_id,
@@ -35,6 +41,8 @@ class DocumentHandlers:
         self.telegram.send_message(telegram_id, f"✅ Сумма Invoice сохранена: {amount} EUR")
 
     def invoice(self, telegram_id: int) -> None:
+        """Запускает генерацию Invoice и отправляет результат пользователю."""
+
         LOGGER.info("Invoice generation requested by Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BotInfo.GENERATING_INVOICE)
         try:
@@ -47,6 +55,8 @@ class DocumentHandlers:
         self.telegram.send_message(telegram_id, BotInfo.INVOICE_SENT)
 
     def get_invoice_amount(self, telegram_id: int) -> None:
+        """Показывает текущую сумму Invoice из пользовательских настроек."""
+
         current_amount = UserConfig.get_by_owner(telegram_id)
         if current_amount is None or current_amount.invoice_amount is None:
             self.telegram.send_message(telegram_id, "💰 Сумма не задана.\nИспользуйте «Указать сумму».")
@@ -55,6 +65,8 @@ class DocumentHandlers:
         self.telegram.send_message(telegram_id, f"💶 Текущая сумма: {current_amount.invoice_amount} EUR")
 
     def bank(self, telegram_id: int) -> None:
+        """Генерирует заполненный Bank PDF и отправляет его пользователю."""
+
         LOGGER.info("Bank PDF generation requested by Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BotInfo.FILL_BANK_PDF)
 
@@ -63,6 +75,8 @@ class DocumentHandlers:
         self.telegram.send_document(telegram_id, bank_pdf_path)
 
     def transfer_request(self, telegram_id: int) -> None:
+        """Генерирует Transfer Request для текущего пользователя."""
+
         config = UserConfig.get_by_owner(telegram_id)
         if config is None or config.invoice_amount is None:
             LOGGER.warning("Transfer request generation blocked by missing invoice amount for Telegram user %s", telegram_id)

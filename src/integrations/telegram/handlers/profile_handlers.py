@@ -16,11 +16,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ProfileHandlers:
+    """Обрабатывает профиль пользователя и YAML-шаблон профиля."""
+
     def __init__(self, telegram: TelegramClient, state_service: UserStateService) -> None:
         self.telegram = telegram
         self.state_service = state_service
 
     def handle_profile_template_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
+        """Импортирует YAML-профиль пользователя и сообщает результат."""
+
         LOGGER.info("Profile template upload started for Telegram user %s", telegram_id)
         try:
             ProfileTemplateService.upload(
@@ -57,16 +61,22 @@ class ProfileHandlers:
         )
 
     def upload_template(self, telegram_id: int) -> None:
+        """Переводит пользователя в режим загрузки YAML-профиля."""
+
         LOGGER.info("Profile template upload requested by Telegram user %s", telegram_id)
         self.state_service.set_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
         self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_REQUIREMENTS)
 
     def download_template(self, telegram_id: int) -> None:
+        """Отправляет пользователю актуальный YAML-шаблон профиля."""
+
         LOGGER.info("Profile template download requested by Telegram user %s", telegram_id)
         self.telegram.send_document(telegram_id, document_path=Dir.PROFILE_TEMPLATE)
         self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_SENT)
 
     def show_profile(self, telegram_id: int) -> None:
+        """Показывает сводку готовности профиля и его текущие значения."""
+
         LOGGER.info("Profile screen requested by Telegram user %s", telegram_id)
         company_profile = CompanyProfile.get_by_owner(telegram_id)
         bank_details = BankDetails.get_by_owner(telegram_id)

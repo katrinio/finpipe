@@ -1,4 +1,4 @@
-"""Загрузка пользовательской подписи в encrypted storage и БД."""
+"""Импорт профиля пользователя из YAML в ORM."""
 
 import logging
 
@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ProfileTemplateService:
-    """Сервис загрузки пользовательской подписи."""
+    """Импортирует и валидирует профиль пользователя."""
 
     REQUIRED_PROFILE_FIELDS = (
         "company_name",
@@ -35,6 +35,8 @@ class ProfileTemplateService:
         file_size: int,
         file_bytes: bytes,
     ) -> None:
+        """Проверяет YAML-шаблон и сохраняет профиль пользователя."""
+
         LOGGER.info("Validating profile template for Telegram user %s", telegram_id)
         ProfileTemplateValidator.validate_yaml(file_name)
         ProfileTemplateValidator.validate_size(file_size)
@@ -47,7 +49,7 @@ class ProfileTemplateService:
 
     @classmethod
     def parse(cls, file_bytes: bytes) -> ProfileTemplate:
-        """Преобразует YAML bytes в ProfileTemplate."""
+        """Преобразует YAML в объект профиля."""
 
         data = yaml.safe_load(file_bytes.decode("utf-8"))
         profile_data: dict[str, str | None] = {
@@ -104,6 +106,8 @@ class ProfileTemplateService:
 
     @classmethod
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
+        """Сохраняет профиль компании и банковские реквизиты пользователя."""
+
         # TODO(HIGH):
         # Импорт сейчас делает полный upsert целиком.
         # Для re-import сценариев нужно перейти на обновление только изменённых значений,

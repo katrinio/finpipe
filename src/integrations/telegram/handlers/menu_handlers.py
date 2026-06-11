@@ -9,10 +9,14 @@ from src.integrations.telegram.ui.messages import CommonMessages
 
 
 class MenuHandler:
+    """Отправляет экраны и меню Telegram-бота."""
+
     def __init__(self, telegram: TelegramClient) -> None:
         self.telegram = telegram
 
     def main_start(self, telegram_id: int) -> None:
+        """Показывает стартовый экран бота."""
+
         self.telegram.send_message(
             telegram_id,
             CommonMessages.WELCOME,
@@ -20,6 +24,8 @@ class MenuHandler:
         )
 
     def main_menu(self, telegram_id: int) -> None:
+        """Открывает главное меню."""
+
         self.telegram.send_message(
             telegram_id,
             NavigationButtons.HOME,
@@ -27,6 +33,8 @@ class MenuHandler:
         )
 
     def system_menu(self, telegram_id: int) -> None:
+        """Открывает раздел системных команд."""
+
         self.telegram.send_message(
             telegram_id,
             MainMenuButtons.SYSTEM,
@@ -34,6 +42,8 @@ class MenuHandler:
         )
 
     def gmail_menu(self, telegram_id: int) -> None:
+        """Открывает раздел Gmail-интеграции."""
+
         self.telegram.send_message(
             telegram_id,
             IntegrationsButtons.GMAIL,
@@ -41,6 +51,8 @@ class MenuHandler:
         )
 
     def signature_menu(self, telegram_id: int) -> None:
+        """Открывает раздел управления подписью."""
+
         self.telegram.send_message(
             telegram_id,
             ProfileButtons.SIGNATURE,
@@ -48,6 +60,8 @@ class MenuHandler:
         )
 
     def settings_menu(self, telegram_id: int) -> None:
+        """Открывает раздел профиля пользователя."""
+
         self.telegram.send_message(
             telegram_id,
             MainMenuButtons.PROFILE,
@@ -55,6 +69,8 @@ class MenuHandler:
         )
 
     def document_menu(self, telegram_id: int) -> None:
+        """Открывает раздел документных workflow."""
+
         self.telegram.send_message(
             telegram_id,
             MainMenuButtons.DOCUMENTS,
@@ -62,6 +78,8 @@ class MenuHandler:
         )
 
     def invoice_menu(self, telegram_id: int) -> None:
+        """Открывает подменю работы с Invoice."""
+
         self.telegram.send_message(
             telegram_id,
             DocumentsMenuButtons.INVOICE,
@@ -69,6 +87,8 @@ class MenuHandler:
         )
 
     def integration_menu(self, telegram_id: int) -> None:
+        """Открывает раздел интеграций."""
+
         self.telegram.send_message(
             telegram_id,
             MainMenuButtons.INTEGRATIONS,

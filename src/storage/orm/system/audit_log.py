@@ -1,4 +1,4 @@
-"""ORM-сущность разрешённого Telegram-пользователя."""
+"""ORM-модель журнала команд Telegram-бота."""
 
 from datetime import datetime
 from enum import StrEnum
@@ -11,13 +11,15 @@ from src.storage.orm.base import BaseModel
 
 
 class AuditStatus(StrEnum):
+    """Статусы записи аудита Telegram-команды."""
+
     SUCCESS = "SUCCESS"
     DENIED = "DENIED"
     FAILED = "FAILED"
 
 
 class AuditLog(BaseModel):
-    """Пользователь, которому разрешён доступ в Telegram-бот."""
+    """Хранит историю выполнения команд и ошибок."""
 
     __tablename__ = "audit_log"
     __pk_column_name__ = "id"
@@ -39,6 +41,8 @@ class AuditLog(BaseModel):
         status: str,
         details: str | None = None,
     ) -> None:
+        """Создаёт запись о выполнении команды или ошибке."""
+
         with cls.session() as session:
             session.add(
                 cls(
@@ -53,12 +57,16 @@ class AuditLog(BaseModel):
 
     @classmethod
     def list_recent(cls, limit: int = 50) -> list["AuditLog"]:
+        """Возвращает последние записи журнала в обратном хронологическом порядке."""
+
         with cls.session() as session:
             statement = select(cls).order_by(cls.created_at.desc()).limit(limit)
             return list(session.scalars(statement))
 
     @classmethod
     def clear(cls) -> None:
+        """Очищает журнал аудита."""
+
         with cls.session() as session:
             session.execute(delete(cls))
             session.commit()

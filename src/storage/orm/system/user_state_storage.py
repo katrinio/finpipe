@@ -1,3 +1,5 @@
+"""ORM-модель текущего Telegram-состояния пользователя."""
+
 from datetime import datetime
 
 from sqlalchemy import Integer, delete, func, select
@@ -9,7 +11,7 @@ from src.storage.orm.base import BaseModel
 
 
 class UserStateStorage(BaseModel):
-    """Обработанный User State в Боте."""
+    """Хранит текущее Telegram-состояние пользователя."""
 
     __tablename__ = "user_state_storage"
     __pk_column_name__ = "id"
@@ -27,7 +29,7 @@ class UserStateStorage(BaseModel):
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> UserStateStorage | None:
-        """Возвращает запись пользователя по Telegram id."""
+        """Возвращает сохранённое состояние пользователя."""
 
         with cls.session() as session:
             statement = select(cls).where(cls.owner_telegram_id == telegram_id).limit(1)
@@ -35,13 +37,13 @@ class UserStateStorage(BaseModel):
 
     @classmethod
     def exists(cls, owner_telegram_id: int) -> bool:
-        """Проверяет наличие записи владельца."""
+        """Проверяет наличие сохранённого состояния."""
 
         return cls.get_by_owner(owner_telegram_id) is not None
 
     @classmethod
     def delete(cls, owner_telegram_id: int) -> None:
-        """Удаляет запись владельца."""
+        """Удаляет сохранённое состояние пользователя."""
 
         with cls.session() as session:
             statement = delete(cls).where(cls.owner_telegram_id == owner_telegram_id)
@@ -50,7 +52,7 @@ class UserStateStorage(BaseModel):
 
     @classmethod
     def upsert(cls, owner_telegram_id: int, **fields: object) -> None:
-        """Создаёт или обновляет запись владельца."""
+        """Создаёт или обновляет состояние пользователя."""
 
         with cls.session() as session:
             statement = select(cls).where(cls.owner_telegram_id == owner_telegram_id).limit(1)

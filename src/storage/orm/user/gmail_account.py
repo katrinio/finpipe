@@ -1,4 +1,4 @@
-"""ORM-сущность пользовательских настроек."""
+"""ORM-модель подключения Gmail пользователя."""
 
 from datetime import datetime
 
@@ -10,7 +10,7 @@ from src.storage.orm.base import BaseModel
 
 
 class GmailAccount(BaseModel):
-    """GmailAccount."""
+    """Хранит состояние подключения Gmail для Telegram-пользователя."""
 
     __tablename__ = "gmail_account"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -30,7 +30,7 @@ class GmailAccount(BaseModel):
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> GmailAccount | None:
-        """Возвращает запись пользователя по Telegram id."""
+        """Возвращает Gmail-настройки пользователя."""
 
         with cls.session() as session:
             statement = select(cls).where(cls.owner_telegram_id == telegram_id).limit(1)
@@ -38,12 +38,14 @@ class GmailAccount(BaseModel):
 
     @classmethod
     def exists(cls, owner_telegram_id: int) -> bool:
-        """Проверяет наличие gmail integration для владельца."""
+        """Проверяет наличие записи Gmail для пользователя."""
 
         return cls.get_by_owner(owner_telegram_id) is not None
 
     @classmethod
     def update_gmail_credentials(cls, telegram_id: int, gmail_email: str, gmail_refresh_token: str) -> None:
+        """Сохраняет токен и метаданные успешного Gmail-подключения."""
+
         with cls.session() as session:
             session.execute(
                 update(cls)
@@ -59,6 +61,8 @@ class GmailAccount(BaseModel):
 
     @classmethod
     def clear_gmail_credentials(cls, telegram_id: int) -> None:
+        """Очищает сохранённые Gmail-учётные данные пользователя."""
+
         with cls.session() as session:
             session.execute(
                 update(cls)
@@ -74,11 +78,15 @@ class GmailAccount(BaseModel):
 
     @classmethod
     def has_gmail_connection(cls, telegram_id: int) -> bool:
+        """Проверяет, подключён ли Gmail для пользователя."""
+
         user_config = cls.get_by_owner(telegram_id)
         return bool(user_config and user_config.gmail_refresh_token)
 
     @classmethod
     def set_gmail_connection_error(cls, telegram_id: int, error_message: str) -> None:
+        """Сохраняет последнюю ошибку Gmail-подключения."""
+
         with cls.session() as session:
             session.execute(update(cls).where(cls.owner_telegram_id == telegram_id).values(gmail_last_error=error_message))
             session.commit()
