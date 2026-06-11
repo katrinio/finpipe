@@ -4,23 +4,23 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from src.infrastructure.http.http_client import HttpClient
-from src.integrations.telegram.api import TelegramApi
 from src.utils import Utils
 from src.utils.credentials import EnvVar
 
 
 class TelegramClient:
-    """Отправляет сообщения и PDF-документы в настроенный чат."""
+    """Telegram Bot API клиент."""
 
-    def __init__(self, api: TelegramApi | None = None) -> None:
+    def __init__(self, http_client: HttpClient | None = None) -> None:
         self.token = EnvVar.get_required_env("TELEGRAM_BOT_TOKEN")
-        # TelegramClient остаётся публичным фасадом, а HTTP-инфраструктура живёт отдельно.
-        self.api = api or TelegramApi(token=self.token, http_client=HttpClient())
+        self.http = http_client or HttpClient()
+        self.base_url = f"https://api.telegram.org/bot{self.token}"
+        self.file_base_url = f"https://api.telegram.org/file/bot{self.token}"
 
     def healthcheck(self) -> None:
         """Проверяет, что токен Telegram-бота валиден."""
 
-        payload = self.api.get_me()
+        payload = self.http.get(f"{self.base_url}/getMe", timeout=10).json()
 
         if not payload["ok"]:
             msg = "Telegram API healthcheck failed"
@@ -29,17 +29,44 @@ class TelegramClient:
     def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None) -> None:
         """Отправляет текстовое сообщение в целевой Telegram-чат."""
 
-        self.api.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
+        payload: dict[str, object] = {
+            "chat_id": chat_id,
+            "text": text,
+        }
+        if reply_markup is not None:
+            payload["reply_markup"] = reply_markup
+
+        self.http.post(
+            f"{self.base_url}/sendMessage",
+            json=payload,
+            timeout=10,
+        )
 
     def send_document(self, chat_id: int, document_path: Path) -> None:
         """Отправляет PDF-файл в Telegram как документ."""
 
-        self.api.send_document(chat_id=chat_id, document_path=document_path)
+        with open(document_path, "rb") as document:
+            self.http.post(
+                f"{self.base_url}/sendDocument",
+                data={"chat_id": chat_id},
+                files={
+                    "document": (
+                        document_path.name,
+                        document,
+                        "application/pdf",
+                    )
+                },
+                timeout=30,
+            )
 
     def get_file(self, file_id: str) -> str:
         """Возвращает file_path для файла Telegram."""
 
-        payload = self.api.get_file(file_id=file_id)
+        payload = self.http.get(
+            f"{self.base_url}/getFile",
+            params={"file_id": file_id},
+            timeout=10,
+        ).json()
 
         if not payload.get("ok"):
             msg = f"Telegram API getFile failed for file_id={file_id}"
@@ -51,12 +78,13 @@ class TelegramClient:
     def download_file(self, file_path: str) -> bytes:
         """Скачивает файл Telegram Bot API по file_path."""
 
-        return self.api.download_file(file_path=file_path)
+        return self.http.get(f"{self.file_base_url}/{file_path}", timeout=30).content
 
     def get_updates(self, offset: int | None = None) -> dict:
         """Получает входящие Telegram updates."""
 
-        return self.api.get_updates(offset=offset)
+        params = {"offset": offset} if offset is not None else None
+        return self.http.get(f"{self.base_url}/getUpdates", params=params, timeout=10).json()
 
     def send_daily_report(
         self,
