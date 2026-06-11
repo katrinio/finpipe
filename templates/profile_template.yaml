@@ -1,13 +1,48 @@
+# данные компании (наниматель ИП)
 company_name:
 company_address:
+service_agreement_date:
+registration_number:
+city:
 
+# пример
+# company_name: Acme Software LLC
+# company_address: 123 Main Street, London, UK
+# service_agreement_date: 2025-01-01
+# registration_number: 12345678
+# city: London
+
+
+# данные банковского счета (ИП)
 account_holder:
+bic:
+iban:
+account_number:
 account_holder_email:
 account_holder_address:
 
-bank_name:
-account_number:
-iban:
-bic:
+# пример
+# account_holder: Ivan Ivanov PR Consulting
+# bic: ABCDRSBG
+# iban: RS35105008123123123123
+# account_number: 123-123123123123-12
+# account_holder_email: ivan@example.com
+# account_holder_address: Knez Mihailova 1, Belgrade, Serbia
 
-service_agreement_date:
+
+# данные банка
+bank_name:
+
+# пример
+# bank_name: Example Bank Serbia
+
+
+# данные платежа
+payment_number:
+payment_code:
+payment_description:
+
+# пример
+# payment_number: 97
+# payment_code: 289
+# payment_description: Consulting services for May 2026
