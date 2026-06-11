@@ -252,7 +252,6 @@ def main() -> None:
             bot.poll()
         except Exception:
             LOGGER.exception("Telegram listener iteration failed")
-            # TODO: DEV MOMENTS
             raise
 
 

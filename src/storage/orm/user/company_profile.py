@@ -1,4 +1,4 @@
-"""ORM-сущность пользовательских настроек."""
+"""ORM-модель профиля компании пользователя."""
 
 from datetime import UTC, datetime
 
@@ -10,7 +10,7 @@ from src.storage.orm.base import BaseModel
 
 
 class CompanyProfile(BaseModel):
-    """CompanyProfile."""
+    """Хранит компанию и платёжные реквизиты пользователя."""
 
     __tablename__ = "company_profile"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

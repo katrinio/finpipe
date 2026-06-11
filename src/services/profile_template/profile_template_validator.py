@@ -1,4 +1,4 @@
-"""Валидация пользовательской подписи перед сохранением."""
+"""Проверки YAML-шаблона профиля перед импортом."""
 
 import yaml
 
@@ -6,21 +6,21 @@ from src.services.profile_template.exceptions import InvalidProfileTemplateError
 
 
 class ProfileTemplateValidator:
-    """Проверяет подпись перед загрузкой и шифрованием."""
+    """Проверяет файл профиля до разбора и сохранения."""
 
     MAX_SIZE_BYTES = 2 * 1024 * 1024
 
     @classmethod
     def validate_yaml(cls, file_name: str) -> None:
-        """Разрешает только PNG-файлы."""
+        """Разрешает только YAML-файлы."""
 
         if not file_name.lower().endswith(".yaml"):
-            msg = f"ProfileTemplate file must be a YAML image: {file_name}"
+            msg = f"ProfileTemplate file must be a YAML file: {file_name}"
             raise InvalidProfileTemplateFormatError(msg)
 
     @classmethod
     def validate_size(cls, file_size: int) -> None:
-        """Проверяет, что размер подписи не превышает лимит."""
+        """Проверяет, что размер профиля не превышает лимит."""
 
         if file_size > cls.MAX_SIZE_BYTES:
             msg = f"ProfileTemplate file is too large: {file_size} bytes"

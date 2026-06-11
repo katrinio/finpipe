@@ -89,14 +89,11 @@ class ProfileMessages:
     PROFILE_TEMPLATE_REQUIREMENTS = (
         "✍️ Пришлите заполненный шаблон в YAML формате.\n\nТребования:\n- YAML\n- до 2 МБ\n- заполнен словарем значений по ключам шаблона"
     )
-    PROFILE_STATUS = "✅ Компания✅ Банковские реквизиты✅ Подпись ❌ Gmail Готовность: 3/4"
-
     PROFILE_TEMPLATE_UPDATED = "✅ Данные пользователя успешно обновлены."
 
     # validation errors
     PROFILE_TEMPLATE_NOT_YAML = "❌ Разрешены только YAML файлы."
     PROFILE_TEMPLATE_TOO_LARGE = "❌ Размер файла превышает 2 МБ."
-    PROFILE_TEMPLATE_UPLOAD_ERROR = "❌ Не удалось обработать изображение."
 
 
 class MenuMessages:

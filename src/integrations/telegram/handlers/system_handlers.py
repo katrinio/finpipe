@@ -7,23 +7,33 @@ from src.storage.orm.system.audit_log import AuditLog
 
 
 class SystemHandlers:
+    """Обрабатывает системные команды Telegram-бота."""
+
     def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]) -> None:
         self.telegram = telegram
         self.audit_log = audit_log
 
     def health(self, telegram_id: int) -> None:
+        """Проверяет доступность Telegram API через текущий клиент."""
+
         self.telegram.healthcheck()
         self.telegram.send_message(telegram_id, BotInfo.TELEGRAM_API_OK)
 
     def about(self, telegram_id: int) -> None:
+        """Показывает справочную информацию о боте."""
+
         self.telegram.send_message(telegram_id, BotInfo.ABOUT)
 
     def whoami(self, telegram_id: int | None, username: str | None) -> None:
+        """Возвращает публичную информацию о Telegram-пользователе."""
+
         if telegram_id is None:
             return
         self.telegram.send_message(telegram_id, format_whoami(telegram_id, username), reply_markup=build_guest_menu())
 
     def last_action(self, telegram_id: int) -> None:
+        """Показывает последнюю запись в журнале команд."""
+
         actions = self.audit_log.list_recent(1)
         if not actions:
             self.telegram.send_message(telegram_id, BotInfo.NO_AUDIT_LOG_RECORDS)
@@ -32,6 +42,8 @@ class SystemHandlers:
         self.telegram.send_message(telegram_id, format_last_action(actions[0]))
 
     def status(self, telegram_id: int) -> None:
+        """Показывает сводный статус готовности профиля и интеграций."""
+
         status = SystemStatusService.get_status(telegram_id)
 
         def icon(value: bool) -> str:

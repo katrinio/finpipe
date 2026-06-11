@@ -38,7 +38,7 @@ def download_attachments(bank_email: BankEmail) -> Path | None:
             if filename.endswith(".pdf"):
                 # Для bank flow достаточно первого PDF-вложения из письма.
                 attachment_id = part["body"]["attachmentId"]
-                LOGGER.info("Downloading file: %s", filename)
+                LOGGER.info("Downloading Gmail PDF attachment")
                 attachment_payload = (
                     service.users()
                     .messages()
@@ -53,14 +53,12 @@ def download_attachments(bank_email: BankEmail) -> Path | None:
 
                 file_data = base64.urlsafe_b64decode(attachment_payload["data"].encode("UTF-8"))
 
-                LOGGER.info("Saving Gmail PDF attachment: %s", filename)
-
                 attachment_path = Dir.ATTACHMENTS / f"{attachment_stem}.pdf"
                 with attachment_path.open("wb") as file_handle:
                     file_handle.write(file_data)
 
                 saved_path = attachment_path
-                LOGGER.info("Saved Gmail PDF attachment to %s", attachment_path)
+                LOGGER.info("Saved Gmail PDF attachment")
                 break
 
     if saved_path is None:

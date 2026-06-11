@@ -1,4 +1,4 @@
-"""OAuth flow for Gmail connection."""
+"""OAuth flow подключения Gmail-аккаунта."""
 
 import secrets
 from dataclasses import dataclass
@@ -17,6 +17,8 @@ GMAIL_SCOPES = (
 
 @dataclass(frozen=True, slots=True)
 class GmailOAuthResult:
+    """Данные, полученные после успешного OAuth-обмена с Gmail."""
+
     email: str | None
     refresh_token: str
     scopes: str | None
@@ -24,9 +26,8 @@ class GmailOAuthResult:
 
 
 class GmailOAuth:
-    # TODO(MEDIUM):
-    # Здесь сосредоточена вся OAuth-логика Gmail, а рядом уже есть legacy-обёртка `src.integrations.oauth.gmail_oauth`.
-    # После стабилизации API нужно оставить один публичный вход и удалить дублирующий путь.
+    """Инкапсулирует OAuth flow подключения Gmail."""
+
     @classmethod
     def build_authorization_url(
         cls,
@@ -34,6 +35,8 @@ class GmailOAuth:
         telegram_username: str | None,
         callback_url: str,
     ) -> tuple[str, OAuthSession]:
+        """Создаёт URL авторизации и сохраняет временную OAuth-сессию."""
+
         state = cls._generate_state()
         expires_at = datetime.now(UTC) + timedelta(minutes=15)
         session = OAuthSession.create(
@@ -53,6 +56,8 @@ class GmailOAuth:
 
     @classmethod
     def exchange_code(cls, code: str, callback_url: str) -> GmailOAuthResult:
+        """Обменивает OAuth code на refresh token и метаданные аккаунта."""
+
         credentials = cls._exchange_code_for_credentials(code, callback_url)
         refresh_token = cls.extract_refresh_token(credentials)
         email = cls.extract_email(credentials)
@@ -63,6 +68,8 @@ class GmailOAuth:
 
     @classmethod
     def validate_state(cls, state: str) -> OAuthSession:
+        """Проверяет, что OAuth-сессия существует и ещё активна."""
+
         oauth_session = OAuthSession.get_by_state(state)
         if oauth_session is None:
             raise GmailOAuthError("Invalid OAuth state")
@@ -75,6 +82,8 @@ class GmailOAuth:
 
     @classmethod
     def consume_state(cls, state: str) -> None:
+        """Помечает OAuth state как использованный."""
+
         OAuthSession.mark_used(state)
 
     @classmethod

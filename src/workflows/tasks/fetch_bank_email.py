@@ -20,7 +20,7 @@ def main() -> int:
     try:
         attachment_path = fetch_bank_email_workflow()
         if attachment_path is not None:
-            LOGGER.info("Attachment path: %s", attachment_path)
+            LOGGER.info("Downloaded bank email attachment")
     except Exception:
         LOGGER.exception("Bank email workflow failed")
         return 1

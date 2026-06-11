@@ -1,4 +1,6 @@
-"""Загрузка пользовательской подписи в encrypted storage и БД."""
+"""Импорт профиля пользователя из YAML в ORM."""
+
+import logging
 
 import yaml
 
@@ -9,9 +11,11 @@ from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils import Utils
 
+LOGGER = logging.getLogger(__name__)
+
 
 class ProfileTemplateService:
-    """Сервис загрузки пользовательской подписи."""
+    """Импортирует и валидирует профиль пользователя."""
 
     REQUIRED_PROFILE_FIELDS = (
         "company_name",
@@ -31,7 +35,9 @@ class ProfileTemplateService:
         file_size: int,
         file_bytes: bytes,
     ) -> None:
+        """Проверяет YAML-шаблон и сохраняет профиль пользователя."""
 
+        LOGGER.info("Validating profile template for Telegram user %s", telegram_id)
         ProfileTemplateValidator.validate_yaml(file_name)
         ProfileTemplateValidator.validate_size(file_size)
         ProfileTemplateValidator.validate_yaml_structure(file_bytes)
@@ -39,10 +45,11 @@ class ProfileTemplateService:
         profile = cls.parse(file_bytes)
         cls.validate_required_fields(profile)
         cls.import_profile(telegram_id, profile)
+        LOGGER.info("Profile template persisted for Telegram user %s", telegram_id)
 
     @classmethod
     def parse(cls, file_bytes: bytes) -> ProfileTemplate:
-        """Преобразует YAML bytes в ProfileTemplate."""
+        """Преобразует YAML в объект профиля."""
 
         data = yaml.safe_load(file_bytes.decode("utf-8"))
         profile_data: dict[str, str | None] = {
@@ -74,6 +81,7 @@ class ProfileTemplateService:
 
         missing_fields = [field_name for field_name in cls.REQUIRED_PROFILE_FIELDS if cls._is_blank(getattr(profile, field_name))]
         if missing_fields:
+            LOGGER.warning("Profile template missing required fields for Telegram user input")
             missing_fields_text = "\n".join(f"• {field_name}" for field_name in missing_fields)
             msg = (
                 "❌ Профиль заполнен не полностью.\n"
@@ -97,13 +105,9 @@ class ProfileTemplateService:
         return value if isinstance(value, str) else str(value)
 
     @classmethod
-    def parse_profile_template(cls, file_bytes: bytes) -> ProfileTemplate:
-        """Backward-compatible alias for parse(...)."""
-
-        return cls.parse(file_bytes)
-
-    @classmethod
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
+        """Сохраняет профиль компании и банковские реквизиты пользователя."""
+
         # TODO(HIGH):
         # Импорт сейчас делает полный upsert целиком.
         # Для re-import сценариев нужно перейти на обновление только изменённых значений,
@@ -131,3 +135,4 @@ class ProfileTemplateService:
             iban=profile.iban,
             bic=profile.bic,
         )
+        LOGGER.info("Profile data imported for Telegram user %s", telegram_id)
