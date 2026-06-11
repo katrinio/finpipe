@@ -5,6 +5,7 @@ def build_profile_menu() -> dict:
     return {
         "keyboard": [
             [
+                {"text": ProfileButtons.MY_PROFILE},
                 {"text": ProfileButtons.DOWNLOAD_TEMPLATE},
                 {"text": ProfileButtons.UPLOAD_TEMPLATE},
             ],

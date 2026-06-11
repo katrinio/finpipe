@@ -56,7 +56,7 @@ def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path
         }
     )
 
-    config = UserConfig.get_by_telegram_id(123)
+    config = UserConfig.get_by_owner(123)
 
     assert config is not None
     assert config.invoice_amount == 1500
@@ -96,7 +96,7 @@ def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path
         }
     )
 
-    config = UserConfig.get_by_telegram_id(123)
+    config = UserConfig.get_by_owner(123)
 
     assert config is None or config.invoice_amount is None
     assert bot.handlers.state_service.get_state(123) == UserState.WAITING_INVOICE_AMOUNT

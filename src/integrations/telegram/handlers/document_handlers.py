@@ -40,7 +40,7 @@ class DocumentHandlers:
         self.telegram.send_message(telegram_id, BotInfo.INVOICE_SENT)
 
     def get_invoice_amount(self, telegram_id: int) -> None:
-        current_amount = UserConfig.get_by_telegram_id(telegram_id)
+        current_amount = UserConfig.get_by_owner(telegram_id)
         if current_amount is None or current_amount.invoice_amount is None:
             self.telegram.send_message(telegram_id, "💰 Сумма не задана.\nИспользуйте «Указать сумму».")
             return
@@ -58,7 +58,7 @@ class DocumentHandlers:
             raise
 
     def transfer_request(self, telegram_id: int) -> None:
-        config = UserConfig.get_by_telegram_id(telegram_id)
+        config = UserConfig.get_by_owner(telegram_id)
         if config is None or config.invoice_amount is None:
             self.telegram.send_message(telegram_id, "💰 Сумма Invoice не указана.\nИспользуйте «Указать сумму».")
             return

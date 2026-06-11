@@ -18,7 +18,7 @@ class UserConfig(BaseModel):
     updated_at: Mapped[datetime] = mapped_column(DateTime(), server_default=func.current_timestamp())
 
     @classmethod
-    def get_by_telegram_id(cls, telegram_id: int) -> "UserConfig | None":
+    def get_by_owner(cls, telegram_id: int) -> "UserConfig | None":
         """Возвращает настройки пользователя."""
 
         with cls.session() as session:

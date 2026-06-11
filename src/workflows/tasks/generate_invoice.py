@@ -34,7 +34,7 @@ def generate_invoice_pdf(
     invoice_period = build_invoice_period(invoice_date)
     output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
 
-    config = UserConfig.get_by_telegram_id(telegram_id)
+    config = UserConfig.get_by_owner(telegram_id)
     if config is None or config.invoice_amount is None:
         msg = "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
         raise ValueError(msg)
