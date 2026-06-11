@@ -17,13 +17,6 @@ jobs:
       BANK_EMAIL_SUBJECT: ${{ secrets.BANK_EMAIL_SUBJECT }}
       BANK_EMAIL_FROM: ${{ secrets.BANK_EMAIL_FROM }}
 
-      PAYMENT_NUMBER: ${{ secrets.PAYMENT_NUMBER }}
-      PAYMENT_CODE: ${{ secrets.PAYMENT_CODE }}
-      PAYMENT_DESCRIPTION: ${{ secrets.PAYMENT_DESCRIPTION }}
-
-      REGISTRATION_NUMBER: ${{ secrets.REGISTRATION_NUMBER }}
-      CITY: ${{ secrets.CITY }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5

@@ -11,7 +11,6 @@ jobs:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
 
-
     steps:
       - uses: actions/checkout@v5
 
