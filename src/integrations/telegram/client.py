@@ -2,10 +2,9 @@
 
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, cast
 
-import requests
-
+from src.infrastructure.http.http_client import HttpClient
+from src.integrations.telegram.api import TelegramApi
 from src.utils import Utils
 from src.utils.credentials import EnvVar
 
@@ -13,19 +12,15 @@ from src.utils.credentials import EnvVar
 class TelegramClient:
     """Отправляет сообщения и PDF-документы в настроенный чат."""
 
-    def __init__(self) -> None:
+    def __init__(self, api: TelegramApi | None = None) -> None:
         self.token = EnvVar.get_required_env("TELEGRAM_BOT_TOKEN")
+        # TelegramClient остаётся публичным фасадом, а HTTP-инфраструктура живёт отдельно.
+        self.api = api or TelegramApi(token=self.token, http_client=HttpClient())
 
     def healthcheck(self) -> None:
         """Проверяет, что токен Telegram-бота валиден."""
 
-        response = requests.get(
-            f"https://api.telegram.org/bot{self.token}/getMe",
-            timeout=10,
-        )
-
-        response.raise_for_status()
-        payload = response.json()
+        payload = self.api.get_me()
 
         if not payload["ok"]:
             msg = "Telegram API healthcheck failed"
@@ -34,50 +29,17 @@ class TelegramClient:
     def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None) -> None:
         """Отправляет текстовое сообщение в целевой Telegram-чат."""
 
-        payload: dict[str, object] = {
-            "chat_id": chat_id,
-            "text": text,
-        }
-        if reply_markup is not None:
-            payload["reply_markup"] = reply_markup
-
-        response = requests.post(
-            f"https://api.telegram.org/bot{self.token}/sendMessage",
-            json=cast(Any, payload),
-            timeout=10,
-        )
-
-        response.raise_for_status()
+        self.api.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
 
     def send_document(self, chat_id: int, document_path: Path) -> None:
         """Отправляет PDF-файл в Telegram как документ."""
 
-        with open(document_path, "rb") as document:
-            response = requests.post(
-                f"https://api.telegram.org/bot{self.token}/sendDocument",
-                data={"chat_id": chat_id},
-                files={
-                    "document": (
-                        document_path.name,
-                        document,
-                        "application/pdf",
-                    )
-                },
-                timeout=30,
-            )
-        response.raise_for_status()
+        self.api.send_document(chat_id=chat_id, document_path=document_path)
 
     def get_file(self, file_id: str) -> str:
         """Возвращает file_path для файла Telegram."""
 
-        response = requests.get(
-            f"https://api.telegram.org/bot{self.token}/getFile",
-            params={"file_id": file_id},
-            timeout=10,
-        )
-
-        response.raise_for_status()
-        payload = response.json()
+        payload = self.api.get_file(file_id=file_id)
 
         if not payload.get("ok"):
             msg = f"Telegram API getFile failed for file_id={file_id}"
@@ -89,24 +51,12 @@ class TelegramClient:
     def download_file(self, file_path: str) -> bytes:
         """Скачивает файл Telegram Bot API по file_path."""
 
-        response = requests.get(
-            f"https://api.telegram.org/file/bot{self.token}/{file_path}",
-            timeout=30,
-        )
-
-        response.raise_for_status()
-        return response.content
+        return self.api.download_file(file_path=file_path)
 
     def get_updates(self, offset: int | None = None) -> dict:
-        params = {"offset": offset} if offset is not None else None
-        response = requests.get(
-            f"https://api.telegram.org/bot{self.token}/getUpdates",
-            params=params,
-            timeout=10,
-        )
+        """Получает входящие Telegram updates."""
 
-        response.raise_for_status()
-        return response.json()
+        return self.api.get_updates(offset=offset)
 
     def send_daily_report(
         self,
