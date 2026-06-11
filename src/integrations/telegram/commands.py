@@ -8,13 +8,13 @@ from src.storage.orm.system.audit_log import AuditLog
 
 class Cmd(StrEnum):
     MENU = "/menu"
-    INVOICE = "/invoice"
+    START = "/start"
 
     @property
     def description(self) -> str:
         descriptions = {
             Cmd.MENU: "menu",
-            Cmd.INVOICE: "generate invoice",
+            Cmd.START: "start the Finpipe bot",
         }
 
         return descriptions[self]

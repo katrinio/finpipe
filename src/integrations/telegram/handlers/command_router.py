@@ -93,6 +93,7 @@ class CommandRouter:
                 command=context.command,
                 username=context.username,
             ),
+            Cmd.START: lambda context: self.menu_handler.main_start(),
             Cmd.MENU: lambda context: self.menu_handler.main_menu(),
             MainMenuButtons.DOCUMENTS: lambda context: self.menu_handler.document_menu(),
             MainMenuButtons.INTEGRATIONS: lambda context: self.menu_handler.integration_menu(),
