@@ -44,6 +44,10 @@ class TelegramBot:
                 handler=self.handlers.profile_handler.handle_profile_template_upload,
                 error_message="📄 Пришлите заполненный шаблон в YAML формате.",
             ),
+            UserState.WAITING_INVOICE_AMOUNT: StateHandler(
+                handler=self.handlers.document_handler.handle_invoice_amount_input,
+                error_message="❌ Сумма должна содержать только цифры.\nПример: 1500",
+            ),
         }
 
     @property
@@ -136,6 +140,20 @@ class TelegramBot:
         data = self.extract_message_data(update)
         if data is not None:
             text, _, _ = data
+
+            if state == UserState.WAITING_INVOICE_AMOUNT:
+                if text in self.handlers._command_handlers:
+                    LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
+
+                    UserStateService.clear_state(telegram_id)
+                    self.telegram.send_message(telegram_id, "Текущая операция отменена.")
+
+                    return False
+
+                LOGGER.info("Processing state %s for Telegram user %s", state.name, telegram_id)
+                state_handler.handler(telegram_id, text)
+                self.update_storage.mark_processed(update["update_id"])
+                return True
 
             if text in self.handlers._command_handlers:
                 LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)

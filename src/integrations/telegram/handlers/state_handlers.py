@@ -6,5 +6,5 @@ from dataclasses import dataclass
 class StateHandler:
     """Обработчик состояния ожидания файла."""
 
-    handler: Callable[[int, str, int, bytes], None]
+    handler: Callable[..., None]
     error_message: str

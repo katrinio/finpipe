@@ -40,3 +40,19 @@ class UserConfig(BaseModel):
                 session.commit()
 
             return config
+
+    @classmethod
+    def upsert(cls, telegram_id: int, invoice_amount: int | None = None) -> None:
+        """Создаёт или обновляет настройки пользователя."""
+
+        with cls.session() as session:
+            statement = select(cls).where(cls.telegram_id == telegram_id).limit(1)
+            config = session.scalar(statement)
+
+            if config is None:
+                config = cls(telegram_id=telegram_id, invoice_amount=invoice_amount)
+                session.add(config)
+            elif invoice_amount is not None:
+                config.invoice_amount = invoice_amount
+
+            session.commit()
