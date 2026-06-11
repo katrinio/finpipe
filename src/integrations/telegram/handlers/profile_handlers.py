@@ -83,8 +83,8 @@ class ProfileHandlers:
         company_status = self.get_section_status(company_fields)
         bank_status = self.get_section_status(bank_fields)
         payment_status = self.get_section_status(payment_fields)
-        signature_status = "✅" if signature is not None else "🛑"
-        invoice_status = "✅" if user_config is not None and user_config.invoice_amount is not None else "🛑"
+        signature_status = self.get_binary_status(signature is not None)
+        invoice_status = self.get_binary_status(user_config is not None and user_config.invoice_amount is not None)
 
         missing_fields = (
             self.collect_missing_fields(company_fields) + self.collect_missing_fields(bank_fields) + self.collect_missing_fields(payment_fields)
@@ -104,7 +104,7 @@ class ProfileHandlers:
             profile_parts.extend(
                 [
                     "",
-                    "Не хватает:",
+                    "Не заполнено:",
                     *(f"• {field_name}" for field_name in missing_fields),
                 ]
             )
@@ -131,7 +131,7 @@ class ProfileHandlers:
                 f"• Описание платежа: {self.format_field(payment_fields['payment_description'])}",
                 "",
                 "✍️ Подпись",
-                f"• {signature_status}",
+                f"• {self.format_signature_state(signature is not None)}",
                 "",
                 "💰 Invoice",
                 f"• {self.format_invoice_amount(user_config.invoice_amount if user_config is not None else None)}",
@@ -144,10 +144,14 @@ class ProfileHandlers:
     def get_section_status(fields: Mapping[str, object | None]) -> str:
         filled_count = sum(1 for value in fields.values() if ProfileHandlers.is_present(value))
         if filled_count == 0:
-            return "🛑"
+            return "⭕"
         if filled_count == len(fields):
-            return "✅"
-        return "⚠️"
+            return "✔️"
+        return "➖"
+
+    @staticmethod
+    def get_binary_status(is_ready: bool) -> str:
+        return "✔️" if is_ready else "⭕"
 
     @staticmethod
     def collect_missing_fields(fields: Mapping[str, object | None]) -> list[str]:
@@ -163,8 +167,12 @@ class ProfileHandlers:
 
     @staticmethod
     def format_field(value: object | None) -> str:
-        return str(value) if ProfileHandlers.is_present(value) else "🛑 не задано"
+        return str(value) if ProfileHandlers.is_present(value) else "—"
 
     @staticmethod
     def format_invoice_amount(value: int | None) -> str:
-        return f"{value} EUR" if value is not None else "🛑 не задано"
+        return f"{value} EUR" if value is not None else "—"
+
+    @staticmethod
+    def format_signature_state(is_loaded: bool) -> str:
+        return "Загружена" if is_loaded else "Не загружена"
