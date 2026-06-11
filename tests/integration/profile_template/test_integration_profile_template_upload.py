@@ -14,6 +14,8 @@ from src.utils import Utils
 PROFILE_YAML = b"""
 company_name: Test Company
 company_address: Belgrade
+registration_number: "12345678"
+city: Belgrade
 account_holder: Test User
 account_holder_email: test@example.com
 account_holder_address: Serbia
@@ -22,6 +24,9 @@ account_number: "123"
 iban: RS123
 bic: TESTRSBG
 service_agreement_date: "2026-06-10"
+payment_number: "42"
+payment_code: "63"
+payment_description: Salary payment
 """
 
 
@@ -42,8 +47,13 @@ def test_profile_upload_persists_company_profile_and_bank_details(tmp_path: Path
     assert company_profile is not None
     assert company_profile.company_name == "Test Company"
     assert company_profile.company_address == "Belgrade"
+    assert company_profile.registration_number == "12345678"
+    assert company_profile.city == "Belgrade"
     assert company_profile.service_agreement_date is not None
     assert company_profile.service_agreement_date.date() == Utils.parse_iso_date("2026-06-10")
+    assert company_profile.payment_number == "42"
+    assert company_profile.payment_code == "63"
+    assert company_profile.payment_description == "Salary payment"
 
     assert bank_details is not None
     assert bank_details.account_holder == "Test User"
