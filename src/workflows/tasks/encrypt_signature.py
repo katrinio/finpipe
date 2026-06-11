@@ -75,6 +75,7 @@ def encrypt_signature_workflow(source: Path, destination: Path) -> Path:
         signature_hash=signature_hash,
         active=True,
     )
+    # test_unit_workflows_encrypt_signature проверяет именно stdout
     print(f"Signature encrypted: {source} -> {destination} (sha256={signature_hash})")
     LOGGER.info("Signature encrypted successfully: %s -> %s", source, destination)
     return destination
