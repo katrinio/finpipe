@@ -49,7 +49,7 @@ jobs:
         id: telegram
         continue-on-error: true
         run: |
-          poetry run pytest tests/external/test_external_telegram.py -vv
+          poetry run pytest tests/external/telegram/test_external_telegram.py -vv
 
       - name: Calculate duration
         if: always()
