@@ -2,8 +2,11 @@
 
 import os
 
+from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
+from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
+from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
 from src.utils.credentials import LOGGER
 
@@ -14,6 +17,8 @@ def main() -> int:
     configure_logging()
 
     try:
+        build_storage_dependencies(Dir.STORAGE_DB)
+        bootstrap_primary_admin(Dir.STORAGE_DB)
         owner = AllowedUser.get_owner()
         if owner is None:
             raise RuntimeError("Owner is not bootstrapped in storage")
