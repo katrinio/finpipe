@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from src.services.bank.exceptions import BankPdfValidationError
 from src.storage.orm import DocumentGenerationHistory
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
@@ -13,7 +14,7 @@ def test_fill_bank_confirmation_records_failed_attempt(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
     database.initialize_schema()
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(BankPdfValidationError, match="Bank confirmation source PDF not found"):
         generate_bank_confirmation(
             telegram_id=123,
             bank_template=tmp_path / "missing.pdf",
