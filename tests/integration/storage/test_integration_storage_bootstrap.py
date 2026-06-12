@@ -66,7 +66,7 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
     assert not source.exists()
 
 
-def test_bootstrap_primary_admin_does_not_overwrite_existing_user(
+def test_bootstrap_primary_admin_promotes_existing_owner_record(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -84,4 +84,4 @@ def test_bootstrap_primary_admin_does_not_overwrite_existing_user(
     admin = AllowedUser.get_by_telegram_id(9001)
     assert admin is not None
     assert admin.username == "existing"
-    assert admin.role == UserRole.USER
+    assert admin.role == UserRole.OWNER
