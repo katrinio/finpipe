@@ -1,12 +1,12 @@
 """ORM-модель пользователя, уже взаимодействовавшего с Telegram-ботом."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 
-from sqlalchemy import Integer, String, select
+from sqlalchemy import Integer, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseModel
+from src.storage.orm.base import BaseModel, current_utc_timestamp
 
 
 class KnownUser(BaseModel):
@@ -17,8 +17,8 @@ class KnownUser(BaseModel):
     telegram_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
-    last_seen_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
 
     @classmethod
     def get_by_telegram_id(cls, telegram_id: int) -> "KnownUser | None":
@@ -35,7 +35,7 @@ class KnownUser(BaseModel):
         with cls.session() as session:
             statement = select(cls).where(cls.telegram_id == telegram_id).limit(1)
             entity = session.scalar(statement)
-            current_time = datetime.now(UTC)
+            current_time = current_utc_timestamp()
 
             if entity is None:
                 session.add(

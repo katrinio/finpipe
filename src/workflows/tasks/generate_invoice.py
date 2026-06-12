@@ -11,7 +11,7 @@ from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generate import generate_invoice
 from src.services.invoice.models import InvoiceData
-from src.storage.orm import HistoryRecord, InvoiceGenerationStatus, UserConfig
+from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType, UserConfig
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
@@ -32,10 +32,10 @@ def generate_invoice_pdf(
     invoice_number = invoice_period.invoice_number
     output_pdf_path = output_dir / f"invoice-{invoice_number}.{Format.PDF}"
 
-    if HistoryRecord.has_attempts(invoice_number):
-        LOGGER.info("Invoice regeneration requested for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
+    if DocumentGenerationHistory.has_attempts(DocumentType.INVOICE, invoice_number):
+        LOGGER.info("Document regeneration requested type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
 
-    LOGGER.info("Invoice generation started for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
+    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
 
     try:
         config = UserConfig.get_by_owner(telegram_id)
@@ -80,22 +80,24 @@ def generate_invoice_pdf(
             data=invoice_data,
         )
     except Exception as error:
-        HistoryRecord.add_attempt(
-            invoice_number=invoice_number,
+        DocumentGenerationHistory.add_attempt(
+            document_type=DocumentType.INVOICE,
+            document_number=invoice_number,
             telegram_id=telegram_id,
-            status=InvoiceGenerationStatus.FAILED,
+            status=DocumentGenerationStatus.FAILED,
             error_message=str(error),
         )
-        LOGGER.warning("Invoice generation failed for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
+        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
         raise
 
-    HistoryRecord.add_attempt(
-        invoice_number=invoice_number,
+    DocumentGenerationHistory.add_attempt(
+        document_type=DocumentType.INVOICE,
+        document_number=invoice_number,
         telegram_id=telegram_id,
-        status=InvoiceGenerationStatus.SUCCESS,
+        status=DocumentGenerationStatus.SUCCESS,
         error_message=None,
     )
-    LOGGER.info("Invoice generation succeeded for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
+    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
     return output_pdf_path
 
 

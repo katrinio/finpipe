@@ -1,34 +1,65 @@
 from pathlib import Path
 
-from src.storage.orm import HistoryRecord, InvoiceGenerationStatus
+from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.database import Database, build_sqlite_url
 
 
-def test_history_record_stores_multiple_attempts_for_same_invoice_number(tmp_path: Path) -> None:
+def test_document_generation_history_stores_multiple_attempts_for_same_document(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
     database.initialize_schema()
 
-    HistoryRecord.add_attempt("2026-05", telegram_id=1, status=InvoiceGenerationStatus.FAILED, error_message="boom")
-    HistoryRecord.add_attempt("2026-05", telegram_id=1, status=InvoiceGenerationStatus.SUCCESS)
+    DocumentGenerationHistory.add_attempt(
+        DocumentType.INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.FAILED, error_message="boom"
+    )
+    DocumentGenerationHistory.add_attempt(DocumentType.INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.SUCCESS)
 
-    entries = HistoryRecord.list_by_invoice_number("2026-05")
+    entries = DocumentGenerationHistory.list_by_document(DocumentType.INVOICE, "2026-05")
 
     assert len(entries) == 2
-    assert entries[0].status == InvoiceGenerationStatus.FAILED
+    assert entries[0].document_type == DocumentType.INVOICE
+    assert entries[0].document_number == "2026-05"
+    assert entries[0].status == DocumentGenerationStatus.FAILED
     assert entries[0].error_message == "boom"
-    assert entries[1].status == InvoiceGenerationStatus.SUCCESS
+    assert entries[1].status == DocumentGenerationStatus.SUCCESS
     assert entries[1].error_message is None
 
 
-def test_history_record_returns_last_attempt(tmp_path: Path) -> None:
+def test_document_generation_history_returns_last_attempt(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
     database.initialize_schema()
 
-    HistoryRecord.add_attempt("2026-05", telegram_id=1, status=InvoiceGenerationStatus.FAILED, error_message="boom")
-    HistoryRecord.add_attempt("2026-05", telegram_id=2, status=InvoiceGenerationStatus.SUCCESS)
+    DocumentGenerationHistory.add_attempt(
+        DocumentType.INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.FAILED, error_message="boom"
+    )
+    DocumentGenerationHistory.add_attempt(DocumentType.INVOICE, "2026-05", telegram_id=2, status=DocumentGenerationStatus.SUCCESS)
 
-    last_attempt = HistoryRecord.get_last_attempt("2026-05")
+    last_attempt = DocumentGenerationHistory.get_last_attempt(DocumentType.INVOICE, "2026-05")
 
     assert last_attempt is not None
     assert last_attempt.telegram_id == 2
-    assert last_attempt.status == InvoiceGenerationStatus.SUCCESS
+    assert last_attempt.status == DocumentGenerationStatus.SUCCESS
+
+
+def test_document_generation_history_supports_all_document_types(tmp_path: Path) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+
+    DocumentGenerationHistory.add_attempt(DocumentType.INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.SUCCESS)
+    DocumentGenerationHistory.add_attempt(DocumentType.BANK_PDF, None, telegram_id=1, status=DocumentGenerationStatus.SUCCESS)
+    DocumentGenerationHistory.add_attempt(
+        DocumentType.TRANSFER_REQUEST, "TR-2026-05", telegram_id=1, status=DocumentGenerationStatus.FAILED, error_message="boom"
+    )
+
+    invoice_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.INVOICE, "2026-05")
+    bank_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.BANK_PDF, None)
+    transfer_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.TRANSFER_REQUEST, "TR-2026-05")
+
+    assert invoice_entry is not None
+    assert invoice_entry.document_type == DocumentType.INVOICE
+    assert bank_entry is not None
+    assert bank_entry.document_type == DocumentType.BANK_PDF
+    assert bank_entry.document_number is None
+    assert transfer_entry is not None
+    assert transfer_entry.document_type == DocumentType.TRANSFER_REQUEST
+    assert transfer_entry.document_number == "TR-2026-05"
+    assert transfer_entry.status == DocumentGenerationStatus.FAILED

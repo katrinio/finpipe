@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from src.constants import TestData
-from src.storage.orm import HistoryRecord, InvoiceGenerationStatus, UserConfig
+from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType, UserConfig
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
@@ -43,10 +43,12 @@ def test_generate_invoice_pdf_uses_user_config_invoice_amount(tmp_path: Path) ->
 
     assert output_path.exists()
     assert output_path.name.startswith("invoice-")
-    history_entry = HistoryRecord.get_last_attempt(output_path.stem.removeprefix("invoice-"))
+    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.INVOICE, output_path.stem.removeprefix("invoice-"))
     assert history_entry is not None
+    assert history_entry.document_type == DocumentType.INVOICE
+    assert history_entry.document_number == "2026-05"
     assert history_entry.telegram_id == 123
-    assert history_entry.status == InvoiceGenerationStatus.SUCCESS
+    assert history_entry.status == DocumentGenerationStatus.SUCCESS
     assert history_entry.error_message is None
 
 
@@ -78,10 +80,12 @@ def test_generate_invoice_pdf_fails_when_invoice_amount_is_missing(tmp_path: Pat
             output_dir=tmp_path,
         )
 
-    failed_entries = HistoryRecord.list_by_invoice_number("2026-05")
+    failed_entries = DocumentGenerationHistory.list_by_document(DocumentType.INVOICE, "2026-05")
     assert len(failed_entries) == 1
+    assert failed_entries[0].document_type == DocumentType.INVOICE
+    assert failed_entries[0].document_number == "2026-05"
     assert failed_entries[0].telegram_id == 123
-    assert failed_entries[0].status == InvoiceGenerationStatus.FAILED
+    assert failed_entries[0].status == DocumentGenerationStatus.FAILED
     assert failed_entries[0].error_message == "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
 
 
@@ -121,10 +125,10 @@ def test_generate_invoice_pdf_allows_regeneration_for_same_invoice_number(tmp_pa
     )
 
     assert first_output == second_output
-    entries = HistoryRecord.list_by_invoice_number(first_output.stem.removeprefix("invoice-"))
+    entries = DocumentGenerationHistory.list_by_document(DocumentType.INVOICE, first_output.stem.removeprefix("invoice-"))
     assert len(entries) == 2
-    assert entries[0].status == InvoiceGenerationStatus.SUCCESS
-    assert entries[1].status == InvoiceGenerationStatus.SUCCESS
-    last_attempt = HistoryRecord.get_last_attempt(first_output.stem.removeprefix("invoice-"))
+    assert entries[0].status == DocumentGenerationStatus.SUCCESS
+    assert entries[1].status == DocumentGenerationStatus.SUCCESS
+    last_attempt = DocumentGenerationHistory.get_last_attempt(DocumentType.INVOICE, first_output.stem.removeprefix("invoice-"))
     assert last_attempt is not None
     assert last_attempt.id == entries[-1].id

@@ -101,10 +101,17 @@ class Database:
 
         legacy_columns = self._get_sqlite_table_columns(connection, temp_table_name)
         model_columns = [column.name for column in table.columns]
-        common_columns = [column_name for column_name in model_columns if column_name in legacy_columns]
-        if common_columns:
-            columns_sql = ", ".join(f'"{column_name}"' for column_name in common_columns)
-            connection.execute(text(f'INSERT INTO "{table.name}" ({columns_sql}) SELECT {columns_sql} FROM "{temp_table_name}"'))
+        column_mappings: list[tuple[str, str]] = []
+        for column_name in model_columns:
+            if column_name in legacy_columns:
+                column_mappings.append((column_name, column_name))
+            elif table.name == "document_generation_history" and column_name == "document_number" and "invoice_number" in legacy_columns:
+                column_mappings.append((column_name, "invoice_number"))
+
+        if column_mappings:
+            target_columns_sql = ", ".join(f'"{target}"' for target, _ in column_mappings)
+            source_columns_sql = ", ".join(f'"{source}"' for _, source in column_mappings)
+            connection.execute(text(f'INSERT INTO "{table.name}" ({target_columns_sql}) SELECT {source_columns_sql} FROM "{temp_table_name}"'))
         connection.execute(text(f'DROP TABLE "{temp_table_name}"'))
 
     def _get_sqlite_table_columns(self, connection: Any, table_name: str) -> list[str]:

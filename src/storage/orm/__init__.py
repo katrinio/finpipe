@@ -1,7 +1,11 @@
 """ORM-сущности и base для storage-слоя."""
 
 from src.storage.orm.system.audit_log import AuditLog
-from src.storage.orm.system.history_record import HistoryRecord, InvoiceGenerationStatus
+from src.storage.orm.system.document_generation_history import (
+    DocumentGenerationHistory,
+    DocumentGenerationStatus,
+    DocumentType,
+)
 from src.storage.orm.system.known_user import KnownUser
 from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.system.processed_message import ProcessedMessage
@@ -14,8 +18,9 @@ from src.storage.orm.user.user_config import UserConfig
 __all__ = [
     "AllowedUser",
     "AuditLog",
-    "HistoryRecord",
-    "InvoiceGenerationStatus",
+    "DocumentGenerationHistory",
+    "DocumentGenerationStatus",
+    "DocumentType",
     "KnownUser",
     "OAuthSession",
     "ProcessedMessage",

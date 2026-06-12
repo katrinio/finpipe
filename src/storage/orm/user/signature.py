@@ -1,7 +1,7 @@
 """ORM-сущность сохранённой подписи."""
 
 import hashlib
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import Boolean, Integer, String, delete, func, select, text
@@ -64,7 +64,6 @@ class Signature(BaseModel):
                 signature.signature_path = resolved_signature_path
                 signature.signature_hash = resolved_signature_hash
                 signature.active = active
-                signature.updated_at = datetime.now(UTC)
                 LOGGER.info("Updated signature for Telegram user %s", owner_telegram_id)
 
             session.commit()

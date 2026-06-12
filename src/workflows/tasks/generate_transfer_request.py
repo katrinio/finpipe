@@ -19,6 +19,7 @@ from src.services.invoice.context import build_invoice_period
 from src.services.signing.context import SignaturePositions
 from src.services.transfer_request.generate import generate_transfer_request
 from src.services.transfer_request.models import TransferRequestData
+from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
@@ -40,32 +41,55 @@ def generate_transfer_request_pdf(
     """
 
     invoice_period = build_invoice_period(invoice_date)
+    document_number = f"TR-{invoice_period.invoice_number}"
     output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
 
-    bank_details = BankDetails.get_by_owner(telegram_id)
-    if bank_details is None:
-        msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.TRANSFER_REQUEST, document_number, telegram_id)
 
-    company_profile = CompanyProfile.get_by_owner(telegram_id)
-    if company_profile is None:
-        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+    try:
+        bank_details = BankDetails.get_by_owner(telegram_id)
+        if bank_details is None:
+            msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
+            raise ValueError(msg)
 
-    transfer_request_data = TransferRequestData(
-        account_number=bank_details.account_number,
-        amount=amount,
-        city=company_profile.city or "",
-        date=invoice_period.invoice_date,
-        name=bank_details.account_holder,
+        company_profile = CompanyProfile.get_by_owner(telegram_id)
+        if company_profile is None:
+            msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+            raise ValueError(msg)
+
+        transfer_request_data = TransferRequestData(
+            account_number=bank_details.account_number,
+            amount=amount,
+            city=company_profile.city or "",
+            date=invoice_period.invoice_date,
+            name=bank_details.account_holder,
+        )
+
+        generate_transfer_request(
+            template_path=template_path,
+            output_pdf_path=output_pdf_path,
+            data=transfer_request_data,
+        )
+        apply_signature_to_pdf(output_pdf_path, signature)
+    except Exception as error:
+        DocumentGenerationHistory.add_attempt(
+            document_type=DocumentType.TRANSFER_REQUEST,
+            document_number=document_number,
+            telegram_id=telegram_id,
+            status=DocumentGenerationStatus.FAILED,
+            error_message=str(error),
+        )
+        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.TRANSFER_REQUEST, document_number, telegram_id)
+        raise
+
+    DocumentGenerationHistory.add_attempt(
+        document_type=DocumentType.TRANSFER_REQUEST,
+        document_number=document_number,
+        telegram_id=telegram_id,
+        status=DocumentGenerationStatus.SUCCESS,
+        error_message=None,
     )
-
-    generate_transfer_request(
-        template_path=template_path,
-        output_pdf_path=output_pdf_path,
-        data=transfer_request_data,
-    )
-    apply_signature_to_pdf(output_pdf_path, signature)
+    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.TRANSFER_REQUEST, document_number, telegram_id)
     return output_pdf_path
 
 
