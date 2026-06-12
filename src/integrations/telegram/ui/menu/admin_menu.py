@@ -18,7 +18,7 @@ def build_admin_menu() -> dict:
     }
 
 
-def build_admin_users_menu() -> dict:
+def build_users_menu() -> dict:
     return {
         "keyboard": [
             [

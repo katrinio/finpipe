@@ -9,6 +9,7 @@ from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import PUBLIC_COMMANDS
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
+from src.services.known_user_service import KnownUserService
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
@@ -47,6 +48,18 @@ class TelegramBot:
             UserState.WAITING_INVOICE_AMOUNT: StateHandler(
                 handler=self.handlers.document_handler.handle_invoice_amount_input,
                 error_message="❌ Сумма должна содержать только цифры.\nПример: 1500",
+            ),
+            UserState.WAITING_NEW_USER_ID: StateHandler(
+                handler=self.handlers.owner_handler.handle_add_user_input,
+                error_message="Введите Telegram ID пользователя, состоящий только из цифр.",
+            ),
+            UserState.WAITING_NEW_USER_CONFIRMATION: StateHandler(
+                handler=self.handlers.owner_handler.confirm_add_user,
+                error_message="Ответьте «да» для подтверждения выдачи доступа.",
+            ),
+            UserState.WAITING_REMOVE_USER_ID: StateHandler(
+                handler=self.handlers.owner_handler.handle_remove_user_input,
+                error_message="Введите Telegram ID пользователя, состоящий только из цифр.",
             ),
         }
 
@@ -141,7 +154,12 @@ class TelegramBot:
         if data is not None:
             text, _, _ = data
 
-            if state == UserState.WAITING_INVOICE_AMOUNT:
+            if state in {
+                UserState.WAITING_INVOICE_AMOUNT,
+                UserState.WAITING_NEW_USER_ID,
+                UserState.WAITING_NEW_USER_CONFIRMATION,
+                UserState.WAITING_REMOVE_USER_ID,
+            }:
                 if text in self.handlers._command_handlers:
                     LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
 
@@ -194,6 +212,7 @@ class TelegramBot:
     def process_update(self, update: dict) -> None:
         """Обрабатывает один Telegram update."""
 
+        self._register_known_user(update)
         data = self.extract_message_data(update)
         if data is None:
             return
@@ -226,6 +245,24 @@ class TelegramBot:
         """Делегирует команду вынесенным handlers, сохраняя совместимый API."""
 
         return self.handlers.handle_message(text=text, telegram_id=telegram_id, username=username)
+
+    def _register_known_user(self, update: dict) -> None:
+        """Регистрирует Telegram-пользователя при любом входящем update."""
+
+        message = update.get("message")
+        if not message:
+            return
+
+        user = message.get("from", {})
+        telegram_id = user.get("id")
+        if telegram_id is None:
+            return
+
+        KnownUserService.register_interaction(
+            telegram_id=telegram_id,
+            username=user.get("username"),
+            first_name=user.get("first_name"),
+        )
 
     def mark_initial_updates_as_processed(self, updates: list[dict]) -> int:
         """Первый запуск: сохраняем старые updates без обработки."""

@@ -1,5 +1,13 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.ui.buttons import DocumentsMenuButtons, IntegrationsButtons, MainMenuButtons, NavigationButtons, ProfileButtons
+from src.integrations.telegram.ui.buttons import (
+    DocumentsMenuButtons,
+    IntegrationsButtons,
+    MainMenuButtons,
+    NavigationButtons,
+    OwnerButtons,
+    ProfileButtons,
+)
+from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu, build_users_menu
 from src.integrations.telegram.ui.menu.document_menu import build_document_menu, build_invoice_menu
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu, build_integration_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
@@ -94,4 +102,22 @@ class MenuHandler:
             telegram_id,
             MainMenuButtons.INTEGRATIONS,
             reply_markup=build_integration_menu(),
+        )
+
+    def admin_menu(self, telegram_id: int) -> None:
+        """Открывает раздел админа (доступен только овнеру)."""
+
+        self.telegram.send_message(
+            telegram_id,
+            OwnerButtons.ADMIN_PANEL,
+            reply_markup=build_admin_menu(),
+        )
+
+    def user_menu(self, telegram_id: int) -> None:
+        """Открывает раздел админа (доступен только овнеру)."""
+
+        self.telegram.send_message(
+            telegram_id,
+            OwnerButtons.USERS,
+            reply_markup=build_users_menu(),
         )
