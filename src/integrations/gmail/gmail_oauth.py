@@ -122,9 +122,14 @@ class GmailOAuth:
 
     @classmethod
     def _exchange_code_for_credentials(cls, code: str, callback_url: str) -> object:
-        flow = cls._build_flow(callback_url)
-        flow.fetch_token(code=code)
-        return flow.credentials
+        try:
+            flow = cls._build_flow(callback_url)
+            flow.fetch_token(code=code)
+            return flow.credentials
+        except GmailOAuthError:
+            raise
+        except Exception as error:
+            raise GmailOAuthError("Failed to exchange OAuth code for Gmail credentials") from error
 
     @classmethod
     def _build_flow(cls, callback_url: str) -> Any:
@@ -133,5 +138,8 @@ class GmailOAuth:
         except ImportError as error:  # pragma: no cover
             raise GmailOAuthError("google-auth-oauthlib is not available") from error
 
-        credentials_path = EnvVar.get_env_path("GMAIL_CREDENTIALS_PATH")
-        return Flow.from_client_secrets_file(str(credentials_path), list(GMAIL_SCOPES), redirect_uri=callback_url)
+        try:
+            credentials_path = EnvVar.get_env_path("GMAIL_CREDENTIALS_PATH")
+            return Flow.from_client_secrets_file(str(credentials_path), list(GMAIL_SCOPES), redirect_uri=callback_url)
+        except Exception as error:
+            raise GmailOAuthError("Failed to initialize Gmail OAuth flow") from error

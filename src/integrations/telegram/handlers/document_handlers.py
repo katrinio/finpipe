@@ -5,6 +5,9 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.messages import BotInfo
+from src.services.bank.exceptions import BankPdfError
+from src.services.invoice.exceptions import InvoiceError
+from src.services.transfer_request.exceptions import TransferRequestError
 from src.storage.orm import UserConfig
 from src.workflows.run_invoice_delivery import generate_and_send_invoice
 from src.workflows.tasks.fill_bank_pdf import fill_bank_pdf_with_data
@@ -47,7 +50,7 @@ class DocumentHandlers:
         self.telegram.send_message(telegram_id, BotInfo.GENERATING_INVOICE)
         try:
             generate_and_send_invoice(telegram_id)
-        except ValueError as error:
+        except InvoiceError as error:
             LOGGER.warning("Invoice generation failed for Telegram user %s", telegram_id)
             self.telegram.send_message(telegram_id, str(error))
             return
@@ -70,7 +73,12 @@ class DocumentHandlers:
         LOGGER.info("Bank PDF generation requested by Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BotInfo.FILL_BANK_PDF)
 
-        bank_pdf_path = fill_bank_pdf_with_data(telegram_id)
+        try:
+            bank_pdf_path = fill_bank_pdf_with_data(telegram_id)
+        except BankPdfError as error:
+            LOGGER.warning("Bank PDF generation failed for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, str(error))
+            return
         LOGGER.info("Bank PDF generated for Telegram user %s", telegram_id)
         self.telegram.send_document(telegram_id, bank_pdf_path)
 
@@ -89,7 +97,7 @@ class DocumentHandlers:
                 telegram_id=telegram_id,
                 amount=str(config.invoice_amount),
             )
-        except ValueError as error:
+        except TransferRequestError as error:
             LOGGER.warning("Transfer request generation failed for Telegram user %s", telegram_id)
             self.telegram.send_message(telegram_id, str(error))
             return

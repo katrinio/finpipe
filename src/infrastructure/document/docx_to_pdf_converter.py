@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from src.infrastructure.document.exceptions import DocumentConversionError, UnsupportedDocumentBackendError
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -79,7 +81,7 @@ class DocxToPdfConverter:
             return
 
         msg = f"Unsupported DOCX to PDF converter backend: {converter_backend}"
-        raise ValueError(msg)
+        raise UnsupportedDocumentBackendError(msg)
 
     @classmethod
     def ensure_pages_installed(cls) -> None:
@@ -202,12 +204,12 @@ class DocxToPdfConverter:
         if not output_path.exists():
             msg = f"{converter_backend} did not create PDF"
             LOGGER.error("%s: %s", msg, output_path)
-            raise RuntimeError(msg)
+            raise DocumentConversionError(msg)
 
         if output_path.stat().st_size == 0:
             msg = "Generated PDF is empty"
             LOGGER.error("%s: %s", msg, output_path)
-            raise RuntimeError(msg)
+            raise DocumentConversionError(msg)
 
     @classmethod
     def build_pages_export_script(cls, rendered_docx_path: Path, output_path: Path) -> list[str]:

@@ -5,6 +5,7 @@ from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
 from dotenv import load_dotenv
 
+from src.infrastructure.security.exceptions import SignatureDecryptionError, SignatureEncryptionError
 from src.utils.credentials import EnvVar
 
 load_dotenv()
@@ -23,7 +24,7 @@ class SignatureCipher:
                 key = EnvVar.get_required_env("SIGNATURE_ENCRYPTION_KEY")
             except Exception as exc:  # pragma: no cover - explicit runtime error path
                 msg = "Missing required environment variable: SIGNATURE_ENCRYPTION_KEY"
-                raise RuntimeError(msg) from exc
+                raise SignatureEncryptionError(msg) from exc
 
             cls._cipher = Fernet(key.encode())
 
@@ -43,4 +44,4 @@ class SignatureCipher:
             return cls._get_cipher().decrypt(encrypted)
         except InvalidToken as exc:
             msg = f"Encrypted signature file is corrupted or invalid: {encrypted_file}"
-            raise RuntimeError(msg) from exc
+            raise SignatureDecryptionError(msg) from exc

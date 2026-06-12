@@ -1,6 +1,7 @@
 import logging
 
 from src.integrations.gmail import GmailAccountService, GmailOAuth, GmailOAuthSettings
+from src.integrations.gmail.exceptions import GmailOAuthError
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.ui.messages import BotInfo
 from src.utils.credentials import EnvVar
@@ -21,8 +22,13 @@ class GmailHandlers:
             LOGGER.warning("Gmail connect requested while callback flow is disabled for Telegram user %s", telegram_id)
             self.telegram.send_message(telegram_id, BotInfo.GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE)
             return
-        callback_url = EnvVar.get_optional_env("GMAIL_OAUTH_CALLBACK_URL", "http://localhost:8000/oauth/gmail/callback")
-        authorization_url, _session = GmailOAuth.build_authorization_url(telegram_id, username, callback_url)
+        try:
+            callback_url = EnvVar.get_optional_env("GMAIL_OAUTH_CALLBACK_URL", "http://localhost:8000/oauth/gmail/callback")
+            authorization_url, _session = GmailOAuth.build_authorization_url(telegram_id, username, callback_url)
+        except GmailOAuthError:
+            LOGGER.exception("Gmail connect failed for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, BotInfo.GMAIL_CONNECT_FAILED)
+            return
         LOGGER.info("Gmail connect initiated for Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, f"Open this URL:\n{authorization_url}")
 

@@ -8,6 +8,7 @@ from sqlalchemy import Engine, Table, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.schema import CreateColumn
 
+from src.storage.exceptions import StorageConfigurationError
 from src.storage.orm.base import BaseModel
 
 LOGGER = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ class Database:
         prefix = "sqlite:///"
         if not self._database_url.startswith(prefix):
             msg = "Only sqlite file URLs are supported by this helper"
-            raise ValueError(msg)
+            raise StorageConfigurationError(msg)
         return Path(self._database_url.removeprefix(prefix))
 
     def _sync_sqlite_schema(self) -> None:
@@ -124,7 +125,7 @@ class Database:
         rendered_column = str(CreateColumn(column).compile(dialect=self._engine.dialect))
         if "PRIMARY KEY" in rendered_column:
             msg = f"Cannot add primary key column via ALTER TABLE: {column.name}"
-            raise ValueError(msg)
+            raise StorageConfigurationError(msg)
         return rendered_column
 
 
