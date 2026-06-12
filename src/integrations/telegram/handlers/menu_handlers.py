@@ -6,6 +6,7 @@ from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.integrations.telegram.ui.messages import CommonMessages
+from src.storage.orm import AllowedUser
 
 
 class MenuHandler:
@@ -20,7 +21,7 @@ class MenuHandler:
         self.telegram.send_message(
             telegram_id,
             CommonMessages.WELCOME,
-            reply_markup=build_main_menu(),
+            reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
     def main_menu(self, telegram_id: int) -> None:
@@ -29,7 +30,7 @@ class MenuHandler:
         self.telegram.send_message(
             telegram_id,
             NavigationButtons.HOME,
-            reply_markup=build_main_menu(),
+            reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
     def system_menu(self, telegram_id: int) -> None:
@@ -38,7 +39,7 @@ class MenuHandler:
         self.telegram.send_message(
             telegram_id,
             MainMenuButtons.SYSTEM,
-            reply_markup=build_system_menu(),
+            reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
     def gmail_menu(self, telegram_id: int) -> None:
