@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from src.integrations.telegram.ui.buttons import MainMenuButtons, OwnerButtons
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 

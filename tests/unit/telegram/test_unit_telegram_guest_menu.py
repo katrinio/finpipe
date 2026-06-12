@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from src.integrations.telegram.commands import format_whoami
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 

@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
+from src.storage.orm import DocumentGenerationHistory
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 
 
 def test_document_generation_history_stores_multiple_attempts_for_same_document(tmp_path: Path) -> None:

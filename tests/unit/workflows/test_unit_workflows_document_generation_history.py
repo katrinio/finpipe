@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
 
-from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
+from src.storage.orm import DocumentGenerationHistory
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
 

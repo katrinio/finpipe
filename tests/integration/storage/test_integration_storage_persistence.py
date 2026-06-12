@@ -1,12 +1,11 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from sqlalchemy import text
 
-from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
+from src.storage.orm import DocumentGenerationHistory
 from src.storage.orm.base import BaseModel
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.company_profile import CompanyProfile
 
 

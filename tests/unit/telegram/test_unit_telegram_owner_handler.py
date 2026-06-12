@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from src.integrations.telegram.handlers.owner_handler import OwnerHandlers

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import date, datetime
 from pathlib import Path
 
@@ -7,8 +5,9 @@ import pytest
 
 from src.constants import TestData
 from src.services.invoice.exceptions import InvoiceGenerationError
-from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType, UserConfig
+from src.storage.orm import DocumentGenerationHistory, UserConfig
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf

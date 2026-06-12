@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from src.services.profile_template.profile_template_service import ProfileTemplateService

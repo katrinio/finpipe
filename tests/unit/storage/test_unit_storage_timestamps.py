@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from src.integrations.telegram.states import UserState
-from src.storage.orm import AllowedUser, DocumentGenerationHistory, DocumentGenerationStatus, DocumentType, KnownUser, Signature, UserConfig
+from src.storage.orm import AllowedUser, DocumentGenerationHistory, KnownUser, Signature, UserConfig
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.system.user_state_storage import UserStateStorage
 
