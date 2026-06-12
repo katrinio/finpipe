@@ -154,5 +154,11 @@ class TestTelegramBot:
             }
         )
 
-        assert telegram_client.sent_messages == ["✅ Пользователь добавлен."]
-        assert telegram_client.sent_messages_with_chat_ids == [(777, "✅ Пользователь добавлен.")]
+        assert telegram_client.sent_messages == [
+            "✅ Пользователь добавлен.",
+            "✅ Администратор добавил вас в список пользователей.",
+        ]
+        assert telegram_client.sent_messages_with_chat_ids == [
+            (777, "✅ Пользователь добавлен."),
+            (123456789, "✅ Администратор добавил вас в список пользователей."),
+        ]
