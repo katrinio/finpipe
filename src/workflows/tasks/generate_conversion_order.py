@@ -19,7 +19,7 @@ from src.services.conversion_order.generate import generate_conversion_order
 from src.services.conversion_order.models import ConversionOrderData
 from src.services.invoice.context import build_invoice_period
 from src.services.signing.context import SignaturePositions
-from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
+from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar

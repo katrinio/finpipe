@@ -10,7 +10,7 @@ from src.logging_config import configure_logging
 from src.services.bank.bank_confirmation import generate_bank_confirmation_pdf
 from src.services.bank.bank_extract import extract_amount
 from src.services.invoice.context import build_invoice_period
-from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
+from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar

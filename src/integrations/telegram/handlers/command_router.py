@@ -86,7 +86,7 @@ class CommandRouter:
 
         except Exception as error:
             LOGGER.exception("Command failed: %s", text)
-            self.telegram.send_message(context.telegram_id, f"{BotInfo.SYSTEM_ERROR}\nCommand {text} failed:\n{error}")
+            self.telegram.send_message(context.telegram_id, BotInfo.SYSTEM_ERROR)
             self._audit(context, AuditStatus.FAILED, str(error))
 
             return False

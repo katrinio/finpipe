@@ -9,9 +9,11 @@ from pathlib import Path
 from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
+from src.services.invoice.exceptions import InvoiceGenerationError
 from src.services.invoice.generate import generate_invoice
 from src.services.invoice.models import InvoiceData
-from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType, UserConfig
+from src.storage.orm import UserConfig
+from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
@@ -34,46 +36,45 @@ def generate_invoice_pdf(
 
     if DocumentGenerationHistory.has_attempts(DocumentType.SALARY_INVOICE, invoice_number):
         LOGGER.info("Document regeneration requested type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
-
     LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
 
+    config = UserConfig.get_by_owner(telegram_id)
+    if config is None or config.invoice_amount is None:
+        msg = "Сумма Salary Invoice не указана. Используйте «💰 Указать сумму»."
+        raise InvoiceGenerationError(msg)
+
+    company_profile = CompanyProfile.get_by_owner(telegram_id)
+    if company_profile is None:
+        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+        raise InvoiceGenerationError(msg)
+
+    bank_details = BankDetails.get_by_owner(telegram_id)
+    if bank_details is None:
+        msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
+        raise InvoiceGenerationError(msg)
+
+    invoice_data = InvoiceData(
+        account_holder=bank_details.account_holder,
+        account_holder_address=bank_details.account_holder_address or "",
+        account_bic=bank_details.bic,
+        account_iban=bank_details.iban,
+        account_number=bank_details.account_number,
+        amount=str(config.invoice_amount),
+        bank_name=bank_details.bank_name,
+        company_address=company_profile.company_address,
+        company_name=company_profile.company_name,
+        date_from=invoice_period.period_from,
+        date_to=invoice_period.period_to,
+        invoice_date=invoice_period.invoice_date,
+        invoice_number=invoice_number,
+        service_agreement_date=(
+            company_profile.service_agreement_date.strftime("%d.%m.%Y")
+            if company_profile.service_agreement_date is not None
+            else DEFAULT_SERVICE_AGREEMENT_DATE
+        ),
+    )
+
     try:
-        config = UserConfig.get_by_owner(telegram_id)
-        if config is None or config.invoice_amount is None:
-            msg = "Сумма Salary Invoice не указана. Используйте «💰 Указать сумму»."
-            raise ValueError(msg)
-
-        company_profile = CompanyProfile.get_by_owner(telegram_id)
-        if company_profile is None:
-            msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
-            raise ValueError(msg)
-
-        bank_details = BankDetails.get_by_owner(telegram_id)
-        if bank_details is None:
-            msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
-            raise ValueError(msg)
-
-        invoice_data = InvoiceData(
-            account_holder=bank_details.account_holder,
-            account_holder_address=bank_details.account_holder_address or "",
-            account_bic=bank_details.bic,
-            account_iban=bank_details.iban,
-            account_number=bank_details.account_number,
-            amount=str(config.invoice_amount),
-            bank_name=bank_details.bank_name,
-            company_address=company_profile.company_address,
-            company_name=company_profile.company_name,
-            date_from=invoice_period.period_from,
-            date_to=invoice_period.period_to,
-            invoice_date=invoice_period.invoice_date,
-            invoice_number=invoice_number,
-            service_agreement_date=(
-                company_profile.service_agreement_date.strftime("%d.%m.%Y")
-                if company_profile.service_agreement_date is not None
-                else DEFAULT_SERVICE_AGREEMENT_DATE
-            ),
-        )
-
         generate_invoice(
             template_path=template_path,
             output_pdf_path=output_pdf_path,

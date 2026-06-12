@@ -5,6 +5,9 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.messages import BotInfo
+from src.services.bank.exceptions import BankPdfError
+from src.services.conversion_order.exceptions import TransferRequestError
+from src.services.invoice.exceptions import InvoiceError
 from src.storage.orm import UserConfig
 from src.workflows.run_invoice_delivery import generate_and_send_invoice
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
@@ -47,7 +50,7 @@ class DocumentHandlers:
         self.telegram.send_message(telegram_id, BotInfo.GENERATING_INVOICE)
         try:
             generate_and_send_invoice(telegram_id)
-        except ValueError as error:
+        except InvoiceError as error:
             LOGGER.warning("Salary invoice generation failed for Telegram user %s", telegram_id)
             self.telegram.send_message(telegram_id, str(error))
             return
@@ -70,7 +73,12 @@ class DocumentHandlers:
         LOGGER.info("Bank confirmation generation requested by Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BotInfo.GENERATING_BANK_CONFIRMATION)
 
-        bank_confirmation_path = generate_bank_confirmation(telegram_id)
+        try:
+            bank_confirmation_path = generate_bank_confirmation(telegram_id)
+        except BankPdfError as error:
+            LOGGER.info("Bank confirmation failed for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, str(error))
+            return
         LOGGER.info("Bank confirmation generated for Telegram user %s", telegram_id)
         self.telegram.send_document(telegram_id, bank_confirmation_path)
 
@@ -89,7 +97,7 @@ class DocumentHandlers:
                 telegram_id=telegram_id,
                 amount=str(config.invoice_amount),
             )
-        except ValueError as error:
+        except TransferRequestError as error:
             LOGGER.warning("Conversion order generation failed for Telegram user %s", telegram_id)
             self.telegram.send_message(telegram_id, str(error))
             return

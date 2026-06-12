@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from src.constants import TestData
+from src.services.invoice.exceptions import InvoiceGenerationError
 from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType, UserConfig
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.bank_details import BankDetails
@@ -72,7 +73,7 @@ def test_generate_invoice_pdf_fails_when_invoice_amount_is_missing(tmp_path: Pat
         iban="NL91ABNA0417164300",
         bic="ABNANL2A",
     )
-    with pytest.raises(ValueError, match="Сумма Salary Invoice не указана"):
+    with pytest.raises(InvoiceGenerationError, match="Сумма Salary Invoice не указана"):
         generate_invoice_pdf(
             telegram_id=123,
             invoice_date=date(2026, 5, 20),

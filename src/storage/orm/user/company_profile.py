@@ -6,6 +6,7 @@ from sqlalchemy import Integer, String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
+from src.storage.exceptions import StorageRecordNotFoundError
 from src.storage.orm.base import BaseModel
 
 
@@ -63,7 +64,7 @@ class CompanyProfile(BaseModel):
             entity = session.scalar(statement)
 
             if entity is None:
-                raise ValueError(f"{cls.__name__} for owner {owner_telegram_id} not found")
+                raise StorageRecordNotFoundError(f"{cls.__name__} for owner {owner_telegram_id} not found")
 
             for field_name, value in fields.items():
                 setattr(entity, field_name, value)
