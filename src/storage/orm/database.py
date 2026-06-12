@@ -77,6 +77,7 @@ class Database:
         with self._engine.begin() as connection:
             for table in BaseModel.metadata.sorted_tables:
                 self._sync_sqlite_table(connection, table)
+            self._normalize_document_generation_history(connection)
 
     def _sync_sqlite_table(self, connection: Any, table: Table) -> None:
         existing_columns = self._get_sqlite_table_columns(connection, table.name)
@@ -112,6 +113,23 @@ class Database:
             target_columns_sql = ", ".join(f'"{target}"' for target, _ in column_mappings)
             source_columns_sql = ", ".join(f'"{source}"' for _, source in column_mappings)
             connection.execute(text(f'INSERT INTO "{table.name}" ({target_columns_sql}) SELECT {source_columns_sql} FROM "{temp_table_name}"'))
+            if table.name == "document_generation_history":
+                connection.execute(
+                    text(
+                        """
+                        UPDATE document_generation_history
+                        SET document_type = CASE document_type
+                            WHEN 'invoice' THEN 'salary_invoice'
+                            WHEN 'bank_pdf' THEN 'bank_confirmation'
+                            WHEN 'payment_confirmation' THEN 'bank_confirmation'
+                            WHEN 'incoming_payment_confirmation' THEN 'bank_confirmation'
+                            WHEN 'bank_request' THEN 'bank_confirmation'
+                            WHEN 'transfer_request' THEN 'conversion_order'
+                            ELSE document_type
+                        END
+                        """
+                    )
+                )
         connection.execute(text(f'DROP TABLE "{temp_table_name}"'))
 
     def _get_sqlite_table_columns(self, connection: Any, table_name: str) -> list[str]:
@@ -134,6 +152,28 @@ class Database:
             msg = f"Cannot add primary key column via ALTER TABLE: {column.name}"
             raise ValueError(msg)
         return rendered_column
+
+    def _normalize_document_generation_history(self, connection: Any) -> None:
+        if "document_generation_history" not in BaseModel.metadata.tables:
+            return
+        if not self._get_sqlite_table_columns(connection, "document_generation_history"):
+            return
+        connection.execute(
+            text(
+                """
+                UPDATE document_generation_history
+                SET document_type = CASE document_type
+                    WHEN 'invoice' THEN 'salary_invoice'
+                    WHEN 'bank_pdf' THEN 'bank_confirmation'
+                    WHEN 'payment_confirmation' THEN 'bank_confirmation'
+                    WHEN 'incoming_payment_confirmation' THEN 'bank_confirmation'
+                    WHEN 'bank_request' THEN 'bank_confirmation'
+                    WHEN 'transfer_request' THEN 'conversion_order'
+                    ELSE document_type
+                END
+                """
+            )
+        )
 
     @staticmethod
     def _requires_sqlite_table_rebuild(column: Any) -> bool:

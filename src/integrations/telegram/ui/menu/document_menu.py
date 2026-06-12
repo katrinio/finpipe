@@ -5,12 +5,12 @@ def build_document_menu() -> dict:
     return {
         "keyboard": [
             [
-                {"text": DocumentsMenuButtons.INVOICE},
-                {"text": DocumentsMenuButtons.BANK},
+                {"text": DocumentsMenuButtons.SALARY_INVOICE},
+                {"text": DocumentsMenuButtons.BANK_CONFIRMATION},
             ],
             [
                 {"text": NavigationButtons.BACK},
-                {"text": DocumentsMenuButtons.TRANSFER_REQUEST},
+                {"text": DocumentsMenuButtons.CONVERSION_ORDER},
             ],
         ],
         "resize_keyboard": True,

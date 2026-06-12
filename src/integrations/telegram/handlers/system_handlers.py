@@ -58,9 +58,9 @@ class SystemHandlers:
             "Интеграции:\n"
             f"{icon(status.gmail)} Gmail\n\n"
             "Документы:\n"
-            f"{icon(status.bank_pdf_available)} Bank PDF\n"
-            f"{icon(status.invoice_available)} Invoice\n"
-            f"{icon(status.transfer_request_available)} Transfer Request"
+            f"{icon(status.bank_confirmation_available)} Bank Confirmation\n"
+            f"{icon(status.invoice_available)} Salary Invoice\n"
+            f"{icon(status.conversion_order_available)} Conversion Order"
         )
 
         self.telegram.send_message(telegram_id, message)

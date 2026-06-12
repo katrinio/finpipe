@@ -45,19 +45,19 @@ def test_document_generation_history_supports_all_document_types(tmp_path: Path)
     database.initialize_schema()
 
     DocumentGenerationHistory.add_attempt(DocumentType.SALARY_INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.SUCCESS)
-    DocumentGenerationHistory.add_attempt(DocumentType.PAYMENT_CONFIRMATION, None, telegram_id=1, status=DocumentGenerationStatus.SUCCESS)
+    DocumentGenerationHistory.add_attempt(DocumentType.BANK_CONFIRMATION, None, telegram_id=1, status=DocumentGenerationStatus.SUCCESS)
     DocumentGenerationHistory.add_attempt(
         DocumentType.CONVERSION_ORDER, "TR-2026-05", telegram_id=1, status=DocumentGenerationStatus.FAILED, error_message="boom"
     )
 
     invoice_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.SALARY_INVOICE, "2026-05")
-    bank_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.PAYMENT_CONFIRMATION, None)
+    bank_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.BANK_CONFIRMATION, None)
     transfer_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.CONVERSION_ORDER, "TR-2026-05")
 
     assert invoice_entry is not None
     assert invoice_entry.document_type == DocumentType.SALARY_INVOICE
     assert bank_entry is not None
-    assert bank_entry.document_type == DocumentType.PAYMENT_CONFIRMATION
+    assert bank_entry.document_type == DocumentType.BANK_CONFIRMATION
     assert bank_entry.document_number is None
     assert transfer_entry is not None
     assert transfer_entry.document_type == DocumentType.CONVERSION_ORDER

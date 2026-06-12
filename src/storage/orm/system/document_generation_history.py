@@ -13,9 +13,9 @@ from src.storage.orm.base import BaseModel
 class DocumentType(StrEnum):
     """Тип поддерживаемого документа."""
 
-    SALARY_INVOICE = "invoice"
-    PAYMENT_CONFIRMATION = "bank_pdf"
-    CONVERSION_ORDER = "transfer_request"
+    SALARY_INVOICE = "salary_invoice"
+    BANK_CONFIRMATION = "bank_confirmation"
+    CONVERSION_ORDER = "conversion_order"
 
 
 class DocumentGenerationStatus(StrEnum):
@@ -34,7 +34,6 @@ class DocumentGenerationHistory(BaseModel):
     document_type: Mapped[str] = mapped_column(
         String,
         nullable=False,
-        # TODO
         default=DocumentType.SALARY_INVOICE,
         server_default=text(f"'{DocumentType.SALARY_INVOICE.value}'"),
         index=True,

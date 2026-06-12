@@ -22,7 +22,7 @@
 Примеры:
 
 - генерация Invoice;
-- генерация Transfer Request;
+- генерация Conversion Order;
 - импорт профиля;
 - работа с подписями;
 - логика Telegram-бота.

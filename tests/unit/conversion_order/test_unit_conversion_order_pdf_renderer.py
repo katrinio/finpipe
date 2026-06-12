@@ -1,7 +1,7 @@
-from src.services.transfer_request.render_pdf import TransferRequestFallbackPdfRenderer
+from src.services.conversion_order.render_pdf import ConversionOrderFallbackPdfRenderer
 
 
-def test_transfer_request_fallback_lines_include_all_transfer_request_fields() -> None:
+def test_conversion_order_fallback_lines_include_all_fields() -> None:
     data = {
         "account_number": "190-128270-73",
         "amount": "1000",
@@ -10,7 +10,7 @@ def test_transfer_request_fallback_lines_include_all_transfer_request_fields() -
         "name": "Katrin",
     }
 
-    assert TransferRequestFallbackPdfRenderer.build_lines(data) == [
+    assert ConversionOrderFallbackPdfRenderer.build_lines(data) == [
         "Account number: 190-128270-73",
         "Date: 30.05.2026",
         "City: Beograd",

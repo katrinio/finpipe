@@ -51,7 +51,7 @@ jobs:
           ls -la
           ls -la templates
           test -f "${{ github.workspace }}/templates/invoice_template.docx"
-          test -f "${{ github.workspace }}/templates/transfer_request_template.docx"
+          test -f "${{ github.workspace }}/templates/conversion_order_template.docx"
 
       - name: Process Bank Flow and Send Documents
         run: |

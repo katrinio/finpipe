@@ -1,4 +1,4 @@
-"""Шаг workflow для подготовки заполненного PDF банка."""
+"""Шаг workflow для генерации Bank Confirmation."""
 
 import argparse
 import logging
@@ -7,8 +7,8 @@ from pathlib import Path
 
 from src.constants import Dir, Format
 from src.logging_config import configure_logging
+from src.services.bank.bank_confirmation import generate_bank_confirmation_pdf
 from src.services.bank.bank_extract import extract_amount
-from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
 from src.services.invoice.context import build_invoice_period
 from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
@@ -20,9 +20,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Создаёт CLI-парсер для генерации bank PDF."""
+    """Создаёт CLI-парсер для генерации Bank Confirmation."""
 
-    parser = argparse.ArgumentParser(description="Extract amount and fill bank PDF.")
+    parser = argparse.ArgumentParser(description="Extract amount and generate bank confirmation.")
     parser.add_argument(
         "--telegram-id",
         type=int,
@@ -33,20 +33,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--bank-template",
         type=Path,
         default=None,
-        help=f"Path to source bank PDF. Defaults to the newest PDF in {Dir.ATTACHMENTS}.",
+        help=f"Path to source bank confirmation PDF. Defaults to the newest PDF in {Dir.ATTACHMENTS}.",
     )
     parser.add_argument("--signature", type=Path, default=Dir.SIGNATURE_ENC)
     parser.add_argument(
         "--without-signature",
         action="store_true",
-        help="Generate bank PDF without signature image.",
+        help="Generate bank confirmation without signature image.",
     )
     parser.add_argument("--output-dir", type=Path, default=Dir.BANK_OUTPUT_DIR)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI-точка входа для заполнения банковского PDF."""
+    """CLI-точка входа для генерации Bank Confirmation."""
 
     configure_logging()
     EnvVar.get_dotenv()
@@ -55,7 +55,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        fill_bank_pdf_with_data(
+        generate_bank_confirmation(
             telegram_id=args.telegram_id,
             bank_template=args.bank_template,
             signature=args.signature,
@@ -63,13 +63,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             include_signature=not args.without_signature,
         )
     except Exception:
-        LOGGER.exception("Bank PDF processing failed")
+        LOGGER.exception("Bank confirmation generation failed")
         return 1
     else:
         return 0
 
 
-def fill_bank_pdf_with_data(
+def generate_bank_confirmation(
     telegram_id: int,
     bank_template: Path | None = None,
     signature: Path | None = Dir.SIGNATURE_ENC,
@@ -77,19 +77,16 @@ def fill_bank_pdf_with_data(
     include_signature: bool | None = None,
     amount: float | None = None,
 ) -> Path:
-    """
-    Заполняет банковский PDF и возвращает путь
-    к созданному файлу.
-    """
+    """Генерирует Bank Confirmation и возвращает путь к созданному файлу."""
 
     document_number: str | None = None
-    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.PAYMENT_CONFIRMATION, document_number, telegram_id)
+    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.BANK_CONFIRMATION, document_number, telegram_id)
 
     try:
         bank_template = resolve_bank_template(bank_template)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        LOGGER.info("Preparing bank PDF from %s", bank_template)
+        LOGGER.info("Preparing bank confirmation from %s", bank_template)
         amount = amount or extract_amount(bank_template)
         bank_details = BankDetails.get_by_owner(telegram_id)
         if bank_details is None:
@@ -106,7 +103,7 @@ def fill_bank_pdf_with_data(
 
         resolved_signature = resolve_signature(signature)
 
-        render_bank_pdf(
+        generate_bank_confirmation_pdf(
             input_pdf=bank_template,
             output_pdf=bank_output,
             amount=amount,
@@ -117,42 +114,40 @@ def fill_bank_pdf_with_data(
         )
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
-            document_type=DocumentType.PAYMENT_CONFIRMATION,
+            document_type=DocumentType.BANK_CONFIRMATION,
             document_number=document_number,
             telegram_id=telegram_id,
             status=DocumentGenerationStatus.FAILED,
             error_message=str(error),
         )
-        LOGGER.warning(
-            "Document generation failed type=%s document=%s telegram_id=%s", DocumentType.PAYMENT_CONFIRMATION, document_number, telegram_id
-        )
+        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.BANK_CONFIRMATION, document_number, telegram_id)
         raise
 
     DocumentGenerationHistory.add_attempt(
-        document_type=DocumentType.PAYMENT_CONFIRMATION,
+        document_type=DocumentType.BANK_CONFIRMATION,
         document_number=document_number,
         telegram_id=telegram_id,
         status=DocumentGenerationStatus.SUCCESS,
         error_message=None,
     )
-    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.PAYMENT_CONFIRMATION, document_number, telegram_id)
-    LOGGER.info("Bank PDF processing finished successfully: %s", bank_output)
+    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.BANK_CONFIRMATION, document_number, telegram_id)
+    LOGGER.info("Bank confirmation saved to %s", bank_output)
     return bank_output
 
 
 def resolve_bank_template(bank_template: Path | None) -> Path:
-    """Определяет, какой исходный bank PDF использовать в workflow."""
+    """Определяет, какой исходный PDF использовать для Bank Confirmation."""
 
     if bank_template is not None:
         if not bank_template.exists():
-            msg = f"Bank PDF not found: {bank_template}"
+            msg = f"Bank confirmation source PDF not found: {bank_template}"
             raise FileNotFoundError(msg)
 
         if not is_pdf_file(bank_template):
-            msg = f"Bank template is not a PDF: {bank_template}"
+            msg = f"Bank confirmation template is not a PDF: {bank_template}"
             raise ValueError(msg)
 
-        LOGGER.info("Using bank PDF from --bank-template: %s", bank_template)
+        LOGGER.info("Using bank confirmation source PDF from --bank-template: %s", bank_template)
         return bank_template
 
     if not Dir.ATTACHMENTS.exists():
@@ -161,11 +156,11 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
 
     candidates = [path for path in Dir.ATTACHMENTS.iterdir() if path.is_file() and is_pdf_file(path)]
     if not candidates:
-        msg = f"No bank PDF found in {Dir.ATTACHMENTS}. Pass --bank-template."
+        msg = f"No bank confirmation PDF found in {Dir.ATTACHMENTS}. Pass --bank-template."
         raise FileNotFoundError(msg)
 
     newest_pdf = max(candidates, key=lambda path: path.stat().st_mtime)
-    LOGGER.info("Using newest bank PDF from %s: %s", Dir.ATTACHMENTS, newest_pdf)
+    LOGGER.info("Using newest bank confirmation PDF from %s: %s", Dir.ATTACHMENTS, newest_pdf)
     return newest_pdf
 
 

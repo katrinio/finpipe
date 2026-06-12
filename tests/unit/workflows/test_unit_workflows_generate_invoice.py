@@ -72,7 +72,7 @@ def test_generate_invoice_pdf_fails_when_invoice_amount_is_missing(tmp_path: Pat
         iban="NL91ABNA0417164300",
         bic="ABNANL2A",
     )
-    with pytest.raises(ValueError, match="Сумма Invoice не указана"):
+    with pytest.raises(ValueError, match="Сумма Salary Invoice не указана"):
         generate_invoice_pdf(
             telegram_id=123,
             invoice_date=date(2026, 5, 20),
@@ -86,7 +86,7 @@ def test_generate_invoice_pdf_fails_when_invoice_amount_is_missing(tmp_path: Pat
     assert failed_entries[0].document_number == "2026-05"
     assert failed_entries[0].telegram_id == 123
     assert failed_entries[0].status == DocumentGenerationStatus.FAILED
-    assert failed_entries[0].error_message == "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
+    assert failed_entries[0].error_message == "Сумма Salary Invoice не указана. Используйте «💰 Указать сумму»."
 
 
 def test_generate_invoice_pdf_allows_regeneration_for_same_invoice_number(tmp_path: Path) -> None:

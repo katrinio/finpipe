@@ -1,4 +1,4 @@
-"""Заполнение банковского PDF данными компании и суммой перевода."""
+"""Генерация Bank Confirmation на основе банковского PDF-шаблона."""
 
 import logging
 from io import BytesIO
@@ -19,7 +19,7 @@ from src.utils.credentials import EnvVar
 LOGGER = logging.getLogger(__name__)
 
 
-def fill_bank_pdf(
+def generate_bank_confirmation_pdf(
     input_pdf: Path,
     output_pdf: Path,
     amount: float,
@@ -40,7 +40,7 @@ def fill_bank_pdf(
         msg = "Signature not found."
         raise FileNotFoundError(msg)
 
-    LOGGER.info("Filling bank PDF: input=%s output=%s", input_pdf, output_pdf)
+    LOGGER.info("Rendering bank confirmation: input=%s output=%s", input_pdf, output_pdf)
     reader = PdfReader(str(input_pdf))
     page = reader.pages[0]
 
@@ -68,7 +68,7 @@ def fill_bank_pdf(
     with output_pdf.open("wb") as file_handle:
         writer.write(file_handle)
 
-    LOGGER.info("Generated filled bank PDF: %s", output_pdf)
+    LOGGER.info("Bank confirmation PDF generated: %s", output_pdf)
 
 
 def build_bank_form_data(

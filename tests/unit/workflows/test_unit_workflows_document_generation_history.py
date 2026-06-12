@@ -6,35 +6,35 @@ import pytest
 
 from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.database import Database, build_sqlite_url
-from src.workflows.tasks.fill_bank_pdf import fill_bank_pdf_with_data
-from src.workflows.tasks.generate_transfer_request import generate_transfer_request_pdf
+from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
+from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
 
 
-def test_fill_bank_pdf_records_failed_bank_pdf_attempt(tmp_path: Path) -> None:
+def test_fill_bank_confirmation_records_failed_attempt(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
     database.initialize_schema()
 
     with pytest.raises(FileNotFoundError):
-        fill_bank_pdf_with_data(
+        generate_bank_confirmation(
             telegram_id=123,
             bank_template=tmp_path / "missing.pdf",
             output_dir=tmp_path,
         )
 
-    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.PAYMENT_CONFIRMATION, None)
+    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.BANK_CONFIRMATION, None)
     assert history_entry is not None
-    assert history_entry.document_type == DocumentType.PAYMENT_CONFIRMATION
+    assert history_entry.document_type == DocumentType.BANK_CONFIRMATION
     assert history_entry.document_number is None
     assert history_entry.telegram_id == 123
     assert history_entry.status == DocumentGenerationStatus.FAILED
 
 
-def test_generate_transfer_request_records_failed_transfer_request_attempt(tmp_path: Path) -> None:
+def test_generate_conversion_order_records_failed_attempt(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
     database.initialize_schema()
 
     with pytest.raises(ValueError, match="Банковские реквизиты не настроены"):
-        generate_transfer_request_pdf(
+        generate_conversion_order_pdf(
             telegram_id=123,
             amount="1500",
             output_dir=tmp_path,

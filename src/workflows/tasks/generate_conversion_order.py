@@ -1,4 +1,4 @@
-"""Шаг workflow для генерации transfer request."""
+"""Шаг workflow для генерации Conversion Order."""
 
 import argparse
 import logging
@@ -15,10 +15,10 @@ from src.infrastructure.document.pdf_get_page_size import PdfGetPageSize
 from src.infrastructure.document.sign_pdf import PdfSigner
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
+from src.services.conversion_order.generate import generate_conversion_order
+from src.services.conversion_order.models import ConversionOrderData
 from src.services.invoice.context import build_invoice_period
 from src.services.signing.context import SignaturePositions
-from src.services.transfer_request.generate import generate_transfer_request
-from src.services.transfer_request.models import TransferRequestData
 from src.storage.orm import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
@@ -27,22 +27,19 @@ from src.utils.credentials import EnvVar
 LOGGER = logging.getLogger(__name__)
 
 
-def generate_transfer_request_pdf(
+def generate_conversion_order_pdf(
     telegram_id: int,
     amount: str,
     invoice_date: date | None = None,
-    template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
-    output_dir: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
+    template_path: Path = Dir.CONVERSION_ORDER_TEMPLATE,
+    output_dir: Path = Dir.CONVERSION_ORDER_OUTPUT_DIR,
     signature: Path | None = Dir.SIGNATURE_ENC,
 ) -> Path:
-    """
-    Генерирует transfer request на указанную сумму
-    и возвращает путь к PDF.
-    """
+    """Генерирует Conversion Order на указанную сумму и возвращает путь к PDF."""
 
     invoice_period = build_invoice_period(invoice_date)
     document_number = f"TR-{invoice_period.invoice_number}"
-    output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
+    output_pdf_path = output_dir / f"conversion-order-{invoice_period.invoice_number}.{Format.PDF}"
 
     LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
 
@@ -57,7 +54,7 @@ def generate_transfer_request_pdf(
             msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
             raise ValueError(msg)
 
-        transfer_request_data = TransferRequestData(
+        conversion_order_data = ConversionOrderData(
             account_number=bank_details.account_number,
             amount=amount,
             city=company_profile.city or "",
@@ -65,10 +62,10 @@ def generate_transfer_request_pdf(
             name=bank_details.account_holder,
         )
 
-        generate_transfer_request(
+        generate_conversion_order(
             template_path=template_path,
             output_pdf_path=output_pdf_path,
-            data=transfer_request_data,
+            data=conversion_order_data,
         )
         apply_signature_to_pdf(output_pdf_path, signature)
     except Exception as error:
@@ -94,7 +91,7 @@ def generate_transfer_request_pdf(
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI-точка входа для генерации transfer request."""
+    """CLI-точка входа для генерации Conversion Order."""
 
     configure_logging()
     EnvVar.get_dotenv()
@@ -104,21 +101,21 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     amount = args.amount
     if amount is None:
-        LOGGER.error("Transfer Request amount is not provided")
+        LOGGER.error("Conversion Order amount is not provided")
         return 1
 
     if not args.template.exists():
-        LOGGER.error("Transfer Request template not found: %s", args.template)
+        LOGGER.error("Conversion Order template not found: %s", args.template)
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
     LOGGER.info(
-        "Generating transfer request %s for period %s - %s",
+        "Generating conversion order %s for period %s - %s",
         invoice_period.invoice_number,
         invoice_period.period_from,
         invoice_period.period_to,
     )
-    output_pdf_path = generate_transfer_request_pdf(
+    output_pdf_path = generate_conversion_order_pdf(
         telegram_id=args.telegram_id,
         amount=amount,
         invoice_date=args.invoice_date,
@@ -126,15 +123,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         output_dir=args.output_dir,
     )
 
-    LOGGER.info("Transfer Request saved to %s", output_pdf_path)
+    LOGGER.info("Conversion Order saved to %s", output_pdf_path)
     return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Создаёт CLI-парсер для генерации transfer request."""
+    """Создаёт CLI-парсер для генерации Conversion Order."""
 
     parser = argparse.ArgumentParser(
-        description="Generate salary invoice PDF and DOCX files.",
+        description="Generate conversion order PDF files.",
     )
     parser.add_argument(
         "--telegram-id",
@@ -144,26 +141,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--amount",
-        help="Transfer Request amount in EUR.",
+        help="Conversion Order amount in EUR.",
     )
     parser.add_argument(
         "--date",
         dest="invoice_date",
         type=parse_invoice_date,
         default=None,
-        help="Transfer Request date in YYYY-MM-DD format. Defaults to today.",
+        help="Conversion Order date in YYYY-MM-DD format. Defaults to today.",
     )
     parser.add_argument(
         "--template",
         type=Path,
-        default=Dir.TRANSFER_REQUEST_TEMPLATE,
-        help=f"Path to invoice DOCX template. Defaults to {Dir.TRANSFER_REQUEST_TEMPLATE}.",
+        default=Dir.CONVERSION_ORDER_TEMPLATE,
+        help=f"Path to conversion order DOCX template. Defaults to {Dir.CONVERSION_ORDER_TEMPLATE}.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Dir.TRANSFER_REQUEST_OUTPUT_DIR,
-        help=f"Directory for generated files. Defaults to {Dir.TRANSFER_REQUEST_OUTPUT_DIR}.",
+        default=Dir.CONVERSION_ORDER_OUTPUT_DIR,
+        help=f"Directory for generated files. Defaults to {Dir.CONVERSION_ORDER_OUTPUT_DIR}.",
     )
     return parser
 
@@ -179,14 +176,14 @@ def parse_invoice_date(value: str) -> date:
 
 
 def apply_signature_to_pdf(output_pdf_path: Path, signature: Path | None) -> None:
-    """Накладывает подпись на уже сгенерированный PDF transfer request."""
+    """Накладывает подпись на уже сгенерированный PDF Conversion Order."""
 
     if signature is None:
-        LOGGER.info("Transfer request signature is disabled")
+        LOGGER.info("Conversion order signature is disabled")
         return
 
     if not signature.exists():
-        LOGGER.warning("Transfer request signature image does not exist: %s", signature)
+        LOGGER.warning("Conversion order signature image does not exist: %s", signature)
         return
 
     reader = PdfReader(str(output_pdf_path))
@@ -198,7 +195,7 @@ def apply_signature_to_pdf(output_pdf_path: Path, signature: Path | None) -> Non
     PdfSigner.draw_signature(
         pdf_canvas=overlay,
         signature=signature_bytes,
-        position=SignaturePositions.TRANSFER_REQUEST,
+        position=SignaturePositions.CONVERSION_ORDER,
     )
     overlay.save()
     packet.seek(0)

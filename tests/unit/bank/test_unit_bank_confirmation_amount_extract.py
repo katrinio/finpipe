@@ -5,7 +5,7 @@ import pytest
 from src.services.bank import bank_extract as extract
 
 
-def test_extract_amount_parses_bank_pdf_amount(monkeypatch) -> None:
+def test_extract_amount_parses_bank_confirmation_amount(monkeypatch) -> None:
     monkeypatch.setattr(
         extract,
         "extract_text",

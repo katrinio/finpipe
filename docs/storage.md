@@ -42,7 +42,7 @@ text data/finpipe.db
 - audit log;
 - Telegram states;
 - OAuth sessions;
-- история операций и попыток генерации Invoice;
+- история операций и попыток генерации документов;
 - обработанные сообщения;
 - обработанные Telegram updates.
 
@@ -83,9 +83,9 @@ text data/finpipe.db
 
 Поддерживаемые типы документов:
 
-- `invoice`
-- `bank_pdf`
-- `transfer_request`
+- `salary_invoice`
+- `bank_confirmation`
+- `conversion_order`
 
 Повторная генерация одного и того же документа разрешена.
 

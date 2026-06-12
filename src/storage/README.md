@@ -191,9 +191,9 @@ SQLAlchemy-модели проекта.
 
 Поддерживает:
 
-- `invoice`
-- `bank_pdf`
-- `transfer_request`
+- `salary_invoice`
+- `bank_confirmation`
+- `conversion_order`
 
 Сами PDF-файлы постоянно не хранятся. Для аудита и диагностики используется запись в БД.
 

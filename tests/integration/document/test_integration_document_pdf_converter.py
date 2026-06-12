@@ -10,9 +10,9 @@ from src.infrastructure.document import DocxToPdfConverter
     reason="Pages.app on macOS or LibreOffice is required for DOCX to PDF conversion integration test.",
 )
 def test_docx_to_pdf_converter_exports_docx(tmp_path):
-    rendered_docx_path = tmp_path / "transfer_request.docx"
-    output_pdf_path = tmp_path / "transfer_request.pdf"
-    rendered_docx_path.write_bytes(TestData.TRANSFER_TEMPLATE_PATH.read_bytes())
+    rendered_docx_path = tmp_path / "conversion_order.docx"
+    output_pdf_path = tmp_path / "conversion_order.pdf"
+    rendered_docx_path.write_bytes(TestData.CONVERSION_ORDER_TEMPLATE_PATH.read_bytes())
 
     DocxToPdfConverter.convert(
         rendered_docx_path=rendered_docx_path,

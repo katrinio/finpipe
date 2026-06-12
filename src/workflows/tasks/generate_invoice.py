@@ -1,4 +1,4 @@
-"""Шаг workflow для генерации инвойса."""
+"""Шаг workflow для генерации Salary Invoice."""
 
 import argparse
 import logging
@@ -26,7 +26,7 @@ def generate_invoice_pdf(
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
 ) -> Path:
-    """Генерирует Invoice и пишет в БД результат каждой попытки."""
+    """Генерирует Salary Invoice и пишет в БД результат каждой попытки."""
 
     invoice_period = build_invoice_period(invoice_date)
     invoice_number = invoice_period.invoice_number
@@ -40,7 +40,7 @@ def generate_invoice_pdf(
     try:
         config = UserConfig.get_by_owner(telegram_id)
         if config is None or config.invoice_amount is None:
-            msg = "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
+            msg = "Сумма Salary Invoice не указана. Используйте «💰 Указать сумму»."
             raise ValueError(msg)
 
         company_profile = CompanyProfile.get_by_owner(telegram_id)
@@ -102,7 +102,7 @@ def generate_invoice_pdf(
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI-точка входа для генерации инвойса."""
+    """CLI-точка входа для генерации Salary Invoice."""
 
     configure_logging()
     EnvVar.get_dotenv()
@@ -111,13 +111,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if not args.template.exists():
-        LOGGER.error("Invoice template not found: %s", args.template)
+        LOGGER.error("Salary invoice template not found: %s", args.template)
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
 
     LOGGER.info(
-        "Generating invoice %s for period %s - %s",
+        "Generating salary invoice %s for period %s - %s",
         invoice_period.invoice_number,
         invoice_period.period_from,
         invoice_period.period_to,
@@ -129,12 +129,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         output_dir=args.output_dir,
     )
 
-    LOGGER.info("Invoice saved to %s", pdf_path)
+    LOGGER.info("Salary invoice saved to %s", pdf_path)
     return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Создаёт CLI-парсер для генерации инвойса."""
+    """Создаёт CLI-парсер для генерации Salary Invoice."""
 
     parser = argparse.ArgumentParser(
         description="Generate salary invoice PDF and DOCX files.",
@@ -150,13 +150,13 @@ def build_parser() -> argparse.ArgumentParser:
         dest="invoice_date",
         type=parse_invoice_date,
         default=None,
-        help="Invoice date in YYYY-MM-DD format. Defaults to today.",
+        help="Salary invoice date in YYYY-MM-DD format. Defaults to today.",
     )
     parser.add_argument(
         "--template",
         type=Path,
         default=Dir.INVOICE_TEMPLATE,
-        help=f"Path to invoice DOCX template. Defaults to {Dir.INVOICE_TEMPLATE}.",
+        help=f"Path to salary invoice DOCX template. Defaults to {Dir.INVOICE_TEMPLATE}.",
     )
     parser.add_argument(
         "--output-dir",
@@ -168,7 +168,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_invoice_date(value: str) -> date:
-    """Преобразует строку CLI в дату инвойса."""
+    """Преобразует строку CLI в дату Salary Invoice."""
 
     try:
         return date.fromisoformat(value)

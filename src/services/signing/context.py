@@ -21,7 +21,7 @@ class SignaturePositions:
         height=70,
     )
 
-    TRANSFER_REQUEST = PdfSignaturePosition(
+    CONVERSION_ORDER = PdfSignaturePosition(
         x=400,
         y=450,
         height=80,
