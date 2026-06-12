@@ -42,7 +42,7 @@ text data/finpipe.db
 - audit log;
 - Telegram states;
 - OAuth sessions;
-- история операций;
+- история операций и попыток генерации Invoice;
 - обработанные сообщения;
 - обработанные Telegram updates.
 
@@ -60,9 +60,29 @@ text data/finpipe.db
 - состояния Telegram workflow;
 - OAuth sessions;
 - audit log;
-- история операций;
+- история операций и история генерации Invoice;
 - список известных пользователей Telegram;
 - список авторизованных пользователей.
+
+---
+
+# Invoice History
+
+История генерации Invoice хранится в таблице `invoice_history`.
+
+Она используется как журнал попыток, а не как признак того, что документ уже существует.
+
+Для каждой попытки сохраняются:
+
+- `invoice_number`
+- `telegram_id`
+- `status`
+- `error_message`
+- `created_at`
+
+Повторная генерация одного и того же `invoice_number` разрешена.
+
+Сгенерированные PDF и DOCX не используются как долговременное хранилище истории. История хранится в SQLite.
 
 ---
 
