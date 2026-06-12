@@ -9,6 +9,7 @@ from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.services.bank.bank_fill import fill_bank_pdf as render_bank_pdf
+from src.services.bank.exceptions import BankPdfValidationError
 from src.services.invoice.context import build_invoice_period
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
@@ -89,11 +90,11 @@ def fill_bank_pdf_with_data(
     bank_details = BankDetails.get_by_owner(telegram_id)
     if bank_details is None:
         msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+        raise BankPdfValidationError(msg)
     company_profile = CompanyProfile.get_by_owner(telegram_id)
     if company_profile is None:
         msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+        raise BankPdfValidationError(msg)
 
     invoice_period = build_invoice_period()
     period_suffix = Utils.today()
@@ -121,23 +122,23 @@ def resolve_bank_template(bank_template: Path | None) -> Path:
     if bank_template is not None:
         if not bank_template.exists():
             msg = f"Bank PDF not found: {bank_template}"
-            raise FileNotFoundError(msg)
+            raise BankPdfValidationError(msg)
 
         if not is_pdf_file(bank_template):
             msg = f"Bank template is not a PDF: {bank_template}"
-            raise ValueError(msg)
+            raise BankPdfValidationError(msg)
 
         LOGGER.info("Using bank PDF from --bank-template: %s", bank_template)
         return bank_template
 
     if not Dir.ATTACHMENTS.exists():
         msg = f"Attachments directory not found: {Dir.ATTACHMENTS}"
-        raise FileNotFoundError(msg)
+        raise BankPdfValidationError(msg)
 
     candidates = [path for path in Dir.ATTACHMENTS.iterdir() if path.is_file() and is_pdf_file(path)]
     if not candidates:
         msg = f"No bank PDF found in {Dir.ATTACHMENTS}. Pass --bank-template."
-        raise FileNotFoundError(msg)
+        raise BankPdfValidationError(msg)
 
     newest_pdf = max(candidates, key=lambda path: path.stat().st_mtime)
     LOGGER.info("Using newest bank PDF from %s: %s", Dir.ATTACHMENTS, newest_pdf)

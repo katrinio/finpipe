@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from src.infrastructure.http.http_client import HttpClient
+from src.integrations.telegram.exceptions import TelegramApiError
 from src.utils import Utils
 from src.utils.credentials import EnvVar
 
@@ -24,7 +25,7 @@ class TelegramClient:
 
         if not payload["ok"]:
             msg = "Telegram API healthcheck failed"
-            raise RuntimeError(msg)
+            raise TelegramApiError(msg)
 
     def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None) -> None:
         """Отправляет текстовое сообщение в целевой Telegram-чат."""
@@ -70,7 +71,7 @@ class TelegramClient:
 
         if not payload.get("ok"):
             msg = f"Telegram API getFile failed for file_id={file_id}"
-            raise RuntimeError(msg)
+            raise TelegramApiError(msg)
 
         file_path = payload["result"]["file_path"]
         return str(file_path)

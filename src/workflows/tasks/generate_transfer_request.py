@@ -17,6 +17,7 @@ from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.services.signing.context import SignaturePositions
+from src.services.transfer_request.exceptions import TransferRequestGenerationError
 from src.services.transfer_request.generate import generate_transfer_request
 from src.services.transfer_request.models import TransferRequestData
 from src.storage.orm.user.bank_details import BankDetails
@@ -45,12 +46,12 @@ def generate_transfer_request_pdf(
     bank_details = BankDetails.get_by_owner(telegram_id)
     if bank_details is None:
         msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+        raise TransferRequestGenerationError(msg)
 
     company_profile = CompanyProfile.get_by_owner(telegram_id)
     if company_profile is None:
         msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+        raise TransferRequestGenerationError(msg)
 
     transfer_request_data = TransferRequestData(
         account_number=bank_details.account_number,

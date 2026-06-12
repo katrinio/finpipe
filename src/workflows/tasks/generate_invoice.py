@@ -9,6 +9,7 @@ from pathlib import Path
 from src.constants import Dir, Format
 from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
+from src.services.invoice.exceptions import InvoiceGenerationError
 from src.services.invoice.generate import generate_invoice
 from src.services.invoice.models import InvoiceData
 from src.storage.orm import HistoryRecord, UserConfig
@@ -37,17 +38,17 @@ def generate_invoice_pdf(
     config = UserConfig.get_by_owner(telegram_id)
     if config is None or config.invoice_amount is None:
         msg = "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
-        raise ValueError(msg)
+        raise InvoiceGenerationError(msg)
 
     company_profile = CompanyProfile.get_by_owner(telegram_id)
     if company_profile is None:
         msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+        raise InvoiceGenerationError(msg)
 
     bank_details = BankDetails.get_by_owner(telegram_id)
     if bank_details is None:
         msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
+        raise InvoiceGenerationError(msg)
 
     invoice_data = InvoiceData(
         account_holder=bank_details.account_holder,
@@ -75,7 +76,7 @@ def generate_invoice_pdf(
     if HistoryRecord.invoice_exists(invoice_number):
         LOGGER.warning("Invoice %s already exists", invoice_number)
         msg = f"Invoice {invoice_number} already exists."
-        raise ValueError(msg)
+        raise InvoiceGenerationError(msg)
 
     generate_invoice(
         template_path=template_path,
