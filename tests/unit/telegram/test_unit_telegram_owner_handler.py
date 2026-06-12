@@ -21,8 +21,14 @@ def test_add_user_is_available_only_for_owner(tmp_path: Path) -> None:
     handlers.add_user(telegram_id=1, command="/add_user 2", username="owner")
 
     assert AllowedUser.exists(2) is True
-    assert telegram.sent_messages == ["✅ Пользователь добавлен."]
-    assert telegram.sent_messages_with_chat_ids == [(1, "✅ Пользователь добавлен.")]
+    assert telegram.sent_messages == [
+        "✅ Пользователь добавлен.",
+        "✅ Администратор добавил вас в список пользователей.",
+    ]
+    assert telegram.sent_messages_with_chat_ids == [
+        (1, "✅ Пользователь добавлен."),
+        (2, "✅ Администратор добавил вас в список пользователей."),
+    ]
 
 
 def test_add_user_denies_non_owner(tmp_path: Path) -> None:

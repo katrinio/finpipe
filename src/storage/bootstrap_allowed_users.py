@@ -25,8 +25,15 @@ def bootstrap_primary_admin(db_path: Path = Dir.STORAGE_DB) -> None:
     signature_source = resolve_signature_source_path()
     signature_destination = Dir.SIGNATURE_ENC.parent / f"{telegram_id}_sign.enc"
 
-    if not AllowedUser.exists(telegram_id):
+    existing_user = AllowedUser.get_by_telegram_id(telegram_id)
+    if existing_user is None:
         AllowedUser.create(telegram_id=telegram_id, username=user_name, role=UserRole.OWNER)
+    elif existing_user.role != UserRole.OWNER:
+        AllowedUser.upsert(
+            telegram_id=telegram_id,
+            username=existing_user.username or user_name,
+            role=UserRole.OWNER,
+        )
 
     # Signature bootstrap is optional for MVP.
     # If no source file is present, admin bootstraps without a signature and the bot still starts.

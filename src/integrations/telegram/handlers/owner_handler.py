@@ -32,3 +32,4 @@ class OwnerHandlers:
 
         AllowedUser.upsert(telegram_id=allowed_telegram_id, username=username)
         self.telegram.send_message(telegram_id, "✅ Пользователь добавлен.")
+        self.telegram.send_message(allowed_telegram_id, "✅ Администратор добавил вас в список пользователей.")
