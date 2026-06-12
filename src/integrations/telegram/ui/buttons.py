@@ -64,7 +64,14 @@ class NavigationButtons:
 
 # owner
 class OwnerButtons:
-    ADD_USER = "/add_user"
+    ADMIN_PANEL = "🛠️ Админка"
+    USERS = "👥 Пользователи"
+    ADD_USER = "➕ Добавить пользователя"
+    REMOVE_USER = "➖ Удалить пользователя"
+    LIST_USERS = "📋 Список пользователей"
+    CONFIRM_ADD_USER = "➕ Выдать доступ"
+    CONFIRM_REMOVE_USER = "➖ Удалить доступ"
+    CANCEL_ADMIN_ACTION = "✖️ Отмена"
 
 
 PUBLIC_COMMANDS = {

@@ -1,11 +1,20 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.ui.buttons import DocumentsMenuButtons, IntegrationsButtons, MainMenuButtons, NavigationButtons, ProfileButtons
+from src.integrations.telegram.ui.buttons import (
+    DocumentsMenuButtons,
+    IntegrationsButtons,
+    MainMenuButtons,
+    NavigationButtons,
+    OwnerButtons,
+    ProfileButtons,
+)
+from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu, build_users_menu
 from src.integrations.telegram.ui.menu.document_menu import build_document_menu, build_invoice_menu
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu, build_integration_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.integrations.telegram.ui.messages import CommonMessages
+from src.storage.orm import AllowedUser
 
 
 class MenuHandler:
@@ -20,7 +29,7 @@ class MenuHandler:
         self.telegram.send_message(
             telegram_id,
             CommonMessages.WELCOME,
-            reply_markup=build_main_menu(),
+            reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
     def main_menu(self, telegram_id: int) -> None:
@@ -29,7 +38,7 @@ class MenuHandler:
         self.telegram.send_message(
             telegram_id,
             NavigationButtons.HOME,
-            reply_markup=build_main_menu(),
+            reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
     def system_menu(self, telegram_id: int) -> None:
@@ -38,7 +47,7 @@ class MenuHandler:
         self.telegram.send_message(
             telegram_id,
             MainMenuButtons.SYSTEM,
-            reply_markup=build_system_menu(),
+            reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
     def gmail_menu(self, telegram_id: int) -> None:
@@ -93,4 +102,22 @@ class MenuHandler:
             telegram_id,
             MainMenuButtons.INTEGRATIONS,
             reply_markup=build_integration_menu(),
+        )
+
+    def admin_menu(self, telegram_id: int) -> None:
+        """Открывает раздел админа (доступен только овнеру)."""
+
+        self.telegram.send_message(
+            telegram_id,
+            OwnerButtons.ADMIN_PANEL,
+            reply_markup=build_admin_menu(),
+        )
+
+    def user_menu(self, telegram_id: int) -> None:
+        """Открывает раздел админа (доступен только овнеру)."""
+
+        self.telegram.send_message(
+            telegram_id,
+            OwnerButtons.USERS,
+            reply_markup=build_users_menu(),
         )

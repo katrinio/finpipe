@@ -29,6 +29,7 @@ text data/finpipe.db
 - настройки Invoice;
 - электронная подпись;
 - Gmail аккаунт.
+- данные о Telegram-пользователе, уже открывавшем бота.
 
 ---
 
@@ -37,6 +38,7 @@ text data/finpipe.db
 Служебные данные приложения:
 
 - разрешённые пользователи;
+- известные пользователи Telegram;
 - audit log;
 - Telegram states;
 - OAuth sessions;
@@ -59,7 +61,43 @@ text data/finpipe.db
 - OAuth sessions;
 - audit log;
 - история операций;
+- список известных пользователей Telegram;
 - список авторизованных пользователей.
+
+---
+
+# Access Model
+
+Finpipe использует две отдельные сущности для Telegram-доступа.
+
+## KnownUser
+
+Известный Telegram-пользователь.
+
+Появляется после первого взаимодействия с ботом.
+
+Хранит:
+
+- telegram_id
+- username
+- first_name
+- created_at
+- last_seen_at
+
+Не даёт прав доступа.
+
+## AllowedUser
+
+Пользователь, которому выдан доступ к Finpipe.
+
+Хранит:
+
+- telegram_id
+- username
+- роль пользователя
+- created_at
+
+Используется для проверки прав доступа и ролей.
 
 ---
 

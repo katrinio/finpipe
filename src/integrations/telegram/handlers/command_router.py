@@ -68,8 +68,14 @@ class CommandRouter:
 
         try:
             handler = self._command_handlers.get(text)
+            if handler is None and text.startswith(f"{Cmd.ADD_USER} "):
+                handler = self._command_handlers.get(OwnerButtons.ADD_USER)
+            if handler is None and text.startswith(f"{Cmd.REMOVE_USER} "):
+                handler = self._command_handlers.get(OwnerButtons.REMOVE_USER)
             if handler is None and text.startswith(f"{OwnerButtons.ADD_USER} "):
                 handler = self._command_handlers.get(OwnerButtons.ADD_USER)
+            if handler is None and text.startswith(f"{OwnerButtons.REMOVE_USER} "):
+                handler = self._command_handlers.get(OwnerButtons.REMOVE_USER)
 
             if handler is None:
                 self.telegram.send_message(context.telegram_id, BotInfo.NO_SUCH_COMMAND)
@@ -91,12 +97,6 @@ class CommandRouter:
         """Собирает таблицу команд один раз при инициализации."""
 
         self._command_handlers = {
-            # owner
-            OwnerButtons.ADD_USER: lambda context: self.owner_handler.add_user(
-                telegram_id=context.telegram_id,
-                command=context.command,
-                username=context.username,
-            ),
             # root navigation
             Cmd.START: lambda context: self.menu_handler.main_start(context.telegram_id),
             Cmd.MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
@@ -105,6 +105,7 @@ class CommandRouter:
             MainMenuButtons.INTEGRATIONS: lambda context: self.menu_handler.integration_menu(context.telegram_id),
             MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
+            OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.admin_menu(context.telegram_id),
             NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents
             DocumentsMenuButtons.INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
@@ -134,6 +135,19 @@ class CommandRouter:
             SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(context.telegram_id),
             SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
+            # admin
+            OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
+            OwnerButtons.ADD_USER: lambda context: (
+                self.owner_handler.start_add_user_input(context.telegram_id)
+                if context.command == OwnerButtons.ADD_USER
+                else self.owner_handler.add_user(context.telegram_id, context.command)
+            ),
+            OwnerButtons.REMOVE_USER: lambda context: (
+                self.owner_handler.start_remove_user_input(context.telegram_id)
+                if context.command == OwnerButtons.REMOVE_USER
+                else self.owner_handler.remove_user(context.telegram_id, context.command)
+            ),
+            OwnerButtons.LIST_USERS: lambda context: self.owner_handler.list_users(context.telegram_id),
         }
 
     def _audit(

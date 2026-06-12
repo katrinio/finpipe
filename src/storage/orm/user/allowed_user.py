@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from enum import StrEnum
 
-from sqlalchemy import Integer, String, select
+from sqlalchemy import Integer, String, delete, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -91,6 +91,14 @@ class AllowedUser(BaseModel):
         with cls.session() as session:
             statement = select(cls).order_by(cls.telegram_id)
             return list(session.scalars(statement))
+
+    @classmethod
+    def delete(cls, telegram_id: int) -> None:
+        """Удаляет пользователя из allowlist."""
+
+        with cls.session() as session:
+            session.execute(delete(cls).where(cls.telegram_id == telegram_id))
+            session.commit()
 
     @property
     def user_name(self) -> str | None:
