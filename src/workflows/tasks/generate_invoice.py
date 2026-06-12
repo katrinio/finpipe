@@ -32,10 +32,10 @@ def generate_invoice_pdf(
     invoice_number = invoice_period.invoice_number
     output_pdf_path = output_dir / f"invoice-{invoice_number}.{Format.PDF}"
 
-    if DocumentGenerationHistory.has_attempts(DocumentType.INVOICE, invoice_number):
-        LOGGER.info("Document regeneration requested type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
+    if DocumentGenerationHistory.has_attempts(DocumentType.SALARY_INVOICE, invoice_number):
+        LOGGER.info("Document regeneration requested type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
 
-    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
+    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
 
     try:
         config = UserConfig.get_by_owner(telegram_id)
@@ -81,23 +81,23 @@ def generate_invoice_pdf(
         )
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
-            document_type=DocumentType.INVOICE,
+            document_type=DocumentType.SALARY_INVOICE,
             document_number=invoice_number,
             telegram_id=telegram_id,
             status=DocumentGenerationStatus.FAILED,
             error_message=str(error),
         )
-        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
+        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
         raise
 
     DocumentGenerationHistory.add_attempt(
-        document_type=DocumentType.INVOICE,
+        document_type=DocumentType.SALARY_INVOICE,
         document_number=invoice_number,
         telegram_id=telegram_id,
         status=DocumentGenerationStatus.SUCCESS,
         error_message=None,
     )
-    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.INVOICE, invoice_number, telegram_id)
+    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
     return output_pdf_path
 
 

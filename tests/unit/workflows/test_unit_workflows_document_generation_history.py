@@ -21,9 +21,9 @@ def test_fill_bank_pdf_records_failed_bank_pdf_attempt(tmp_path: Path) -> None:
             output_dir=tmp_path,
         )
 
-    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.BANK_PDF, None)
+    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.PAYMENT_CONFIRMATION, None)
     assert history_entry is not None
-    assert history_entry.document_type == DocumentType.BANK_PDF
+    assert history_entry.document_type == DocumentType.PAYMENT_CONFIRMATION
     assert history_entry.document_number is None
     assert history_entry.telegram_id == 123
     assert history_entry.status == DocumentGenerationStatus.FAILED
@@ -40,9 +40,9 @@ def test_generate_transfer_request_records_failed_transfer_request_attempt(tmp_p
             output_dir=tmp_path,
         )
 
-    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.TRANSFER_REQUEST, "TR-2026-06")
+    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.CONVERSION_ORDER, "TR-2026-06")
     assert history_entry is not None
-    assert history_entry.document_type == DocumentType.TRANSFER_REQUEST
+    assert history_entry.document_type == DocumentType.CONVERSION_ORDER
     assert history_entry.document_number == "TR-2026-06"
     assert history_entry.telegram_id == 123
     assert history_entry.status == DocumentGenerationStatus.FAILED

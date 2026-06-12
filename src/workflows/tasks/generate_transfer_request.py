@@ -44,7 +44,7 @@ def generate_transfer_request_pdf(
     document_number = f"TR-{invoice_period.invoice_number}"
     output_pdf_path = output_dir / f"transfer-request-{invoice_period.invoice_number}.{Format.PDF}"
 
-    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.TRANSFER_REQUEST, document_number, telegram_id)
+    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
 
     try:
         bank_details = BankDetails.get_by_owner(telegram_id)
@@ -73,23 +73,23 @@ def generate_transfer_request_pdf(
         apply_signature_to_pdf(output_pdf_path, signature)
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
-            document_type=DocumentType.TRANSFER_REQUEST,
+            document_type=DocumentType.CONVERSION_ORDER,
             document_number=document_number,
             telegram_id=telegram_id,
             status=DocumentGenerationStatus.FAILED,
             error_message=str(error),
         )
-        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.TRANSFER_REQUEST, document_number, telegram_id)
+        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
         raise
 
     DocumentGenerationHistory.add_attempt(
-        document_type=DocumentType.TRANSFER_REQUEST,
+        document_type=DocumentType.CONVERSION_ORDER,
         document_number=document_number,
         telegram_id=telegram_id,
         status=DocumentGenerationStatus.SUCCESS,
         error_message=None,
     )
-    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.TRANSFER_REQUEST, document_number, telegram_id)
+    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
     return output_pdf_path
 
 

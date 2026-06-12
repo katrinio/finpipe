@@ -83,7 +83,7 @@ def fill_bank_pdf_with_data(
     """
 
     document_number: str | None = None
-    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.BANK_PDF, document_number, telegram_id)
+    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.PAYMENT_CONFIRMATION, document_number, telegram_id)
 
     try:
         bank_template = resolve_bank_template(bank_template)
@@ -117,23 +117,25 @@ def fill_bank_pdf_with_data(
         )
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
-            document_type=DocumentType.BANK_PDF,
+            document_type=DocumentType.PAYMENT_CONFIRMATION,
             document_number=document_number,
             telegram_id=telegram_id,
             status=DocumentGenerationStatus.FAILED,
             error_message=str(error),
         )
-        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.BANK_PDF, document_number, telegram_id)
+        LOGGER.warning(
+            "Document generation failed type=%s document=%s telegram_id=%s", DocumentType.PAYMENT_CONFIRMATION, document_number, telegram_id
+        )
         raise
 
     DocumentGenerationHistory.add_attempt(
-        document_type=DocumentType.BANK_PDF,
+        document_type=DocumentType.PAYMENT_CONFIRMATION,
         document_number=document_number,
         telegram_id=telegram_id,
         status=DocumentGenerationStatus.SUCCESS,
         error_message=None,
     )
-    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.BANK_PDF, document_number, telegram_id)
+    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.PAYMENT_CONFIRMATION, document_number, telegram_id)
     LOGGER.info("Bank PDF processing finished successfully: %s", bank_output)
     return bank_output
 

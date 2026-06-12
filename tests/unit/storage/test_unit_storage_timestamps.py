@@ -40,8 +40,8 @@ def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
     assert oauth_session.used_at is not None
     assert oauth_session.used_at.microsecond == 0
 
-    DocumentGenerationHistory.add_attempt(DocumentType.INVOICE, "2026-05", telegram_id=4, status=DocumentGenerationStatus.SUCCESS)
-    history_record = DocumentGenerationHistory.get_last_attempt(DocumentType.INVOICE, "2026-05")
+    DocumentGenerationHistory.add_attempt(DocumentType.SALARY_INVOICE, "2026-05", telegram_id=4, status=DocumentGenerationStatus.SUCCESS)
+    history_record = DocumentGenerationHistory.get_last_attempt(DocumentType.SALARY_INVOICE, "2026-05")
     assert history_record is not None
     assert history_record.created_at.microsecond == 0
 

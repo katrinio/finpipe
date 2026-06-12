@@ -82,8 +82,8 @@ def test_sqlite_rebuilds_legacy_document_generation_history_table(tmp_path: Path
 
     assert columns == {"id", "document_type", "document_number", "telegram_id", "status", "error_message", "created_at"}
 
-    last_attempt = DocumentGenerationHistory.get_last_attempt(DocumentType.INVOICE, "2026-05")
+    last_attempt = DocumentGenerationHistory.get_last_attempt(DocumentType.SALARY_INVOICE, "2026-05")
     assert last_attempt is not None
     assert last_attempt.document_number == "2026-05"
-    assert last_attempt.document_type == DocumentType.INVOICE
+    assert last_attempt.document_type == DocumentType.SALARY_INVOICE
     assert last_attempt.status == DocumentGenerationStatus.SUCCESS
