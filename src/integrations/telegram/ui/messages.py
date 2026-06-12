@@ -72,13 +72,13 @@ class SignatureMessages:
 
 
 class InvoiceMessages:
-    GENERATING_INVOICE = "⏳ Формируется инвойс..."
-    INVOICE_SENT = "✅ Инвойс отправлен."
+    GENERATING_INVOICE = "⏳ Формируется Salary Invoice..."
+    INVOICE_SENT = "✅ Salary Invoice отправлен."
 
 
 class BankMessages:
-    FILL_BANK_PDF = "⏳ Заполняется PDF от банка..."
-    BANK_PDF_SENT = "✅ PDF банка отправлен."
+    GENERATING_BANK_CONFIRMATION = "⏳ Формируется подтверждение для банка..."
+    BANK_CONFIRMATION_SENT = "✅ Подтверждение для банка отправлено."
 
 
 class AuditLogMessages:

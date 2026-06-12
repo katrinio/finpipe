@@ -87,11 +87,11 @@ class MenuHandler:
         )
 
     def invoice_menu(self, telegram_id: int) -> None:
-        """Открывает подменю работы с Invoice."""
+        """Открывает подменю работы с Salary Invoice."""
 
         self.telegram.send_message(
             telegram_id,
-            DocumentsMenuButtons.INVOICE,
+            DocumentsMenuButtons.SALARY_INVOICE,
             reply_markup=build_invoice_menu(),
         )
 

@@ -1,6 +1,7 @@
-"""Workflow для генерации инвойса и отправки его в Telegram."""
+"""Workflow для генерации Salary Invoice и отправки его в Telegram."""
 
 import argparse
+from pathlib import Path
 
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
@@ -9,19 +10,29 @@ from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 
 
 def generate_and_send_invoice(chat_id: int) -> None:
-    """Генерирует инвойс пользователя и отправляет файлы в Telegram."""
+    """Генерирует Salary Invoice пользователя, отправляет его и удаляет временные файлы."""
 
     telegram_client = TelegramClient()
-
     pdf_path = generate_invoice_pdf(telegram_id=chat_id)
-
-    telegram_client.send_document(chat_id, document_path=pdf_path)
     docx_path = pdf_path.with_suffix(".docx")
-    telegram_client.send_document(chat_id, document_path=docx_path)
+
+    try:
+        telegram_client.send_document(chat_id, document_path=pdf_path)
+        telegram_client.send_document(chat_id, document_path=docx_path)
+    finally:
+        _remove_generated_invoice_file(pdf_path)
+        _remove_generated_invoice_file(docx_path)
+
+
+def _remove_generated_invoice_file(path: Path) -> None:
+    """Удаляет временный сгенерированный файл Salary Invoice, если он существует."""
+
+    if path.exists():
+        path.unlink()
 
 
 def main() -> int:
-    """Генерирует инвойс и отправляет связанные файлы в Telegram."""
+    """Генерирует Salary Invoice и отправляет связанные файлы в Telegram."""
 
     configure_logging()
     EnvVar.get_dotenv()

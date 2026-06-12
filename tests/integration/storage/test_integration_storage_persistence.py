@@ -1,11 +1,11 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from sqlalchemy import text
 
+from src.storage.orm import DocumentGenerationHistory
 from src.storage.orm.base import BaseModel
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.company_profile import CompanyProfile
 
 
@@ -47,3 +47,42 @@ def test_sqlite_schema_matches_orm_models(tmp_path: Path) -> None:
             model_columns = {column.name for column in table.columns}
 
             assert columns == model_columns, table.name
+
+
+def test_sqlite_rebuilds_legacy_document_generation_history_table(tmp_path: Path) -> None:
+    db_path = tmp_path / "data" / "finpipe.db"
+    database = Database(build_sqlite_url(db_path))
+    table_name = DocumentGenerationHistory.__tablename__
+
+    with database.engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE document_generation_history (
+                    invoice_number TEXT PRIMARY KEY,
+                    created_at DATETIME
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO document_generation_history (invoice_number, created_at)
+                VALUES ('2026-05', '2026-06-12 10:00:00')
+                """
+            )
+        )
+
+    database.initialize_schema()
+
+    with database.engine.connect() as connection:
+        columns = {row[1] for row in connection.execute(text(f"PRAGMA table_info({table_name})")).all()}
+
+    assert columns == {"id", "document_type", "document_number", "telegram_id", "status", "error_message", "created_at"}
+
+    last_attempt = DocumentGenerationHistory.get_last_attempt(DocumentType.SALARY_INVOICE, "2026-05")
+    assert last_attempt is not None
+    assert last_attempt.document_number == "2026-05"
+    assert last_attempt.document_type == DocumentType.SALARY_INVOICE
+    assert last_attempt.status == DocumentGenerationStatus.SUCCESS

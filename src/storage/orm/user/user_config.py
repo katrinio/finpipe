@@ -15,7 +15,9 @@ class UserConfig(BaseModel):
     telegram_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     invoice_amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(), server_default=func.current_timestamp())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(), nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp()
+    )
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> "UserConfig | None":

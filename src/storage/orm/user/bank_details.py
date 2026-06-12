@@ -1,8 +1,8 @@
 """ORM-модель банковских реквизитов пользователя."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 
-from sqlalchemy import Integer, String, delete, select
+from sqlalchemy import Integer, String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime, Float
 
@@ -30,7 +30,7 @@ class BankDetails(BaseModel):
     account_number: Mapped[str] = mapped_column(String)
     iban: Mapped[str] = mapped_column(String)
     bic: Mapped[str] = mapped_column(String)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> BankDetails | None:

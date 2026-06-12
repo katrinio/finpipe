@@ -24,7 +24,7 @@ class SystemStatusService:
             bank_details=bank_details,
             signature=signature,
             gmail=gmail,
-            bank_pdf_available=company and bank_details,
+            bank_confirmation_available=company and bank_details,
             invoice_available=company and bank_details and signature,
-            transfer_request_available=company and bank_details,
+            conversion_order_available=company and bank_details,
         )

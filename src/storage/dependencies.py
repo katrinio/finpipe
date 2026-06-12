@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from src.constants import Dir
-from src.storage.orm import AuditLog, HistoryRecord, ProcessedMessage
+from src.storage.orm import AuditLog, ProcessedMessage
 from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.system.document_generation_history import DocumentGenerationHistory
 
 
 @dataclass(frozen=True)
@@ -13,7 +14,7 @@ class StorageDependencies:
     """Готовый набор persistence-моделей для прикладного слоя."""
 
     audit_log: type[AuditLog]
-    invoice_history: type[HistoryRecord]
+    document_generation_history: type[DocumentGenerationHistory]
     processed_messages: type[ProcessedMessage]
 
 
@@ -28,6 +29,6 @@ def build_storage_dependencies(db_path: Path = DEFAULT_DB_PATH) -> StorageDepend
 
     return StorageDependencies(
         audit_log=AuditLog,
-        invoice_history=HistoryRecord,
+        document_generation_history=DocumentGenerationHistory,
         processed_messages=ProcessedMessage,
     )

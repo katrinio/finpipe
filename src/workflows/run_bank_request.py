@@ -10,13 +10,13 @@ from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
 from src.utils.credentials import EnvVar
 from src.workflows.tasks.fetch_bank_email import fetch_bank_email_workflow
-from src.workflows.tasks.fill_bank_pdf import fill_bank_pdf_with_data
+from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
+from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf
-from src.workflows.tasks.generate_transfer_request import generate_transfer_request_pdf
 
 
 def main() -> int:
-    """Запускает полный bank flow: Gmail, bank PDF, transfer request и invoice."""
+    """Запускает bank flow: Gmail, Bank Confirmation, Conversion Order и Salary Invoice."""
 
     configure_logging()
     EnvVar.get_dotenv()
@@ -38,22 +38,26 @@ def main() -> int:
     bank_amount = extract_amount(bank_template_path)
     transfer_amount_text = f"{bank_amount:.2f}"
 
-    bank_pdf_path = fill_bank_pdf_with_data(owner.telegram_id, bank_template_path, amount=bank_amount)
-    telegram_client.send_message(owner.telegram_id, Message.BANK_PDF_FILLED)
+    bank_confirmation_path = generate_bank_confirmation(owner.telegram_id, bank_template_path, amount=bank_amount)
+    telegram_client.send_message(owner.telegram_id, Message.BANK_CONFIRMATION_GENERATED)
 
-    transfer_request_pdf_path = generate_transfer_request_pdf(owner.telegram_id, amount=transfer_amount_text)
-    telegram_client.send_message(owner.telegram_id, Message.TRANSACTION_REQUEST_GENERATED)
+    conversion_order_pdf_path = generate_conversion_order_pdf(owner.telegram_id, amount=transfer_amount_text)
+    telegram_client.send_message(owner.telegram_id, Message.CONVERSION_ORDER_GENERATED)
 
     invoice_pdf_path = generate_invoice_pdf(telegram_id=owner.telegram_id)
-    telegram_client.send_message(owner.telegram_id, Message.INVOICE_GENERATED)
+    telegram_client.send_message(owner.telegram_id, Message.SALARY_INVOICE_GENERATED)
 
-    send_bank_response(
-        telegram_client,
-        owner.telegram_id,
-        invoice_pdf_path,
-        transfer_request_pdf_path,
-        bank_pdf_path,
-    )
+    try:
+        send_bank_response(
+            telegram_client,
+            owner.telegram_id,
+            invoice_pdf_path,
+            conversion_order_pdf_path,
+            bank_confirmation_path,
+        )
+    finally:
+        _remove_generated_invoice_file(invoice_pdf_path)
+        _remove_generated_invoice_file(invoice_pdf_path.with_suffix(".docx"))
 
     return 0
 
@@ -64,6 +68,13 @@ def send_bank_response(telegram_client: TelegramClient, chat_id: int, *document_
     telegram_client.send_message(chat_id, Message.BANK_RESPONSE)
     for document_path in document_paths:
         telegram_client.send_document(chat_id, document_path=document_path)
+
+
+def _remove_generated_invoice_file(path: Path) -> None:
+    """Удаляет временный сгенерированный файл Salary Invoice, если он существует."""
+
+    if path.exists():
+        path.unlink()
 
 
 if __name__ == "__main__":

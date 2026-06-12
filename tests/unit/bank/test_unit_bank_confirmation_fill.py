@@ -1,4 +1,4 @@
-from src.services.bank import bank_fill as fill
+from src.services.bank import bank_confirmation as fill
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile

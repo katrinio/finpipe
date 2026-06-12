@@ -1,8 +1,8 @@
 """ORM-модель профиля компании пользователя."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 
-from sqlalchemy import Integer, String, delete, select
+from sqlalchemy import Integer, String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -30,7 +30,7 @@ class CompanyProfile(BaseModel):
     payment_code: Mapped[str | None] = mapped_column(String, nullable=True)
     payment_description: Mapped[str | None] = mapped_column(String, nullable=True)
     service_agreement_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> CompanyProfile | None:

@@ -25,7 +25,12 @@ class UserStateStorage(BaseModel):
     )
     state: Mapped[UserState] = mapped_column(Enum(UserState), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
-    updated_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True, server_default=func.current_timestamp())
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(),
+        nullable=True,
+        server_default=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
+    )
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> UserStateStorage | None:

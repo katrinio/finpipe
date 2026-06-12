@@ -1,11 +1,11 @@
 """ORM-сущность для OAuth state сессий."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 from sqlalchemy import DateTime, Integer, String, select, update
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.storage.orm.base import BaseModel
+from src.storage.orm.base import BaseModel, current_utc_timestamp, normalize_timestamp
 
 
 class OAuthSession(BaseModel):
@@ -37,8 +37,8 @@ class OAuthSession(BaseModel):
                 state=state,
                 purpose="gmail_connect",
                 status="pending",
-                created_at=datetime.now(UTC),
-                expires_at=expires_at,
+                created_at=current_utc_timestamp(),
+                expires_at=normalize_timestamp(expires_at),
             )
             session.add(oauth_session)
             session.commit()
@@ -59,7 +59,7 @@ class OAuthSession(BaseModel):
     @classmethod
     def mark_used(cls, state: str) -> None:
         with cls.session() as session:
-            session.execute(update(cls).where(cls.state == state).values(status="used", used_at=datetime.now(UTC)))
+            session.execute(update(cls).where(cls.state == state).values(status="used", used_at=current_utc_timestamp()))
             session.commit()
 
     @classmethod
@@ -77,7 +77,7 @@ class OAuthSession(BaseModel):
     @classmethod
     def cleanup_expired(cls) -> int:
         with cls.session() as session:
-            statement = select(cls).where(cls.expires_at < datetime.now(UTC))
+            statement = select(cls).where(cls.expires_at < current_utc_timestamp())
             expired_sessions = list(session.scalars(statement))
             for oauth_session in expired_sessions:
                 oauth_session.status = "expired"

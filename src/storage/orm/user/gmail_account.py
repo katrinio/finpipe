@@ -2,11 +2,11 @@
 
 from datetime import datetime
 
-from sqlalchemy import Integer, String, select, update
+from sqlalchemy import Integer, String, func, select, update
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
-from src.storage.orm.base import BaseModel
+from src.storage.orm.base import BaseModel, current_utc_timestamp
 
 
 class GmailAccount(BaseModel):
@@ -26,7 +26,7 @@ class GmailAccount(BaseModel):
     gmail_refresh_token: Mapped[str | None] = mapped_column(String, nullable=True)
     gmail_connected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     gmail_last_error: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
 
     @classmethod
     def get_by_owner(cls, telegram_id: int) -> GmailAccount | None:
@@ -53,7 +53,7 @@ class GmailAccount(BaseModel):
                 .values(
                     gmail_refresh_token=gmail_refresh_token,
                     gmail_email=gmail_email,
-                    gmail_connected_at=datetime.utcnow(),
+                    gmail_connected_at=current_utc_timestamp(),
                     gmail_last_error=None,
                 )
             )

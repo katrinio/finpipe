@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from src.services.known_user_service import KnownUserService

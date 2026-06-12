@@ -1,4 +1,4 @@
-"""Шаг workflow для генерации инвойса."""
+"""Шаг workflow для генерации Salary Invoice."""
 
 import argparse
 import logging
@@ -12,7 +12,8 @@ from src.services.invoice.context import build_invoice_period
 from src.services.invoice.exceptions import InvoiceGenerationError
 from src.services.invoice.generate import generate_invoice
 from src.services.invoice.models import InvoiceData
-from src.storage.orm import HistoryRecord, UserConfig
+from src.storage.orm import UserConfig
+from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
@@ -27,70 +28,82 @@ def generate_invoice_pdf(
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
 ) -> Path:
-    """
-    Генерирует PDF-инвойс на указанную сумму
-    и возвращает путь к файлу.
-    """
+    """Генерирует Salary Invoice и пишет в БД результат каждой попытки."""
 
     invoice_period = build_invoice_period(invoice_date)
-    output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
-
-    config = UserConfig.get_by_owner(telegram_id)
-    if config is None or config.invoice_amount is None:
-        msg = "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
-        raise InvoiceGenerationError(msg)
-
-    company_profile = CompanyProfile.get_by_owner(telegram_id)
-    if company_profile is None:
-        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
-        raise InvoiceGenerationError(msg)
-
-    bank_details = BankDetails.get_by_owner(telegram_id)
-    if bank_details is None:
-        msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
-        raise InvoiceGenerationError(msg)
-
-    invoice_data = InvoiceData(
-        account_holder=bank_details.account_holder,
-        account_holder_address=bank_details.account_holder_address or "",
-        account_bic=bank_details.bic,
-        account_iban=bank_details.iban,
-        account_number=bank_details.account_number,
-        amount=str(config.invoice_amount),
-        bank_name=bank_details.bank_name,
-        company_address=company_profile.company_address,
-        company_name=company_profile.company_name,
-        date_from=invoice_period.period_from,
-        date_to=invoice_period.period_to,
-        invoice_date=invoice_period.invoice_date,
-        invoice_number=invoice_period.invoice_number,
-        service_agreement_date=(
-            company_profile.service_agreement_date.strftime("%d.%m.%Y")
-            if company_profile.service_agreement_date is not None
-            else DEFAULT_SERVICE_AGREEMENT_DATE
-        ),
-    )
-
     invoice_number = invoice_period.invoice_number
+    output_pdf_path = output_dir / f"invoice-{invoice_number}.{Format.PDF}"
 
-    if HistoryRecord.invoice_exists(invoice_number):
-        LOGGER.warning("Invoice %s already exists", invoice_number)
-        msg = f"Invoice {invoice_number} already exists."
-        raise InvoiceGenerationError(msg)
+    if DocumentGenerationHistory.has_attempts(DocumentType.SALARY_INVOICE, invoice_number):
+        LOGGER.info("Document regeneration requested type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
+    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
 
-    generate_invoice(
-        template_path=template_path,
-        output_pdf_path=output_pdf_path,
-        data=invoice_data,
+    try:
+        config = UserConfig.get_by_owner(telegram_id)
+        if config is None or config.invoice_amount is None:
+            msg = "Сумма Salary Invoice не указана. Используйте «💰 Указать сумму»."
+            raise InvoiceGenerationError(msg)
+
+        company_profile = CompanyProfile.get_by_owner(telegram_id)
+        if company_profile is None:
+            msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+            raise InvoiceGenerationError(msg)
+
+        bank_details = BankDetails.get_by_owner(telegram_id)
+        if bank_details is None:
+            msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
+            raise InvoiceGenerationError(msg)
+
+        invoice_data = InvoiceData(
+            account_holder=bank_details.account_holder,
+            account_holder_address=bank_details.account_holder_address or "",
+            account_bic=bank_details.bic,
+            account_iban=bank_details.iban,
+            account_number=bank_details.account_number,
+            amount=str(config.invoice_amount),
+            bank_name=bank_details.bank_name,
+            company_address=company_profile.company_address,
+            company_name=company_profile.company_name,
+            date_from=invoice_period.period_from,
+            date_to=invoice_period.period_to,
+            invoice_date=invoice_period.invoice_date,
+            invoice_number=invoice_number,
+            service_agreement_date=(
+                company_profile.service_agreement_date.strftime("%d.%m.%Y")
+                if company_profile.service_agreement_date is not None
+                else DEFAULT_SERVICE_AGREEMENT_DATE
+            ),
+        )
+
+        generate_invoice(
+            template_path=template_path,
+            output_pdf_path=output_pdf_path,
+            data=invoice_data,
+        )
+    except Exception as error:
+        DocumentGenerationHistory.add_attempt(
+            document_type=DocumentType.SALARY_INVOICE,
+            document_number=invoice_number,
+            telegram_id=telegram_id,
+            status=DocumentGenerationStatus.FAILED,
+            error_message=str(error),
+        )
+        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
+        raise
+
+    DocumentGenerationHistory.add_attempt(
+        document_type=DocumentType.SALARY_INVOICE,
+        document_number=invoice_number,
+        telegram_id=telegram_id,
+        status=DocumentGenerationStatus.SUCCESS,
+        error_message=None,
     )
-
-    HistoryRecord.add_invoice(invoice_number)
-
+    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
     return output_pdf_path
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI-точка входа для генерации инвойса."""
+    """CLI-точка входа для генерации Salary Invoice."""
 
     configure_logging()
     EnvVar.get_dotenv()
@@ -99,13 +112,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if not args.template.exists():
-        LOGGER.error("Invoice template not found: %s", args.template)
+        LOGGER.error("Salary invoice template not found: %s", args.template)
         return 1
 
     invoice_period = build_invoice_period(args.invoice_date)
 
     LOGGER.info(
-        "Generating invoice %s for period %s - %s",
+        "Generating salary invoice %s for period %s - %s",
         invoice_period.invoice_number,
         invoice_period.period_from,
         invoice_period.period_to,
@@ -117,12 +130,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         output_dir=args.output_dir,
     )
 
-    LOGGER.info("Invoice saved to %s", pdf_path)
+    LOGGER.info("Salary invoice saved to %s", pdf_path)
     return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Создаёт CLI-парсер для генерации инвойса."""
+    """Создаёт CLI-парсер для генерации Salary Invoice."""
 
     parser = argparse.ArgumentParser(
         description="Generate salary invoice PDF and DOCX files.",
@@ -138,13 +151,13 @@ def build_parser() -> argparse.ArgumentParser:
         dest="invoice_date",
         type=parse_invoice_date,
         default=None,
-        help="Invoice date in YYYY-MM-DD format. Defaults to today.",
+        help="Salary invoice date in YYYY-MM-DD format. Defaults to today.",
     )
     parser.add_argument(
         "--template",
         type=Path,
         default=Dir.INVOICE_TEMPLATE,
-        help=f"Path to invoice DOCX template. Defaults to {Dir.INVOICE_TEMPLATE}.",
+        help=f"Path to salary invoice DOCX template. Defaults to {Dir.INVOICE_TEMPLATE}.",
     )
     parser.add_argument(
         "--output-dir",
@@ -156,7 +169,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_invoice_date(value: str) -> date:
-    """Преобразует строку CLI в дату инвойса."""
+    """Преобразует строку CLI в дату Salary Invoice."""
 
     try:
         return date.fromisoformat(value)

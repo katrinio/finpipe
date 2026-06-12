@@ -12,6 +12,6 @@ class SystemStatus:
     signature: bool
     gmail: bool
 
-    bank_pdf_available: bool
+    bank_confirmation_available: bool
     invoice_available: bool
-    transfer_request_available: bool
+    conversion_order_available: bool

@@ -1,9 +1,9 @@
 """ORM-сущность разрешённого Telegram-пользователя."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Integer, String, delete, select
+from sqlalchemy import Integer, String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -24,7 +24,7 @@ class AllowedUser(BaseModel):
     telegram_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     role: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
 
     def __init__(
         self,

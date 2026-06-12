@@ -1,4 +1,4 @@
-"""Генерация transfer request из DOCX-шаблона с fallback на простой PDF."""
+"""Генерация Conversion Order из DOCX-шаблона с fallback на простой PDF."""
 
 import logging
 from collections.abc import Mapping
@@ -8,23 +8,23 @@ from src.constants import Dir, Format
 from src.infrastructure.document.docx_template_renderer import DocxTemplateRenderer
 from src.infrastructure.document.docx_to_pdf_converter import DocxToPdfConverter
 from src.infrastructure.document.replacement import Replacement
-from src.services.transfer_request.models import TransferRequestData
-from src.services.transfer_request.render_pdf import TransferRequestFallbackPdfRenderer
+from src.services.conversion_order.models import ConversionOrderData
+from src.services.conversion_order.render_pdf import ConversionOrderFallbackPdfRenderer
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
 
 
-def generate_transfer_request(
-    data: TransferRequestData | Mapping[str, object],
-    template_path: Path = Dir.TRANSFER_REQUEST_TEMPLATE,
-    output_pdf_path: Path = Dir.TRANSFER_REQUEST_OUTPUT_DIR,
+def generate_conversion_order(
+    data: ConversionOrderData | Mapping[str, object],
+    template_path: Path = Dir.CONVERSION_ORDER_TEMPLATE,
+    output_pdf_path: Path = Dir.CONVERSION_ORDER_OUTPUT_DIR,
 ) -> Path:
-    """Генерирует transfer request и возвращает путь к PDF."""
+    """Генерирует Conversion Order и возвращает путь к PDF."""
 
     template_path = resolve_project_path(template_path)
     output_pdf_path = resolve_project_path(output_pdf_path)
-    LOGGER.info("Rendering transfer request from template: %s", template_path)
+    LOGGER.info("Rendering conversion order from template: %s", template_path)
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
@@ -35,12 +35,12 @@ def generate_transfer_request(
     if not template_path.exists():
         # В CI шаблон может отсутствовать, но сам workflow должен завершаться успешно.
         LOGGER.warning(
-            "Transfer request template not found before DOCX render, using fallback PDF renderer: %s",
+            "Conversion order template not found before DOCX render, using fallback PDF renderer: %s",
             template_path,
         )
-        TransferRequestFallbackPdfRenderer.render(output_pdf_path, pdf_data)
+        ConversionOrderFallbackPdfRenderer.render(output_pdf_path, pdf_data)
         LOGGER.info(
-            "Generated transfer via fallback only: pdf=%s",
+            "Generated conversion order via fallback only: pdf=%s",
             output_pdf_path,
         )
         return output_pdf_path
@@ -59,13 +59,13 @@ def generate_transfer_request(
         )
     except FileNotFoundError as error:
         LOGGER.warning(
-            "Transfer request template not found, using fallback PDF renderer: %s",
+            "Conversion order template not found, using fallback PDF renderer: %s",
             error,
         )
-        TransferRequestFallbackPdfRenderer.render(output_pdf_path, pdf_data)
+        ConversionOrderFallbackPdfRenderer.render(output_pdf_path, pdf_data)
 
     LOGGER.info(
-        "Generated transfer: docx=%s pdf=%s",
+        "Generated conversion order: docx=%s pdf=%s",
         rendered_docx_path,
         output_pdf_path,
     )
@@ -83,10 +83,10 @@ def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]
         )
     except Exception as error:
         LOGGER.warning(
-            "DOCX transfer request PDF conversion failed, using fallback renderer: %s",
+            "DOCX conversion order PDF conversion failed, using fallback renderer: %s",
             error,
         )
-        TransferRequestFallbackPdfRenderer.render(output_path, data)
+        ConversionOrderFallbackPdfRenderer.render(output_path, data)
 
 
 def resolve_project_path(path: Path) -> Path:

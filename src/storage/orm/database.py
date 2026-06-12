@@ -78,6 +78,7 @@ class Database:
         with self._engine.begin() as connection:
             for table in BaseModel.metadata.sorted_tables:
                 self._sync_sqlite_table(connection, table)
+            self._normalize_document_generation_history(connection)
 
     def _sync_sqlite_table(self, connection: Any, table: Table) -> None:
         existing_columns = self._get_sqlite_table_columns(connection, table.name)
@@ -88,11 +89,12 @@ class Database:
         missing_columns = [column for column in table.columns if column.name not in existing_columns]
         extra_columns = [column_name for column_name in existing_columns if column_name not in model_columns]
 
+        if extra_columns or any(self._requires_sqlite_table_rebuild(column) for column in missing_columns):
+            self._rebuild_sqlite_table(connection, table)
+            return
+
         for column in missing_columns:
             connection.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {self._render_sqlite_column(column)}"))
-
-        if extra_columns:
-            self._rebuild_sqlite_table(connection, table)
 
     def _rebuild_sqlite_table(self, connection: Any, table: Table) -> None:
         temp_table_name = f"{table.name}__legacy"
@@ -101,10 +103,34 @@ class Database:
 
         legacy_columns = self._get_sqlite_table_columns(connection, temp_table_name)
         model_columns = [column.name for column in table.columns]
-        common_columns = [column_name for column_name in model_columns if column_name in legacy_columns]
-        if common_columns:
-            columns_sql = ", ".join(f'"{column_name}"' for column_name in common_columns)
-            connection.execute(text(f'INSERT INTO "{table.name}" ({columns_sql}) SELECT {columns_sql} FROM "{temp_table_name}"'))
+        column_mappings: list[tuple[str, str]] = []
+        for column_name in model_columns:
+            if column_name in legacy_columns:
+                column_mappings.append((column_name, column_name))
+            elif table.name == "document_generation_history" and column_name == "document_number" and "invoice_number" in legacy_columns:
+                column_mappings.append((column_name, "invoice_number"))
+
+        if column_mappings:
+            target_columns_sql = ", ".join(f'"{target}"' for target, _ in column_mappings)
+            source_columns_sql = ", ".join(f'"{source}"' for _, source in column_mappings)
+            connection.execute(text(f'INSERT INTO "{table.name}" ({target_columns_sql}) SELECT {source_columns_sql} FROM "{temp_table_name}"'))
+            if table.name == "document_generation_history":
+                connection.execute(
+                    text(
+                        """
+                        UPDATE document_generation_history
+                        SET document_type = CASE document_type
+                            WHEN 'invoice' THEN 'salary_invoice'
+                            WHEN 'bank_pdf' THEN 'bank_confirmation'
+                            WHEN 'payment_confirmation' THEN 'bank_confirmation'
+                            WHEN 'incoming_payment_confirmation' THEN 'bank_confirmation'
+                            WHEN 'bank_request' THEN 'bank_confirmation'
+                            WHEN 'transfer_request' THEN 'conversion_order'
+                            ELSE document_type
+                        END
+                        """
+                    )
+                )
         connection.execute(text(f'DROP TABLE "{temp_table_name}"'))
 
     def _get_sqlite_table_columns(self, connection: Any, table_name: str) -> list[str]:
@@ -127,6 +153,42 @@ class Database:
             msg = f"Cannot add primary key column via ALTER TABLE: {column.name}"
             raise StorageConfigurationError(msg)
         return rendered_column
+
+    def _normalize_document_generation_history(self, connection: Any) -> None:
+        if "document_generation_history" not in BaseModel.metadata.tables:
+            return
+        if not self._get_sqlite_table_columns(connection, "document_generation_history"):
+            return
+        connection.execute(
+            text(
+                """
+                UPDATE document_generation_history
+                SET document_type = CASE document_type
+                    WHEN 'invoice' THEN 'salary_invoice'
+                    WHEN 'bank_pdf' THEN 'bank_confirmation'
+                    WHEN 'payment_confirmation' THEN 'bank_confirmation'
+                    WHEN 'incoming_payment_confirmation' THEN 'bank_confirmation'
+                    WHEN 'bank_request' THEN 'bank_confirmation'
+                    WHEN 'transfer_request' THEN 'conversion_order'
+                    ELSE document_type
+                END
+                """
+            )
+        )
+
+    @staticmethod
+    def _requires_sqlite_table_rebuild(column: Any) -> bool:
+        """Определяет, можно ли добавить колонку в SQLite без пересборки таблицы."""
+
+        if bool(column.primary_key):
+            return True
+
+        has_python_default = column.default is not None
+        has_server_default = column.server_default is not None
+        if not column.nullable and not has_python_default and not has_server_default:
+            return True
+
+        return False
 
 
 def build_sqlite_url(db_path: Path) -> str:

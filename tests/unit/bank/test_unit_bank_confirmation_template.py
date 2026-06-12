@@ -3,14 +3,14 @@ import os
 import pytest
 
 from src.services.bank.exceptions import BankPdfValidationError
-from src.workflows.tasks import fill_bank_pdf
+from src.workflows.tasks import generate_bank_confirmation
 
 
 def test_resolve_bank_template_returns_explicit_pdf(tmp_path) -> None:
-    bank_pdf = tmp_path / "bank-form"
-    bank_pdf.write_bytes(b"%PDF-1.7\n")
+    bank_confirmation_pdf = tmp_path / "bank-form"
+    bank_confirmation_pdf.write_bytes(b"%PDF-1.7\n")
 
-    assert fill_bank_pdf.resolve_bank_template(bank_pdf) == bank_pdf
+    assert generate_bank_confirmation.resolve_bank_template(bank_confirmation_pdf) == bank_confirmation_pdf
 
 
 def test_resolve_bank_template_picks_newest_pdf_from_attachments(
@@ -28,9 +28,9 @@ def test_resolve_bank_template_picks_newest_pdf_from_attachments(
     os.utime(old_pdf, (1, 1))
     os.utime(new_pdf, (2, 2))
 
-    monkeypatch.setattr(fill_bank_pdf.Dir, "ATTACHMENTS", tmp_path)
+    monkeypatch.setattr(generate_bank_confirmation.Dir, "ATTACHMENTS", tmp_path)
 
-    assert fill_bank_pdf.resolve_bank_template(None) == new_pdf
+    assert generate_bank_confirmation.resolve_bank_template(None) == new_pdf
 
 
 def test_resolve_bank_template_raises_when_explicit_file_is_not_pdf(tmp_path) -> None:
@@ -38,4 +38,4 @@ def test_resolve_bank_template_raises_when_explicit_file_is_not_pdf(tmp_path) ->
     text_file.write_text("not a pdf", encoding="utf-8")
 
     with pytest.raises(BankPdfValidationError, match="not a PDF"):
-        fill_bank_pdf.resolve_bank_template(text_file)
+        generate_bank_confirmation.resolve_bank_template(text_file)
