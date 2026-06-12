@@ -1,14 +1,28 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
+from cryptography.fernet import Fernet
 
 from src.constants import Dir
+from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.orm import AllowedUser, Signature
 from src.storage.orm.database import Database, build_sqlite_url
+from src.utils.credentials import EnvVar
+
+
+@pytest.fixture(autouse=True)
+def signature_encryption_key(monkeypatch: pytest.MonkeyPatch) -> Generator[None]:
+    monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    EnvVar.reset_dotenv_cache()
+    SignatureCipher._cipher = None
+    yield
+    SignatureCipher._cipher = None
+    EnvVar.reset_dotenv_cache()
 
 
 def test_signature_create_persists_and_reuses_owner(tmp_path: Path) -> None:

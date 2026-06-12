@@ -11,6 +11,14 @@ from src.utils.credentials import ENV_PATH_OVERRIDE, EnvVar
 
 
 @pytest.fixture(autouse=True)
+def signature_encryption_key(monkeypatch: pytest.MonkeyPatch) -> Generator[None]:
+    monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    EnvVar.reset_dotenv_cache()
+    yield
+    EnvVar.reset_dotenv_cache()
+
+
+@pytest.fixture(autouse=True)
 def reset_cipher_cache() -> Generator[None]:
     SignatureCipher._cipher = None
     yield
