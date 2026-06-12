@@ -47,13 +47,17 @@ def main() -> int:
     invoice_pdf_path = generate_invoice_pdf(telegram_id=owner.telegram_id)
     telegram_client.send_message(owner.telegram_id, Message.INVOICE_GENERATED)
 
-    send_bank_response(
-        telegram_client,
-        owner.telegram_id,
-        invoice_pdf_path,
-        transfer_request_pdf_path,
-        bank_pdf_path,
-    )
+    try:
+        send_bank_response(
+            telegram_client,
+            owner.telegram_id,
+            invoice_pdf_path,
+            transfer_request_pdf_path,
+            bank_pdf_path,
+        )
+    finally:
+        _remove_generated_invoice_file(invoice_pdf_path)
+        _remove_generated_invoice_file(invoice_pdf_path.with_suffix(".docx"))
 
     return 0
 
@@ -64,6 +68,13 @@ def send_bank_response(telegram_client: TelegramClient, chat_id: int, *document_
     telegram_client.send_message(chat_id, Message.BANK_RESPONSE)
     for document_path in document_paths:
         telegram_client.send_document(chat_id, document_path=document_path)
+
+
+def _remove_generated_invoice_file(path: Path) -> None:
+    """Удаляет временный сгенерированный файл инвойса, если он существует."""
+
+    if path.exists():
+        path.unlink()
 
 
 if __name__ == "__main__":

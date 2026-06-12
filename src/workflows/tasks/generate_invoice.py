@@ -11,7 +11,7 @@ from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.services.invoice.generate import generate_invoice
 from src.services.invoice.models import InvoiceData
-from src.storage.orm import HistoryRecord, UserConfig
+from src.storage.orm import HistoryRecord, InvoiceGenerationStatus, UserConfig
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
@@ -26,65 +26,76 @@ def generate_invoice_pdf(
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
 ) -> Path:
-    """
-    Генерирует PDF-инвойс на указанную сумму
-    и возвращает путь к файлу.
-    """
+    """Генерирует Invoice и пишет в БД результат каждой попытки."""
 
     invoice_period = build_invoice_period(invoice_date)
-    output_pdf_path = output_dir / f"invoice-{invoice_period.invoice_number}.{Format.PDF}"
-
-    config = UserConfig.get_by_owner(telegram_id)
-    if config is None or config.invoice_amount is None:
-        msg = "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
-        raise ValueError(msg)
-
-    company_profile = CompanyProfile.get_by_owner(telegram_id)
-    if company_profile is None:
-        msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
-
-    bank_details = BankDetails.get_by_owner(telegram_id)
-    if bank_details is None:
-        msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
-        raise ValueError(msg)
-
-    invoice_data = InvoiceData(
-        account_holder=bank_details.account_holder,
-        account_holder_address=bank_details.account_holder_address or "",
-        account_bic=bank_details.bic,
-        account_iban=bank_details.iban,
-        account_number=bank_details.account_number,
-        amount=str(config.invoice_amount),
-        bank_name=bank_details.bank_name,
-        company_address=company_profile.company_address,
-        company_name=company_profile.company_name,
-        date_from=invoice_period.period_from,
-        date_to=invoice_period.period_to,
-        invoice_date=invoice_period.invoice_date,
-        invoice_number=invoice_period.invoice_number,
-        service_agreement_date=(
-            company_profile.service_agreement_date.strftime("%d.%m.%Y")
-            if company_profile.service_agreement_date is not None
-            else DEFAULT_SERVICE_AGREEMENT_DATE
-        ),
-    )
-
     invoice_number = invoice_period.invoice_number
+    output_pdf_path = output_dir / f"invoice-{invoice_number}.{Format.PDF}"
 
-    if HistoryRecord.invoice_exists(invoice_number):
-        LOGGER.warning("Invoice %s already exists", invoice_number)
-        msg = f"Invoice {invoice_number} already exists."
-        raise ValueError(msg)
+    if HistoryRecord.has_attempts(invoice_number):
+        LOGGER.info("Invoice regeneration requested for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
 
-    generate_invoice(
-        template_path=template_path,
-        output_pdf_path=output_pdf_path,
-        data=invoice_data,
+    LOGGER.info("Invoice generation started for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
+
+    try:
+        config = UserConfig.get_by_owner(telegram_id)
+        if config is None or config.invoice_amount is None:
+            msg = "Сумма Invoice не указана. Используйте «💰 Указать сумму»."
+            raise ValueError(msg)
+
+        company_profile = CompanyProfile.get_by_owner(telegram_id)
+        if company_profile is None:
+            msg = "Компания не настроена. Загрузите профиль через раздел «Профиль»."
+            raise ValueError(msg)
+
+        bank_details = BankDetails.get_by_owner(telegram_id)
+        if bank_details is None:
+            msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."
+            raise ValueError(msg)
+
+        invoice_data = InvoiceData(
+            account_holder=bank_details.account_holder,
+            account_holder_address=bank_details.account_holder_address or "",
+            account_bic=bank_details.bic,
+            account_iban=bank_details.iban,
+            account_number=bank_details.account_number,
+            amount=str(config.invoice_amount),
+            bank_name=bank_details.bank_name,
+            company_address=company_profile.company_address,
+            company_name=company_profile.company_name,
+            date_from=invoice_period.period_from,
+            date_to=invoice_period.period_to,
+            invoice_date=invoice_period.invoice_date,
+            invoice_number=invoice_number,
+            service_agreement_date=(
+                company_profile.service_agreement_date.strftime("%d.%m.%Y")
+                if company_profile.service_agreement_date is not None
+                else DEFAULT_SERVICE_AGREEMENT_DATE
+            ),
+        )
+
+        generate_invoice(
+            template_path=template_path,
+            output_pdf_path=output_pdf_path,
+            data=invoice_data,
+        )
+    except Exception as error:
+        HistoryRecord.add_attempt(
+            invoice_number=invoice_number,
+            telegram_id=telegram_id,
+            status=InvoiceGenerationStatus.FAILED,
+            error_message=str(error),
+        )
+        LOGGER.warning("Invoice generation failed for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
+        raise
+
+    HistoryRecord.add_attempt(
+        invoice_number=invoice_number,
+        telegram_id=telegram_id,
+        status=InvoiceGenerationStatus.SUCCESS,
+        error_message=None,
     )
-
-    HistoryRecord.add_invoice(invoice_number)
-
+    LOGGER.info("Invoice generation succeeded for invoice_number=%s telegram_id=%s", invoice_number, telegram_id)
     return output_pdf_path
 
 

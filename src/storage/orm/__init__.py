@@ -1,7 +1,7 @@
 """ORM-сущности и base для storage-слоя."""
 
 from src.storage.orm.system.audit_log import AuditLog
-from src.storage.orm.system.history_record import HistoryRecord
+from src.storage.orm.system.history_record import HistoryRecord, InvoiceGenerationStatus
 from src.storage.orm.system.known_user import KnownUser
 from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.system.processed_message import ProcessedMessage
@@ -15,6 +15,7 @@ __all__ = [
     "AllowedUser",
     "AuditLog",
     "HistoryRecord",
+    "InvoiceGenerationStatus",
     "KnownUser",
     "OAuthSession",
     "ProcessedMessage",
