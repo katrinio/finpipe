@@ -171,7 +171,7 @@ class TestTelegramBot:
             {
                 "update_id": 13,
                 "message": {
-                    "text": "да",
+                    "text": OwnerButtons.CONFIRM_ADD_USER,
                     "from": {"id": 777, "username": "owner"},
                 },
             }
@@ -179,13 +179,13 @@ class TestTelegramBot:
 
         assert telegram_client.sent_messages == [
             "Введите Telegram ID пользователя, который уже открыл бота.",
-            "Найден пользователь:\n• @target_user\n• Telegram ID: 123456789\nДобавить доступ?\nОтветьте «да» для подтверждения.",
+            "👤 Пользователь найден\n• @target_user\n• ID: 123456789\nВыдать доступ?",
             "✅ Пользователь добавлен.",
             "✅ Администратор добавил вас в список пользователей.",
         ]
         assert telegram_client.sent_messages_with_chat_ids == [
             (777, "Введите Telegram ID пользователя, который уже открыл бота."),
-            (777, "Найден пользователь:\n• @target_user\n• Telegram ID: 123456789\nДобавить доступ?\nОтветьте «да» для подтверждения."),
+            (777, "👤 Пользователь найден\n• @target_user\n• ID: 123456789\nВыдать доступ?"),
             (777, "✅ Пользователь добавлен."),
             (123456789, "✅ Администратор добавил вас в список пользователей."),
         ]

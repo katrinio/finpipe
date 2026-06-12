@@ -7,4 +7,6 @@ class UserState(Enum):
     WAITING_INVOICE_AMOUNT = "waiting_invoice_amount"
     WAITING_NEW_USER_ID = "waiting_new_user_id"
     WAITING_NEW_USER_CONFIRMATION = "waiting_new_user_confirmation"
+    WAIT_CONFIRM_ADD_USER = "wait_confirm_add_user"
     WAITING_REMOVE_USER_ID = "waiting_remove_user_id"
+    WAIT_CONFIRM_REMOVE_USER = "wait_confirm_remove_user"

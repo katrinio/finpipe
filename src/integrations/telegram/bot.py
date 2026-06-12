@@ -53,13 +53,21 @@ class TelegramBot:
                 handler=self.handlers.owner_handler.handle_add_user_input,
                 error_message="Введите Telegram ID пользователя, состоящий только из цифр.",
             ),
+            UserState.WAIT_CONFIRM_ADD_USER: StateHandler(
+                handler=self.handlers.owner_handler.confirm_add_user,
+                error_message="Используйте кнопки подтверждения ниже.",
+            ),
             UserState.WAITING_NEW_USER_CONFIRMATION: StateHandler(
                 handler=self.handlers.owner_handler.confirm_add_user,
-                error_message="Ответьте «да» для подтверждения выдачи доступа.",
+                error_message="Используйте кнопки подтверждения ниже.",
             ),
             UserState.WAITING_REMOVE_USER_ID: StateHandler(
                 handler=self.handlers.owner_handler.handle_remove_user_input,
                 error_message="Введите Telegram ID пользователя, состоящий только из цифр.",
+            ),
+            UserState.WAIT_CONFIRM_REMOVE_USER: StateHandler(
+                handler=self.handlers.owner_handler.confirm_remove_user,
+                error_message="Используйте кнопки подтверждения ниже.",
             ),
         }
 
@@ -158,7 +166,9 @@ class TelegramBot:
                 UserState.WAITING_INVOICE_AMOUNT,
                 UserState.WAITING_NEW_USER_ID,
                 UserState.WAITING_NEW_USER_CONFIRMATION,
+                UserState.WAIT_CONFIRM_ADD_USER,
                 UserState.WAITING_REMOVE_USER_ID,
+                UserState.WAIT_CONFIRM_REMOVE_USER,
             }:
                 if text in self.handlers._command_handlers:
                     LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
