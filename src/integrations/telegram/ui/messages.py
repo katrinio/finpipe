@@ -16,6 +16,20 @@
 """
 
 
+class Msg:
+    @staticmethod
+    def success(text: str) -> str:
+        return f"✅ {text}"
+
+    @staticmethod
+    def error(text: str) -> str:
+        return f"❌ {text}"
+
+    @staticmethod
+    def warning(text: str) -> str:
+        return f"⚠️ {text}"
+
+
 class CommonMessages:
     WELCOME = "👋 Добро пожаловать в Finpipe!\nЛичный сервис для автоматизации документооборота.\n\n"
 
@@ -56,23 +70,22 @@ class GmailMessages:
     GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE = "⚠️ Подключение Gmail временно недоступно."
 
 
-class SignatureMessages:
-    # status
-    SIGNATURE_FOUND = "✅ Подпись загружена."
-    SIGNATURE_NOT_FOUND = "🫥 Подпись не найдена."
+class SignatureMessagesV2:
+    class Status:
+        FOUND = Msg.success("Подпись загружена.")
+        NOT_FOUND = Msg.warning("Подпись не найдена.")
 
-    # upload
-    SIGNATURE_REQUIREMENTS = "✍️ Пришлите подпись в PNG формате.\n\nТребования:\n- PNG\n- до 2 МБ\n- прозрачный фон рекомендуется"
+    class Upload:
+        REQUIREMENTS = "✍️ Пришлите подпись в PNG формате.\n\nТребования:\n- PNG\n- до 2 МБ\n- прозрачный фон рекомендуется"
+        UPDATED = Msg.success("Подпись успешно обновлена.")
 
-    SIGNATURE_UPDATED = "✅ Подпись успешно обновлена."
+    class Validation:
+        NOT_PNG = Msg.error("Разрешены только PNG файлы.")
+        TOO_LARGE = Msg.error("Размер файла превышает 2 МБ")
+        UPLOAD_ERROR = Msg.error("Не удалось обработать изображение.")
 
-    # validation errors
-    SIGNATURE_NOT_PNG = "❌ Разрешены только PNG файлы."
-    SIGNATURE_TOO_LARGE = "❌ Размер файла превышает 2 МБ."
-    SIGNATURE_UPLOAD_ERROR = "❌ Не удалось обработать изображение."
-
-    # delete
-    SIGNATURE_DELETED = "🗑️ Подпись удалена."
+    class Delete:
+        DELETED = "🗑️ Подпись удалена."
 
 
 class InvoiceMessages:
@@ -142,5 +155,5 @@ class OwnerMessages:
     NO_SUCH_USER = "❌ У пользователя нет доступа или он не найден в списке."
 
 
-class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages, BankMessages):
+class BotInfo(CommonMessages, GmailMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages, BankMessages):
     pass
