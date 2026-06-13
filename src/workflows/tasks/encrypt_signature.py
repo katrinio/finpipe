@@ -6,6 +6,7 @@ import logging
 from collections.abc import Sequence
 from pathlib import Path
 
+from scripts.bootstrap_allowed_users import run_alembic_upgrade_head
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
@@ -63,8 +64,9 @@ def encrypt_signature_workflow(source: Path, destination: Path) -> Path:
     destination = SignatureCipher.encrypt_file(source, destination)
     signature_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
 
+    run_alembic_upgrade_head(Dir.STORAGE_DB)
     database = Database(build_sqlite_url(Dir.STORAGE_DB))
-    database.initialize_schema()
+    database.bind_models()
     owner = AllowedUser.get_owner()
     if owner is None:
         msg = "Owner is not bootstrapped in storage"
