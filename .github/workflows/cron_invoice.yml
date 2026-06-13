@@ -1,4 +1,7 @@
-name: ⏰ Generate Invoice
+name: 🌚 Generate Invoice (On Hold)
+# Disabled scheduled execution.
+# Preserved for future automation work.
+# Run manually if needed.
 
 on:
   workflow_dispatch:

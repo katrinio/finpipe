@@ -55,7 +55,7 @@ def test_bootstrap_primary_admin_creates_admin_and_active_signature(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-    monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "admin")
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "admin")
     source = tmp_path / "signature.png"
     source.write_bytes(b"signature-bytes")
     monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
@@ -81,7 +81,7 @@ def test_bootstrap_primary_admin_is_idempotent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-    monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "admin")
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "admin")
     source = tmp_path / "signature.png"
     source.write_bytes(b"signature-bytes")
     monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))

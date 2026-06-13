@@ -21,7 +21,7 @@ def bootstrap_primary_admin(db_path: Path = Dir.STORAGE_DB) -> None:
     database.initialize_schema()
 
     telegram_id = int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID"))
-    user_name = EnvVar.get_required_env("TELEGRAM_ADMIN_USERNAME")
+    user_name = EnvVar.get_required_env("BOT_OWNER_TELEGRAM_USERNAME")
     signature_source = resolve_signature_source_path()
     signature_destination = Dir.SIGNATURE_ENC.parent / f"{telegram_id}_sign.enc"
 

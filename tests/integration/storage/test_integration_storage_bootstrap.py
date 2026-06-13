@@ -28,7 +28,7 @@ def test_application_startup_bootstraps_admin_and_signature_on_sqlite(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "9001")
-    monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "primary-admin")
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "primary-admin")
     source = tmp_path / "signature.png"
     source.write_bytes(b"signature-bytes")
     monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
@@ -69,7 +69,7 @@ def test_bootstrap_primary_admin_promotes_existing_owner_record(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "9001")
-    monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "primary-admin")
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "primary-admin")
     monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "9001_sign.enc")
 
     db_path = tmp_path / "storage.sqlite3"

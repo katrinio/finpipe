@@ -47,6 +47,8 @@ class GmailMessages:
     GMAIL_CONNECTED = "✅ Gmail подключён."
     GMAIL_DISCONNECTED = "📧 Gmail отключён."
     GMAIL_NOT_CONNECTED = "🫥 Gmail не подключён."
+    GMAIL_CONNECT_PROMPT = "📧 Gmail\n\nПодключите аккаунт Google для работы с банковыми письмами.\n\nНажмите кнопку ниже для авторизации."
+    # TODO(vps): уточнить production-сообщения Gmail OAuth с учётом постоянного домена и поддержки пользователя.
     GMAIL_CONNECT_FAILED = "❌ Не удалось подключить Gmail.\nПопробуйте начать подключение заново."
 
     GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE = "⚠️ Подключение Gmail временно недоступно."
