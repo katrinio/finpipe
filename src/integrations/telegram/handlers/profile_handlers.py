@@ -106,7 +106,7 @@ class ProfileHandlers:
         bank_status = self.get_section_status(bank_fields)
         payment_status = self.get_section_status(payment_fields)
         signature_status = self.get_binary_status(signature is not None)
-        invoice_status = self.get_binary_status(user_config is not None and user_config.invoice_amount is not None)
+        invoice_status = self.get_binary_status(user_config is not None and user_config.invoice_amount_eur is not None)
 
         missing_fields = (
             self.collect_missing_fields(company_fields) + self.collect_missing_fields(bank_fields) + self.collect_missing_fields(payment_fields)
@@ -156,7 +156,7 @@ class ProfileHandlers:
                 f"• {self.format_signature_state(signature is not None)}",
                 "",
                 "💰 Invoice",
-                f"• {self.format_invoice_amount(user_config.invoice_amount if user_config is not None else None)}",
+                f"• {self.format_invoice_amount(user_config.invoice_amount_eur if user_config is not None else None)}",
             ]
         )
 

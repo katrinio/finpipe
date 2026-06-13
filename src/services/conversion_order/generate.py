@@ -29,7 +29,8 @@ def generate_conversion_order(
     rendered_docx_path = output_pdf_path.with_suffix(f".{Format.DOCX}")
 
     template_data = Replacement.to_template_data(data)
-    replacements = Replacement.build_replacements(template_data)
+    template_payload = build_template_payload(template_data)
+    replacements = Replacement.build_replacements(template_payload)
     pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
 
     if not template_path.exists():
@@ -87,6 +88,16 @@ def render_pdf(rendered_docx_path: Path, output_path: Path, data: dict[str, str]
             error,
         )
         ConversionOrderFallbackPdfRenderer.render(output_path, data)
+
+
+def build_template_payload(template_data: dict[str, object]) -> dict[str, object]:
+    """Сопоставляет внутренние поля Conversion Order с плейсхолдерами DOCX-шаблона."""
+
+    payload = dict(template_data)
+    exchange_amount_eur = payload.get("exchange_amount_eur")
+    if exchange_amount_eur is not None:
+        payload["amount"] = exchange_amount_eur
+    return payload
 
 
 def resolve_project_path(path: Path) -> Path:

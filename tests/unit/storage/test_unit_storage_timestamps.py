@@ -49,8 +49,8 @@ def test_updated_timestamps_are_stored_without_microseconds(tmp_path: Path) -> N
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
     database.initialize_schema()
 
-    UserConfig.upsert(telegram_id=10, invoice_amount=1000)
-    UserConfig.upsert(telegram_id=10, invoice_amount=1500)
+    UserConfig.upsert(telegram_id=10, invoice_amount_eur=1000)
+    UserConfig.upsert(telegram_id=10, invoice_amount_eur=1500)
     user_config = UserConfig.get_by_owner(10)
     assert user_config is not None
     assert user_config.created_at.microsecond == 0

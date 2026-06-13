@@ -33,5 +33,5 @@ class ConversionOrderFallbackPdfRenderer(FallbackPdfRenderer):
             f"Date: {data['date']}",
             f"City: {data['city']}",
             f"Name: {data['name']}",
-            f"Amount: EUR {data['amount']}",
+            f"Amount: EUR {data['exchange_amount_eur']}",
         ]

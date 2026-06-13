@@ -8,7 +8,13 @@ from src.services.conversion_order.models import ConversionOrderData
 def test_generate_conversion_order_creates_pdf(tmp_path):
     output_pdf = tmp_path / "test_conversion_order.pdf"
 
-    conversion_order_data = {"account_number": "123456789", "amount": "1000", "city": "Belgrade", "date": "01.05.2020", "name": "Bela Lugoshi"}
+    conversion_order_data = {
+        "account_number": "123456789",
+        "exchange_amount_eur": "1000.00",
+        "city": "Belgrade",
+        "date": "01.05.2020",
+        "name": "Bela Lugoshi",
+    }
 
     data = ConversionOrderData(**conversion_order_data)
 

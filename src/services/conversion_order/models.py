@@ -8,7 +8,7 @@ class ConversionOrderData:
     """Поля, которые подставляются в Conversion Order."""
 
     account_number: str
-    amount: str
+    exchange_amount_eur: str
     city: str
     date: str
     name: str
