@@ -22,6 +22,7 @@ from src.services.signing.context import SignaturePositions
 from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from src.storage.orm.user.signature import Signature
 from src.utils.credentials import EnvVar
 
 LOGGER = logging.getLogger(__name__)
@@ -67,7 +68,10 @@ def generate_conversion_order_pdf(
             output_pdf_path=output_pdf_path,
             data=conversion_order_data,
         )
-        apply_signature_to_pdf(output_pdf_path, signature)
+        apply_signature_to_pdf(
+            output_pdf_path,
+            resolve_signature_for_user(telegram_id, signature),
+        )
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
             document_type=DocumentType.CONVERSION_ORDER,
@@ -210,6 +214,22 @@ def apply_signature_to_pdf(output_pdf_path: Path, signature: Path | None) -> Non
 
     with output_pdf_path.open("wb") as file_handle:
         writer.write(file_handle)
+
+
+def resolve_signature_for_user(telegram_id: int, signature: Path | None) -> Path | None:
+    """Выбирает подпись для Conversion Order с приоритетом активной подписи пользователя."""
+
+    if signature is None:
+        return None
+
+    if signature != Dir.SIGNATURE_ENC:
+        return signature
+
+    active_signature = Signature.get_active(telegram_id)
+    if active_signature is None:
+        return signature
+
+    return Path(active_signature.signature_path)
 
 
 if __name__ == "__main__":
