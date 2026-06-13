@@ -5,13 +5,14 @@
 Рабочий сценарий подключения Gmail выглядит так:
 
 1. Пользователь в Telegram нажимает `📧 Gmail` -> `🔗 Подключить`.
-2. `GmailHandlers.gmail_connect()` вызывает существующий `GmailOAuth.build_authorization_url(...)`.
-3. OAuth state сохраняется в `OAuthSession`.
-4. Google перенаправляет браузер на `GET /oauth/gmail/callback`.
-5. FastAPI route передаёт обработку в `GmailOAuthCallbackService`.
-6. Сервис валидирует `state`, обменивает `code` на токены, сохраняет refresh token и обновляет `GmailAccount`.
-7. `OAuthSession` помечается использованной.
-8. Статус Gmail в Telegram становится `Connected`.
+2. Бот отправляет сообщение с inline-кнопкой `🔗 Подключить Gmail`, которая открывает Google OAuth.
+3. `GmailHandlers.gmail_connect()` вызывает существующий `GmailOAuth.build_authorization_url(...)`.
+4. OAuth state сохраняется в `OAuthSession`.
+5. Google перенаправляет браузер на `GET /oauth/gmail/callback`.
+6. FastAPI route передаёт обработку в `GmailOAuthCallbackService`.
+7. Сервис валидирует `state`, обменивает `code` на токены, сохраняет refresh token и обновляет `GmailAccount`.
+8. `OAuthSession` помечается использованной.
+9. Статус Gmail в Telegram становится `Connected`.
 
 ## Callback Endpoint
 
@@ -86,6 +87,7 @@ OAuth client config для Telegram callback flow берётся из:
 5. Убедитесь, что `GMAIL_OAUTH_CALLBACK_ENABLED=true`.
 6. После этого можно запускать сценарий:
    - Telegram -> `📧 Gmail` -> `🔗 Подключить`
+   - inline-кнопка `🔗 Подключить Gmail`
    - Google OAuth
    - callback в локальный FastAPI через tunnel
 
