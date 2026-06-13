@@ -13,7 +13,7 @@ from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu,
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
-from src.integrations.telegram.ui.messages import CommonMessages
+from src.integrations.telegram.ui.messages import CommonMessagesV2
 from src.storage.orm import AllowedUser
 
 
@@ -28,7 +28,7 @@ class MenuHandler:
 
         self.telegram.send_message(
             telegram_id,
-            CommonMessages.WELCOME,
+            CommonMessagesV2.General.WELCOME,
             reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 

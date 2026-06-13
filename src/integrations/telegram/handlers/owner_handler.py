@@ -12,7 +12,7 @@ from src.integrations.telegram.ui.menu.admin_menu import (
     build_users_menu,
 )
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
-from src.integrations.telegram.ui.messages import BotInfo, OwnerMessagesV2
+from src.integrations.telegram.ui.messages import CommonMessagesV2, OwnerMessagesV2
 from src.storage.orm import AllowedUser, KnownUser, UserRole
 
 LOGGER = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ class OwnerHandlers:
             return
 
         if text != OwnerButtons.CONFIRM_ADD_USER:
-            self.telegram.send_message(telegram_id, BotInfo.USE_CONFIRMATION_BTN, reply_markup=build_add_user_confirmation_menu())
+            self.telegram.send_message(telegram_id, CommonMessagesV2.Actions.USE_CONFIRMATION_BTN, reply_markup=build_add_user_confirmation_menu())
             return
 
         known_user = KnownUser.get_by_telegram_id(pending_telegram_id)
@@ -182,7 +182,7 @@ class OwnerHandlers:
             return
 
         if text != OwnerButtons.CONFIRM_REMOVE_USER:
-            self.telegram.send_message(telegram_id, BotInfo.USE_CONFIRMATION_BTN, reply_markup=build_remove_user_confirmation_menu())
+            self.telegram.send_message(telegram_id, CommonMessagesV2.Actions.USE_CONFIRMATION_BTN, reply_markup=build_remove_user_confirmation_menu())
             return
 
         AllowedUser.delete(pending_telegram_id)
@@ -274,7 +274,7 @@ class OwnerHandlers:
 
     def _ensure_owner(self, telegram_id: int) -> bool:
         if not AllowedUser.is_owner(telegram_id):
-            self.telegram.send_message(telegram_id, BotInfo.ACCESS_DENIED, reply_markup=build_guest_menu())
+            self.telegram.send_message(telegram_id, CommonMessagesV2.Errors.ACCESS_DENIED, reply_markup=build_guest_menu())
             return False
 
         return True

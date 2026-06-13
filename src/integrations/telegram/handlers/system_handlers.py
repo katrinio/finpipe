@@ -1,7 +1,7 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_last_action, format_whoami
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
-from src.integrations.telegram.ui.messages import AuditLogMessagesV2, BotInfo
+from src.integrations.telegram.ui.messages import AuditLogMessagesV2, CommonMessagesV2
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm.system.audit_log import AuditLog
 
@@ -17,12 +17,12 @@ class SystemHandlers:
         """Проверяет доступность Telegram API через текущий клиент."""
 
         self.telegram.healthcheck()
-        self.telegram.send_message(telegram_id, BotInfo.TELEGRAM_API_OK)
+        self.telegram.send_message(telegram_id, CommonMessagesV2.Status.TELEGRAM_API_OK)
 
     def about(self, telegram_id: int) -> None:
         """Показывает справочную информацию о боте."""
 
-        self.telegram.send_message(telegram_id, BotInfo.ABOUT)
+        self.telegram.send_message(telegram_id, CommonMessagesV2.General.ABOUT)
 
     def whoami(self, telegram_id: int | None, username: str | None) -> None:
         """Возвращает публичную информацию о Telegram-пользователе."""

@@ -4,7 +4,7 @@ from src.constants import Message
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.messages import BotInfo, ConversionOrderMessages, InvoiceMessagesV2
+from src.integrations.telegram.ui.messages import BankMessagesV2, ConversionOrderMessages, InvoiceMessagesV2
 from src.services.bank.exceptions import BankPdfError
 from src.services.conversion_order.exceptions import TransferRequestError
 from src.services.invoice.exceptions import InvoiceError
@@ -68,7 +68,7 @@ class DocumentHandlers:
         """Генерирует подтверждение для банка и отправляет его пользователю."""
 
         LOGGER.info("Bank confirmation generation requested by Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, BotInfo.GENERATING_BANK_CONFIRMATION)
+        self.telegram.send_message(telegram_id, BankMessagesV2.Generation.IN_PROGRESS)
 
         try:
             bank_confirmation_path = generate_bank_confirmation(telegram_id)

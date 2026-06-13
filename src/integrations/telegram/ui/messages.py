@@ -30,33 +30,38 @@ class Msg:
         return f"⚠️ {text}"
 
 
-class CommonMessages:
-    WELCOME = "👋 Добро пожаловать в Finpipe!\nЛичный сервис для автоматизации документооборота.\n\n"
+class CommonMessagesV2:
+    class General:
+        WELCOME = "👋 Добро пожаловать в Finpipe!\nЛичный сервис для автоматизации документооборота.\n\n"
 
-    ABOUT = (
-        "🤖 Finpipe\n\n"
-        "Личный сервис для автоматизации документооборота.\n\n"
-        "Возможности:\n"
-        "• Генерация документов по шаблонам\n"
-        "• Заполнение банковских форм\n"
-        "• Хранение данных компании и реквизитов\n"
-        "• Шифрование и хранение электронной подписи\n"
-        "• Интеграция с Gmail\n"
-        "• Работа через Telegram\n\n"
-        "Версия: 0.1"
-    )
-    HELP_HEADER = "📚 Доступные команды"
-    WHOAMI_PREFIX = "👤 Информация о пользователе"
+        ABOUT = (
+            "🤖 Finpipe\n\n"
+            "Личный сервис для автоматизации документооборота.\n\n"
+            "Возможности:\n"
+            "• Генерация документов по шаблонам\n"
+            "• Заполнение банковских форм\n"
+            "• Хранение данных компании и реквизитов\n"
+            "• Шифрование и хранение электронной подписи\n"
+            "• Интеграция с Gmail\n"
+            "• Работа через Telegram\n\n"
+            "Версия: 0.1"
+        )
 
-    PROJECT_RUNNING = "🟢 Finpipe работает."
-    TELEGRAM_API_OK = "✅ Telegram API работает."
+        HELP_HEADER = "📚 Доступные команды"
+        WHOAMI_PREFIX = "👤 Информация о пользователе"
 
-    ACCESS_DENIED = "⛔ У вас пока нет доступа к Finpipe.\nНажмите «Кто я» и отправьте свой Telegram ID владельцу бота."
-    NO_SUCH_COMMAND = "🫥 Неизвестная команда."
+    class Status:
+        PROJECT_RUNNING = "🟢 Finpipe работает."
+        TELEGRAM_API_OK = Msg.success("Telegram API работает.")
 
-    SYSTEM_ERROR = "💥 Произошла внутренняя ошибка."
+    class Errors:
+        ACCESS_DENIED = "⛔ У вас пока нет доступа к Finpipe.\nНажмите «Кто я» и отправьте свой Telegram ID владельцу бота."
 
-    USE_CONFIRMATION_BTN = "Используйте кнопки подтверждения ниже."
+        NO_SUCH_COMMAND = "🫥 Неизвестная команда."
+        SYSTEM_ERROR = "💥 Произошла внутренняя ошибка."
+
+    class Actions:
+        USE_CONFIRMATION_BTN = "Используйте кнопки подтверждения ниже."
 
 
 class GmailMessagesV2:
@@ -106,9 +111,10 @@ class InvoiceMessagesV2:
         NO_INVOICE_AMOUNT = "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму»."
 
 
-class BankMessages:
-    GENERATING_BANK_CONFIRMATION = "⏳ Формируется подтверждение для банка..."
-    BANK_CONFIRMATION_SENT = "✅ Подтверждение для банка отправлено."
+class BankMessagesV2:
+    class Generation:
+        IN_PROGRESS = "⏳ Формируется подтверждение для банка..."
+        SENT = Msg.success("Подтверждение для банка отправлено.")
 
 
 class ConversionOrderMessages:
@@ -138,15 +144,17 @@ class ProfileMessageV2:
         TOO_LARGE = Msg.error("Размер файла превышает 2 МБ.")
 
 
-class MenuMessages:
+class MenuMessagesV2:
     MAIN_MENU = "🏠 Главное меню"
 
-    DOCUMENTS = "📄 Документы"
-    SIGNATURE = "✍️ Подпись"
-    GMAIL = "📧 Gmail"
+    class Sections:
+        DOCUMENTS = "📄 Документы"
+        SIGNATURE = "✍️ Подпись"
+        GMAIL = "📧 Gmail"
 
-    SETTINGS = "⚙️ Настройки"
-    STATUS = "ℹ️ Статус"
+    class System:
+        SETTINGS = "⚙️ Настройки"
+        STATUS = "ℹ️ Статус"
 
 
 class OwnerMessagesV2:
@@ -173,7 +181,3 @@ class OwnerMessagesV2:
         USER_ID_NOT_INT = "Введите корректный Telegram ID, состоящий только из цифр."
         USER_ID_NOT_KNOWN = Msg.error("Пользователь ещё не взаимодействовал с ботом.\nПопросите пользователя открыть бота и нажать /start.")
         NO_SUCH_USER = Msg.error("У пользователя нет доступа или он не найден в списке.")
-
-
-class BotInfo(CommonMessages, MenuMessages, BankMessages):
-    pass

@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from src.integrations.telegram.ui.messages import BotInfo
+from src.integrations.telegram.ui.messages import CommonMessagesV2
 from src.storage.orm.system.audit_log import AuditLog
 
 
@@ -25,7 +25,7 @@ class Cmd(StrEnum):
 def build_help_message() -> str:
     """Строит help из зарегистрированных команд."""
 
-    lines = [BotInfo.HELP_HEADER, ""]
+    lines = [CommonMessagesV2.General.HELP_HEADER, ""]
 
     for command in Cmd:
         lines.append(f"{command.value} - {command.description}")
@@ -37,7 +37,7 @@ def format_whoami(telegram_id: int | None, username: str | None) -> str:
     """Форматирует информацию о текущем пользователе."""
 
     username_line = f"@{username}" if username else "unknown"
-    return f"{BotInfo.WHOAMI_PREFIX}\nTelegram ID: {telegram_id}\nUsername: {username_line}"
+    return f"{CommonMessagesV2.General.WHOAMI_PREFIX}\nTelegram ID: {telegram_id}\nUsername: {username_line}"
 
 
 def format_last_action(action: AuditLog) -> str:

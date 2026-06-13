@@ -4,7 +4,7 @@ from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.ui.buttons import OwnerButtons
 from src.integrations.telegram.ui.menu.admin_menu import build_add_user_confirmation_menu, build_remove_user_confirmation_menu, build_users_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
-from src.integrations.telegram.ui.messages import BotInfo
+from src.integrations.telegram.ui.messages import CommonMessagesV2
 from src.storage.orm import AllowedUser, KnownUser, UserRole
 from src.storage.orm.database import Database, build_sqlite_url
 from tests.fakes.fake_telegram import FakeTelegramClient
@@ -44,9 +44,9 @@ def test_add_user_denies_non_owner(tmp_path: Path) -> None:
     handlers.add_user(telegram_id=1, command="/add_user 2")
 
     assert AllowedUser.exists(2) is False
-    assert telegram.sent_messages == [BotInfo.ACCESS_DENIED]
-    assert telegram.sent_messages_with_chat_ids == [(1, BotInfo.ACCESS_DENIED)]
-    assert telegram.sent_message_payloads == [(1, BotInfo.ACCESS_DENIED, build_guest_menu())]
+    assert telegram.sent_messages == [CommonMessagesV2.Errors.ACCESS_DENIED]
+    assert telegram.sent_messages_with_chat_ids == [(1, CommonMessagesV2.Errors.ACCESS_DENIED)]
+    assert telegram.sent_message_payloads == [(1, CommonMessagesV2.Errors.ACCESS_DENIEDD, build_guest_menu())]
 
 
 def test_add_user_denies_unknown_known_user(tmp_path: Path) -> None:
