@@ -1,10 +1,10 @@
-Development
+## Development
 
 Локальная разработка, запуск и отладка Finpipe.
 
-⸻
+---
 
-📦 Prerequisites
+### 📦 Prerequisites
 
 Нужно установить:
 
@@ -27,7 +27,7 @@ cp .env.dist .env
 
 ⸻
 
-🚀 Первый запуск
+### 🚀 Первый запуск
 
 Создать или обновить структуру БД:
 
@@ -41,49 +41,38 @@ cp .env.dist .env
 
 ⸻
 
-🗄️ Alembic
+### 🗄️ Alembic
 
-Создать новую миграцию:
-
-poetry run alembic revision --autogenerate -m "description"
-
-Применить миграции:
-
-poetry run alembic upgrade head
-
-Откатить последнюю миграцию:
-
-poetry run alembic downgrade -1
-
-Посмотреть текущее состояние:
-
-poetry run alembic current
-poetry run alembic heads
-poetry run alembic history
+| Действие | Команда |
+|-----------|----------|
+| Создать новую миграцию | `poetry run alembic revision --autogenerate -m "description"` |
+| Применить все миграции | `poetry run alembic upgrade head` |
+| Откатить последнюю миграцию | `poetry run alembic downgrade -1` |
+| Показать текущую ревизию БД | `poetry run alembic current` |
+| Показать актуальные head-ревизии | `poetry run alembic heads` |
+| Показать историю миграций | `poetry run alembic history` |
+| Пометить БД как соответствующую текущей ревизии без выполнения миграций | `poetry run alembic stamp head` |
+На практике чаще всего используются только две команды: создание новой миграции и `upgrade head`.
 
 ⸻
 
-🤖 Run Telegram Bot
+### 🤖 Run Telegram Bot
 
-poetry run python src/integrations/telegram/bot.py
+`poetry run python src/integrations/telegram/bot.py`
 
-Бот использует:
-
-data/finpipe.db
-
-и настройки из .env.
+Бот использует: `data/finpipe.db` и настройки из .env.
 
 ⸻
 
-🌐 Run FastAPI
+### 🌐 Run FastAPI
 
 Нужен для Gmail OAuth callback.
 
-poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
+`poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000`
 
 ⸻
 
-❤️ Health Check
+### ❤️ Health Check
 
 Проверка, что web-слой поднялся:
 
@@ -91,11 +80,11 @@ curl http://localhost:8000/health
 
 Ожидаемый ответ:
 
-{"status":"ok"}
+`{"status":"ok"}`
 
 ⸻
 
-🏗️ Локальная инфраструктура
+### 🏗️ Локальная инфраструктура
 
 Обычно достаточно трёх процессов:
 
@@ -111,7 +100,7 @@ TODO(vps): заменить Cloudflare Tunnel постоянным домено�
 
 ⸻
 
-📧 Gmail OAuth Development
+### 📧 Gmail OAuth Development
 
 Локальный flow:
 
@@ -129,11 +118,11 @@ docs/oauth.md
 
 ⸻
 
-🔗 start_oauth_tunnel.sh
+### 🔗 start_oauth_tunnel.sh
 
 Для локальной OAuth-разработки:
 
-./scripts/start_oauth_tunnel.sh
+`./scripts/start_oauth_tunnel.sh`
 
 Скрипт:
 
@@ -152,7 +141,7 @@ https://example.trycloudflare.com/oauth/gmail/callback
 
 Другой порт:
 
-PORT=8080 ./scripts/start_oauth_tunnel.sh
+`PORT=8080 ./scripts/start_oauth_tunnel.sh`
 
 После каждого нового tunnel URL необходимо обновить:
 
@@ -164,22 +153,22 @@ Google Cloud Console
 
 ⸻
 
-🔍 Debugging
+### 🔍 Debugging
 
 Health:
 
 curl http://localhost:8000/health
 
 Последние OAuth sessions:
-
+```
 sqlite3 data/finpipe.db \
 "SELECT id,state,telegram_id,status,expires_at,used_at
 FROM oauth_sessions
 ORDER BY id DESC
 LIMIT 5;"
-
+```
 Последние Gmail подключения:
-
+```
 sqlite3 data/finpipe.db \
 "SELECT id,
         owner_telegram_id,
@@ -189,26 +178,20 @@ sqlite3 data/finpipe.db \
 FROM gmail_account
 ORDER BY id DESC
 LIMIT 5;"
+```
+⸻
+
+### 🧪 Testing
+
+Все тесты: `poetry run pytest -q`
+
+Типизация: `poetry run mypy src`
+
+Линтер: `poetry run ruff check .`
 
 ⸻
 
-🧪 Testing
-
-Все тесты:
-
-poetry run pytest -q
-
-Типизация:
-
-poetry run mypy src
-
-Линтер:
-
-poetry run ruff check .
-
-⸻
-
-🚨 Troubleshooting
+### 🚨 Troubleshooting
 
 Cloudflare Error 1033
 
@@ -216,7 +199,7 @@ Tunnel не может достучаться до FastAPI.
 
 Проверить:
 
-curl http://localhost:8000/health
+`curl http://localhost:8000/health`
 
 ⸻
 
@@ -246,5 +229,7 @@ Gmail connect requested while callback flow is disabled
 
 В .env должно быть:
 
+```
 GMAIL_OAUTH_CALLBACK_ENABLED=true
 GMAIL_OAUTH_CALLBACK_URL=https://...
+```
