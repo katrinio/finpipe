@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import BotInfo, Cmd, build_help_message
+from src.integrations.telegram.commands import Cmd, build_help_message
 from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.handlers.menu_handlers import MenuHandler
@@ -23,6 +23,7 @@ from src.integrations.telegram.ui.buttons import (
     SignatureButtons,
     SystemButtons,
 )
+from src.integrations.telegram.ui.messages import CommonMessagesV2
 from src.services.signing.signature_service import SignatureService as _SignatureService
 from src.storage.orm.system.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER
@@ -78,15 +79,15 @@ class CommandRouter:
                 handler = self._command_handlers.get(OwnerButtons.REMOVE_USER)
 
             if handler is None:
-                self.telegram.send_message(context.telegram_id, BotInfo.NO_SUCH_COMMAND)
-                self._audit(context, AuditStatus.FAILED, BotInfo.NO_SUCH_COMMAND)
+                self.telegram.send_message(context.telegram_id, CommonMessagesV2.Errors.NO_SUCH_COMMAND)
+                self._audit(context, AuditStatus.FAILED, CommonMessagesV2.Errors.NO_SUCH_COMMAND)
             else:
                 handler(context)
                 self._audit(context, AuditStatus.SUCCESS)
 
         except Exception as error:
             LOGGER.exception("Command failed: %s", text)
-            self.telegram.send_message(context.telegram_id, BotInfo.SYSTEM_ERROR)
+            self.telegram.send_message(context.telegram_id, CommonMessagesV2.Errors.SYSTEM_ERROR)
             self._audit(context, AuditStatus.FAILED, str(error))
 
             return False

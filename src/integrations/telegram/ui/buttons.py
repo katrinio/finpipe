@@ -1,80 +1,31 @@
-# main menu
-class MainMenuButtons:
-    DOCUMENTS = "📄 Документы"
-    INTEGRATIONS = "📧 Интеграции"
-    PROFILE = "⚙️ Профиль"
-    SYSTEM = "ℹ️ Система"
+"""Backward-compatible re-export of Telegram button constants."""
 
+from src.integrations.telegram.buttons import (
+    PUBLIC_COMMANDS,
+    DocumentsMenuButtons,
+    GmailButtons,
+    IntegrationsButtons,
+    InvoiceButtons,
+    InvoiceMenuButtons,
+    MainMenuButtons,
+    NavigationButtons,
+    OwnerButtons,
+    ProfileButtons,
+    SignatureButtons,
+    SystemButtons,
+)
 
-# documents
-class DocumentsMenuButtons:
-    SALARY_INVOICE = "🧾 Salary Invoice"
-    BANK_CONFIRMATION = "🏦 Подтверждение для банка"
-    CONVERSION_ORDER = "💱 Conversion Order"
-
-
-# invoice
-class InvoiceMenuButtons:
-    SET_INVOICE_AMOUNT = "💰 Указать сумму"
-    GET_INVOICE_AMOUNT = "💶 Текущая сумма"
-    GENERATE_INVOICE = "📄 Сгенерировать Salary Invoice"
-
-
-# profile
-class ProfileButtons:
-    DOWNLOAD_TEMPLATE = "📥 Скачать шаблон профиля"
-    UPLOAD_TEMPLATE = "📤 Загрузить шаблон профиля"
-    MY_PROFILE = "👤 Мой профиль"
-    SIGNATURE = "✍️ Подпись"
-
-
-# signature
-class SignatureButtons:
-    SIGNATURE_UPLOAD = "📤 Загрузить"
-    SIGNATURE_DELETE = "🗑 Удалить"
-    SIGNATURE_STATUS = "📋 Статус"
-
-
-# integrations
-class IntegrationsButtons:
-    GMAIL = "📧 Gmail"
-
-
-# gmail
-class GmailButtons:
-    GMAIL_STATUS = "📊 Статус"
-    GMAIL_CONNECT = "🔗 Подключить"
-    GMAIL_CONNECT_INLINE = "🔗 Подключить Gmail"
-    GMAIL_DISCONNECT = "❌ Отключить"
-
-
-# system
-class SystemButtons:
-    HELP = "📚 Помощь"
-    HEALTHCHECK = "❤️ Healthcheck"
-    ABOUT = "ℹ️ О проекте"
-    WHOAMI = "👤 Кто я"
-    STATUS = "📊 Статус профиля"
-
-
-# navigation
-class NavigationButtons:
-    BACK = "⬅️ Назад"
-    HOME = "🏠 Главное меню"
-
-
-# owner
-class OwnerButtons:
-    ADMIN_PANEL = "🛠️ Админка"
-    USERS = "👥 Пользователи"
-    ADD_USER = "➕ Добавить пользователя"
-    REMOVE_USER = "➖ Удалить пользователя"
-    LIST_USERS = "📋 Список пользователей"
-    CONFIRM_ADD_USER = "➕ Выдать доступ"
-    CONFIRM_REMOVE_USER = "➖ Удалить доступ"
-    CANCEL_ADMIN_ACTION = "✖️ Отмена"
-
-
-PUBLIC_COMMANDS = {
-    SystemButtons.WHOAMI,
-}
+__all__ = [
+    "PUBLIC_COMMANDS",
+    "DocumentsMenuButtons",
+    "GmailButtons",
+    "IntegrationsButtons",
+    "InvoiceButtons",
+    "InvoiceMenuButtons",
+    "MainMenuButtons",
+    "NavigationButtons",
+    "OwnerButtons",
+    "ProfileButtons",
+    "SignatureButtons",
+    "SystemButtons",
+]
