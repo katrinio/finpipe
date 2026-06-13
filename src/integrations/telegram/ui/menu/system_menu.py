@@ -12,7 +12,7 @@ def build_system_menu(is_owner: bool = False) -> dict:
             {"text": SystemButtons.WHOAMI},
         ],
         [
-            {"text": NavigationButtons.BACK},
+            {"text": NavigationButtons.HOME},
         ],
     ]
 

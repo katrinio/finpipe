@@ -45,7 +45,8 @@ def test_user_config_upsert_defaults_exchange_amount_to_received_amount(tmp_path
 
     assert config is not None
     assert config.received_amount_eur == 1450.75
-    assert config.exchange_amount_eur == 1450.75
+    assert config.bank_received_amount_eur == 1450.75
+    assert config.exchange_amount_eur is None
 
 
 def test_user_config_upsert_preserves_explicit_exchange_amount(tmp_path: Path) -> None:

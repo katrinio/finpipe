@@ -11,9 +11,10 @@ def build_profile_menu() -> dict:
             ],
             [
                 {"text": ProfileButtons.SIGNATURE},
-                {"text": NavigationButtons.BACK},
+                {"text": NavigationButtons.HOME},
             ],
         ],
+        "resize_keyboard": True,
     }
 
 
@@ -25,8 +26,10 @@ def build_signature_menu() -> dict:
                 {"text": SignatureButtons.SIGNATURE_UPLOAD},
             ],
             [
-                {"text": NavigationButtons.BACK},
                 {"text": SignatureButtons.SIGNATURE_STATUS},
+            ],
+            [
+                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,

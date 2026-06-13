@@ -10,8 +10,10 @@ from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
 from src.integrations.telegram.handlers.system_handlers import SystemHandlers
+from src.integrations.telegram.messages.menu import MenuMessagesV2
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
+    ConversionOrderButtons,
     DocumentsMenuButtons,
     GmailButtons,
     IntegrationsButtons,
@@ -107,11 +109,16 @@ class CommandRouter:
             MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
             OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.admin_menu(context.telegram_id),
-            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            MenuMessagesV2.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents
             DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
             DocumentsMenuButtons.BANK_CONFIRMATION: lambda context: self.document_handler.bank_confirmation(context.telegram_id),
-            DocumentsMenuButtons.CONVERSION_ORDER: lambda context: self.document_handler.conversion_order(context.telegram_id),
+            DocumentsMenuButtons.CONVERSION_ORDER: lambda context: self.menu_handler.conversion_order_menu(context.telegram_id),
+            ConversionOrderButtons.SET_AMOUNT: lambda context: self.document_handler.start_conversion_amount_input(context.telegram_id),
+            ConversionOrderButtons.GET_AMOUNT: lambda context: self.document_handler.conversion_order_menu(context.telegram_id),
+            ConversionOrderButtons.USE_BANK_AMOUNT: lambda context: self.document_handler.use_bank_amount(context.telegram_id),
+            ConversionOrderButtons.GENERATE: lambda context: self.document_handler.conversion_order(context.telegram_id),
             # invoice
             InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
             InvoiceMenuButtons.GET_INVOICE_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),

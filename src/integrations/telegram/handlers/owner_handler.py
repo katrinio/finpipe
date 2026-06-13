@@ -204,7 +204,7 @@ class OwnerHandlers:
         allowed_users = AllowedUser.list_all()
         LOGGER.info("Users list requested by telegram_id=%s", telegram_id)
         if not allowed_users:
-            self.telegram.send_message(telegram_id, OwnerMessagesV2.Info.EMPTY_USER_LIST)
+            self.telegram.send_message(telegram_id, OwnerMessagesV2.Info.EMPTY_USER_LIST, reply_markup=build_users_menu())
             return
 
         lines = ["📋 Список пользователей", ""]
@@ -213,7 +213,7 @@ class OwnerHandlers:
             label = self._format_known_user_label(known_user, fallback_username=allowed_user.username)
             lines.append(self._format_allowed_user_entry(allowed_user, label))
 
-        self.telegram.send_message(telegram_id, "\n".join(lines))
+        self.telegram.send_message(telegram_id, "\n".join(lines), reply_markup=build_users_menu())
 
     def add_user(self, telegram_id: int, command: str) -> None:
         """Совместимый CLI-like сценарий выдачи доступа по `/add_user <telegram_id>`."""
@@ -251,17 +251,17 @@ class OwnerHandlers:
 
         parts = command.split()
         if len(parts) != 2:
-            self.telegram.send_message(telegram_id, OwnerMessagesV2.Info.ADD_USER_CMD)
+            self.telegram.send_message(telegram_id, OwnerMessagesV2.Info.ADD_USER_CMD, reply_markup=build_users_menu())
             return
 
         try:
             target_telegram_id = int(parts[1])
         except ValueError:
-            self.telegram.send_message(telegram_id, OwnerMessagesV2.Info.ADD_USER_CMD)
+            self.telegram.send_message(telegram_id, OwnerMessagesV2.Info.ADD_USER_CMD, reply_markup=build_users_menu())
             return
 
         if not AllowedUser.exists(target_telegram_id):
-            self.telegram.send_message(telegram_id, OwnerMessagesV2.Validation.NO_SUCH_USER)
+            self.telegram.send_message(telegram_id, OwnerMessagesV2.Validation.NO_SUCH_USER, reply_markup=build_users_menu())
             return
 
         AllowedUser.delete(target_telegram_id)
@@ -270,7 +270,7 @@ class OwnerHandlers:
             telegram_id,
             target_telegram_id,
         )
-        self.telegram.send_message(telegram_id, OwnerMessagesV2.Success.USER_REVOKED)
+        self.telegram.send_message(telegram_id, OwnerMessagesV2.Success.USER_REVOKED, reply_markup=build_users_menu())
 
     def _ensure_owner(self, telegram_id: int) -> bool:
         if not AllowedUser.is_owner(telegram_id):

@@ -1,3 +1,2 @@
 class NavigationButtons:
-    BACK = "⬅️ Назад"
-    HOME = "🏠 Главное меню"
+    HOME = "🏠 Домой"

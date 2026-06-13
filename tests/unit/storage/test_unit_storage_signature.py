@@ -126,3 +126,22 @@ def test_signature_delete_removes_db_row_and_file(tmp_path: Path) -> None:
 
     assert not signature_path.exists()
     assert not Signature.exists(777)
+
+
+def test_resolve_workflow_signature_path_recovers_legacy_path_when_user_file_exists(tmp_path: Path) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    initialize_test_database(database)
+
+    legacy_path = tmp_path / "signatures" / "signature.enc"
+    fallback_path = tmp_path / "signatures" / "249517409_sign.enc"
+    fallback_path.parent.mkdir(parents=True, exist_ok=True)
+    source = tmp_path / "signature.png"
+    source.write_bytes(b"signature-bytes")
+    SignatureCipher.encrypt_file(source, fallback_path)
+
+    Signature.create(owner_telegram_id=249517409, signature_path=legacy_path, signature_hash="hash")
+
+    resolved = Signature.resolve_workflow_signature_path(249517409)
+
+    assert resolved == fallback_path
+    assert Signature.get_active(249517409).signature_path == str(fallback_path)

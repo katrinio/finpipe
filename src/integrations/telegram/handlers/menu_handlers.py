@@ -8,7 +8,7 @@ from src.integrations.telegram.ui.buttons import (
     ProfileButtons,
 )
 from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu, build_users_menu
-from src.integrations.telegram.ui.menu.document_menu import build_document_menu, build_invoice_menu
+from src.integrations.telegram.ui.menu.document_menu import build_conversion_order_menu, build_document_menu, build_invoice_menu
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu, build_integration_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
@@ -93,6 +93,13 @@ class MenuHandler:
             telegram_id,
             DocumentsMenuButtons.SALARY_INVOICE,
             reply_markup=build_invoice_menu(),
+        )
+
+    def conversion_order_menu(self, telegram_id: int) -> None:
+        self.telegram.send_message(
+            telegram_id,
+            DocumentsMenuButtons.CONVERSION_ORDER,
+            reply_markup=build_conversion_order_menu(),
         )
 
     def integration_menu(self, telegram_id: int) -> None:

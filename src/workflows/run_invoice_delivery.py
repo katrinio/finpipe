@@ -18,7 +18,6 @@ def generate_and_send_invoice(chat_id: int) -> None:
 
     try:
         telegram_client.send_document(chat_id, document_path=pdf_path)
-        telegram_client.send_document(chat_id, document_path=docx_path)
     finally:
         _remove_generated_invoice_file(pdf_path)
         _remove_generated_invoice_file(docx_path)

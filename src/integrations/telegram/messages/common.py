@@ -62,6 +62,7 @@ class CommonMessagesV2:
 
     class Actions:
         USE_CONFIRMATION_BTN = "Используйте кнопки подтверждения ниже."
+        OPERATION_CANCELLED = "Текущая операция отменена."
 
 
 class CommonMessages(CommonMessagesV2):

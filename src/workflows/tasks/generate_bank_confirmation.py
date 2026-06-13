@@ -14,6 +14,7 @@ from src.services.invoice.context import build_invoice_period
 from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from src.storage.orm.user.signature import Signature
 from src.storage.orm.user.user_config import UserConfig
 from src.utils.credentials import EnvVar
 from src.utils.utils import Utils
@@ -92,7 +93,7 @@ def generate_bank_confirmation(
         amount = amount or extract_amount(bank_template)
         UserConfig.upsert(
             telegram_id=telegram_id,
-            received_amount_eur=amount,
+            bank_received_amount_eur=amount,
         )
         bank_details = BankDetails.get_by_owner(telegram_id)
         if bank_details is None:
@@ -107,7 +108,7 @@ def generate_bank_confirmation(
         period_suffix = Utils.today()
         bank_output = output_dir / f"Obavestenje-o-prilivu-{period_suffix}.{Format.PDF}"
 
-        resolved_signature = resolve_signature(signature)
+        resolved_signature = resolve_signature_for_user(telegram_id, signature)
 
         generate_bank_confirmation_pdf(
             input_pdf=bank_template,
@@ -177,8 +178,18 @@ def is_pdf_file(path: Path) -> bool:
         return file_handle.read(5) == b"%PDF-"
 
 
-def resolve_signature(signature: Path | None) -> Path | None:
-    """Возвращает путь к подписи или None."""
+def resolve_signature_for_user(telegram_id: int, signature: Path | None) -> Path | None:
+    """Выбирает подпись для Bank Confirmation с приоритетом активной подписи пользователя."""
+
+    if signature is None:
+        return None
+
+    if signature != Dir.SIGNATURE_ENC:
+        return signature
+
+    workflow_signature = Signature.resolve_workflow_signature_path(telegram_id)
+    if workflow_signature is not None:
+        return workflow_signature
 
     return signature
 
