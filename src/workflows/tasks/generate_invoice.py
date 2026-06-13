@@ -40,7 +40,7 @@ def generate_invoice_pdf(
 
     try:
         config = UserConfig.get_by_owner(telegram_id)
-        if config is None or config.invoice_amount is None:
+        if config is None or config.invoice_amount_eur is None:
             msg = "Сумма Salary Invoice не указана. Используйте «💰 Указать сумму»."
             raise InvoiceGenerationError(msg)
 
@@ -60,7 +60,7 @@ def generate_invoice_pdf(
             account_bic=bank_details.bic,
             account_iban=bank_details.iban,
             account_number=bank_details.account_number,
-            amount=str(config.invoice_amount),
+            amount=str(config.invoice_amount_eur),
             bank_name=bank_details.bank_name,
             company_address=company_profile.company_address,
             company_name=company_profile.company_name,

@@ -7,7 +7,7 @@ from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
 from src.storage.dependencies import build_storage_dependencies
-from src.storage.orm import AllowedUser
+from src.storage.orm import AllowedUser, UserConfig
 from src.utils.credentials import EnvVar
 from src.workflows.tasks.fetch_bank_email import fetch_bank_email_workflow
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
@@ -35,13 +35,26 @@ def main() -> int:
 
     telegram_client.send_message(owner.telegram_id, Message.EMAIL_FETCHING_COMPLETED)
 
-    bank_amount = extract_amount(bank_template_path)
-    transfer_amount_text = f"{bank_amount:.2f}"
+    received_amount_eur = extract_amount(bank_template_path)
+    UserConfig.upsert(
+        telegram_id=owner.telegram_id,
+        received_amount_eur=received_amount_eur,
+    )
+    user_config = UserConfig.get_by_owner(owner.telegram_id)
+    exchange_amount_eur = (
+        user_config.exchange_amount_eur if user_config is not None and user_config.exchange_amount_eur is not None else received_amount_eur
+    )
+    invoice_amount_eur = user_config.invoice_amount_eur if user_config is not None else None
 
-    bank_confirmation_path = generate_bank_confirmation(owner.telegram_id, bank_template_path, amount=bank_amount)
+    bank_confirmation_path = generate_bank_confirmation(owner.telegram_id, bank_template_path, amount=received_amount_eur)
     telegram_client.send_message(owner.telegram_id, Message.BANK_CONFIRMATION_GENERATED)
 
-    conversion_order_pdf_path = generate_conversion_order_pdf(owner.telegram_id, amount=transfer_amount_text)
+    conversion_order_pdf_path = generate_conversion_order_pdf(
+        owner.telegram_id,
+        invoice_amount_eur=invoice_amount_eur,
+        received_amount_eur=received_amount_eur,
+        exchange_amount_eur=exchange_amount_eur,
+    )
     telegram_client.send_message(owner.telegram_id, Message.CONVERSION_ORDER_GENERATED)
 
     invoice_pdf_path = generate_invoice_pdf(telegram_id=owner.telegram_id)

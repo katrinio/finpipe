@@ -119,6 +119,7 @@ class CommandRouter:
             ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
             ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
             ProfileButtons.MY_PROFILE: lambda context: self.profile_handler.show_profile(context.telegram_id),
+            ProfileButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(context.telegram_id),
             # signature
             SystemButtons.STATUS: lambda context: self.system_handler.status(context.telegram_id),
             SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),

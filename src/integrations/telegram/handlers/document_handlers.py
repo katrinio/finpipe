@@ -39,7 +39,7 @@ class DocumentHandlers:
             return
 
         amount = int(text)
-        UserConfig.upsert(telegram_id=telegram_id, invoice_amount=amount)
+        UserConfig.upsert(telegram_id=telegram_id, invoice_amount_eur=amount)
         UserStateService.clear_state(telegram_id)
         self.telegram.send_message(telegram_id, f"✅ Сумма Salary Invoice сохранена: {amount} EUR")
 
@@ -61,11 +61,11 @@ class DocumentHandlers:
         """Показывает текущую сумму Salary Invoice из пользовательских настроек."""
 
         current_amount = UserConfig.get_by_owner(telegram_id)
-        if current_amount is None or current_amount.invoice_amount is None:
+        if current_amount is None or current_amount.invoice_amount_eur is None:
             self.telegram.send_message(telegram_id, "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму».")
             return
 
-        self.telegram.send_message(telegram_id, f"💶 Текущая сумма Salary Invoice: {current_amount.invoice_amount} EUR")
+        self.telegram.send_message(telegram_id, f"💶 Текущая сумма Salary Invoice: {current_amount.invoice_amount_eur} EUR")
 
     def bank_confirmation(self, telegram_id: int) -> None:
         """Генерирует подтверждение для банка и отправляет его пользователю."""
@@ -86,16 +86,21 @@ class DocumentHandlers:
         """Генерирует Conversion Order для текущего пользователя."""
 
         config = UserConfig.get_by_owner(telegram_id)
-        if config is None or config.invoice_amount is None:
-            LOGGER.warning("Conversion order generation blocked by missing invoice amount for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, "💰 Сумма Salary Invoice не указана.\nИспользуйте «Указать сумму».")
+        if config is None or config.exchange_amount_eur is None:
+            LOGGER.warning("Conversion order generation blocked by missing exchange amount for Telegram user %s", telegram_id)
+            self.telegram.send_message(
+                telegram_id,
+                "🏦 Сумма к обмену не определена.\nСначала обработайте банковский PDF, чтобы сохранить полученную сумму.",
+            )
             return
 
         try:
             LOGGER.info("Conversion order generation requested by Telegram user %s", telegram_id)
             conversion_order_pdf_path = generate_conversion_order_pdf(
                 telegram_id=telegram_id,
-                amount=str(config.invoice_amount),
+                invoice_amount_eur=config.invoice_amount_eur,
+                received_amount_eur=config.received_amount_eur,
+                exchange_amount_eur=config.exchange_amount_eur,
             )
         except TransferRequestError as error:
             LOGGER.warning("Conversion order generation failed for Telegram user %s", telegram_id)

@@ -103,7 +103,9 @@ SQLAlchemy-модели проекта.
 
 Хранит:
 
-- invoice_amount
+- invoice_amount_eur
+- received_amount_eur
+- exchange_amount_eur
 
 ---
 

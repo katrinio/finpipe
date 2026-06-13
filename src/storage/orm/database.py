@@ -109,6 +109,8 @@ class Database:
                 column_mappings.append((column_name, column_name))
             elif table.name == "document_generation_history" and column_name == "document_number" and "invoice_number" in legacy_columns:
                 column_mappings.append((column_name, "invoice_number"))
+            elif table.name == "user_config" and column_name == "invoice_amount_eur" and "invoice_amount" in legacy_columns:
+                column_mappings.append((column_name, "invoice_amount"))
 
         if column_mappings:
             target_columns_sql = ", ".join(f'"{target}"' for target, _ in column_mappings)
