@@ -4,7 +4,7 @@ import pytest
 
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.ui.buttons import GmailButtons
-from src.integrations.telegram.ui.messages import BotInfo
+from src.integrations.telegram.ui.messages import GmailMessagesV2
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.system.oauth_session import OAuthSession
 from tests.fakes.fake_telegram import FakeTelegramClient
@@ -47,7 +47,7 @@ def test_gmail_connect_sends_inline_authorization_button(
     assert telegram.sent_message_payloads == [
         (
             123,
-            BotInfo.GMAIL_CONNECT_PROMPT,
+            GmailMessagesV2.Connect.CONNECT_PROMPT,
             {
                 "inline_keyboard": [
                     [

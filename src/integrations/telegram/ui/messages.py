@@ -59,15 +59,19 @@ class CommonMessages:
     USE_CONFIRMATION_BTN = "Используйте кнопки подтверждения ниже."
 
 
-class GmailMessages:
-    GMAIL_CONNECTED = "✅ Gmail подключён."
-    GMAIL_DISCONNECTED = "📧 Gmail отключён."
-    GMAIL_NOT_CONNECTED = "🫥 Gmail не подключён."
-    GMAIL_CONNECT_PROMPT = "📧 Gmail\n\nПодключите аккаунт Google для работы с банковыми письмами.\n\nНажмите кнопку ниже для авторизации."
+class GmailMessagesV2:
     # TODO(vps): уточнить production-сообщения Gmail OAuth с учётом постоянного домена и поддержки пользователя.
-    GMAIL_CONNECT_FAILED = "❌ Не удалось подключить Gmail.\nПопробуйте начать подключение заново."
+    class Status:
+        CONNECTED = Msg.success("Gmail подключён.")
+        NOT_CONNECTED = "🫥 Gmail не подключён."
 
-    GMAIL_OAUTH_TEMPORARILY_UNAVAILABLE = "⚠️ Подключение Gmail временно недоступно."
+    class Connect:
+        FAILED = Msg.error("Не удалось подключить Gmail.\nПопробуйте начать подключение заново.")
+        DISCONNECTED = "📧 Gmail отключён."
+        CONNECT_PROMPT = "📧 Gmail\n\nПодключите аккаунт Google для работы с банковыми письмами.\n\nНажмите кнопку ниже для авторизации."
+
+    class Validation:
+        OAUTH_TEMPORARILY_UNAVAILABLE = Msg.warning("Подключение Gmail временно недоступно.")
 
 
 class SignatureMessagesV2:
@@ -159,5 +163,5 @@ class OwnerMessages:
     NO_SUCH_USER = "❌ У пользователя нет доступа или он не найден в списке."
 
 
-class BotInfo(CommonMessages, GmailMessages, InvoiceMessages, AuditLogMessages, MenuMessages, BankMessages):
+class BotInfo(CommonMessages, InvoiceMessages, AuditLogMessages, MenuMessages, BankMessages):
     pass
