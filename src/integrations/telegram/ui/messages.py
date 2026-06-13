@@ -112,18 +112,22 @@ class AuditLogMessages:
     NO_AUDIT_LOG_RECORDS = "📝 Записи аудита отсутствуют."
 
 
-class ProfileMessages:
-    PROFILE_TEMPLATE_SENT = "📥 Шаблон профиля отправлен.\nЗаполните файл и загрузите его обратно."
-    PROFILE_TEMPLATE_REQUIREMENTS = (
-        "✍️ Пришлите заполненный шаблон в YAML формате.\n\nТребования:\n- YAML\n- до 2 МБ\n- заполнен словарем значений по ключам шаблона"
-    )
-    PROFILE_TEMPLATE_UPLOADED = "✅ Профиль успешно загружен.\nКомпания: {0}\nБанк: {1}"
+class ProfileMessageV2:
+    class Status:
+        FOUND = Msg.success("Подпись загружена.")
+        NOT_FOUND = Msg.warning("Подпись не найдена.")
 
-    PROFILE_TEMPLATE_UPDATED = "✅ Данные пользователя успешно обновлены."
+    class Upload:
+        REQUIREMENTS = (
+            "✍️ Пришлите заполненный шаблон в YAML формате.\n\nТребования:\n- YAML\n- до 2 МБ\n- заполнен словарем значений по ключам шаблона"
+        )
+        TEMPLATE_SENT = "📥 Шаблон профиля отправлен.\nЗаполните файл и загрузите его обратно."
+        UPDATED = Msg.success("Данные пользователя успешно обновлены.")
+        UPLOADED = Msg.success("Профиль успешно загружен.\nКомпания: {0}\nБанк: {1}")
 
-    # validation errors
-    PROFILE_TEMPLATE_NOT_YAML = "❌ Разрешены только YAML файлы."
-    PROFILE_TEMPLATE_TOO_LARGE = "❌ Размер файла превышает 2 МБ."
+    class Validation:
+        NOT_YAML = Msg.error("Разрешены только YAML файлы.")
+        TOO_LARGE = Msg.error("Размер файла превышает 2 МБ.")
 
 
 class MenuMessages:
@@ -155,5 +159,5 @@ class OwnerMessages:
     NO_SUCH_USER = "❌ У пользователя нет доступа или он не найден в списке."
 
 
-class BotInfo(CommonMessages, GmailMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages, BankMessages):
+class BotInfo(CommonMessages, GmailMessages, InvoiceMessages, AuditLogMessages, MenuMessages, BankMessages):
     pass
