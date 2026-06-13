@@ -120,7 +120,7 @@ def bootstrap_credentials_via_callback_flow(credentials_path: Path, token_path: 
 
     callback_url = GmailOAuthSettings.get_callback_url()
     telegram_id = int(os.environ["BOT_OWNER_TELEGRAM_ID"])
-    telegram_username = os.getenv("TELEGRAM_ADMIN_USERNAME")
+    telegram_username = os.getenv("BOT_OWNER_TELEGRAM_USERNAME")
 
     build_storage_dependencies()
     authorization_url, session = GmailOAuth.build_authorization_url(

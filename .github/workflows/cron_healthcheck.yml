@@ -10,7 +10,7 @@ jobs:
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
-      TELEGRAM_ADMIN_USERNAME: ${{ secrets.TELEGRAM_ADMIN_USERNAME }}
+      BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
 
     steps:
       - uses: actions/checkout@v5

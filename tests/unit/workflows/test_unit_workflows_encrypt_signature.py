@@ -18,7 +18,7 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
 ) -> None:
     monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-    monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "admin")
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "admin")
     SignatureCipher._cipher = None
     monkeypatch.setattr(Dir, "STORAGE_DB", tmp_path / "storage.sqlite3")
 

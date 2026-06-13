@@ -21,7 +21,7 @@ class TestTelegramBot:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-        monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "owner")
+        monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "owner")
         bootstrap_primary_admin(tmp_path / "storage.sqlite3")
         storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
 
@@ -127,7 +127,7 @@ class TestTelegramBot:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-        monkeypatch.setenv("TELEGRAM_ADMIN_USERNAME", "owner")
+        monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "owner")
         bootstrap_primary_admin(tmp_path / "storage.sqlite3")
         storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
         KnownUser.upsert(telegram_id=123456789, username="target_user", first_name="Target")
