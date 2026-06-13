@@ -1,247 +1,250 @@
-# Development
+Development
 
-Этот документ нужен для локальной разработки, запуска и отладки Finpipe.
+Локальная разработка, запуск и отладка Finpipe.
 
-## Prerequisites
+⸻
 
-Нужно иметь:
+📦 Prerequisites
 
-- Python 3.14
-- Poetry
-- SQLite
-- `cloudflared` для локальной OAuth-разработки
+Нужно установить:
 
-- poetry run alembic revision --autogenerate -m "description"
-- poetry run alembic upgrade head
-- poetry run alembic downgrade -1
+* Python 3.14
+* Poetry
+* SQLite
+* cloudflared (для локальной Gmail OAuth разработки)
 
 Подготовка окружения:
 
-```bash
 poetry install
 cp .env.dist .env
-```
 
-После этого заполните `.env` нужными значениями:
+Заполнить .env:
 
-- Telegram bot token
-- owner/admin settings
-- `SIGNATURE_ENCRYPTION_KEY`
-- `GMAIL_CREDENTIALS_PATH`
+* TELEGRAM_BOT_TOKEN
+* owner/admin настройки
+* SIGNATURE_ENCRYPTION_KEY
+* GMAIL_CREDENTIALS_PATH
 
-## Run Telegram Bot
+⸻
 
-Локальный запуск бота:
+🚀 Первый запуск
 
-```bash
+Создать или обновить структуру БД:
+
+./scripts/setup_database.sh
+
+Скрипт:
+
+* применяет Alembic миграции;
+* создаёт primary owner пользователя;
+* безопасен для повторного запуска.
+
+⸻
+
+🗄️ Alembic
+
+Создать новую миграцию:
+
+poetry run alembic revision --autogenerate -m "description"
+
+Применить миграции:
+
+poetry run alembic upgrade head
+
+Откатить последнюю миграцию:
+
+poetry run alembic downgrade -1
+
+Посмотреть текущее состояние:
+
+poetry run alembic current
+poetry run alembic heads
+poetry run alembic history
+
+⸻
+
+🤖 Run Telegram Bot
+
 poetry run python src/integrations/telegram/bot.py
-```
 
-Бот использует SQLite из `data/finpipe.db` и читает настройки из `.env`.
+Бот использует:
 
-## Run FastAPI
+data/finpipe.db
 
-FastAPI нужен для OAuth callback.
+и настройки из .env.
 
-Запуск:
+⸻
 
-```bash
+🌐 Run FastAPI
+
+Нужен для Gmail OAuth callback.
+
 poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
-```
 
-## Health Check
+⸻
 
-Проверка, что web-слой поднят:
+❤️ Health Check
 
-```bash
+Проверка, что web-слой поднялся:
+
 curl http://localhost:8000/health
-```
 
 Ожидаемый ответ:
 
-```json
 {"status":"ok"}
-```
 
-## Local Infrastructure
+⸻
 
-Для локальной разработки обычно достаточно трёх процессов:
+🏗️ Локальная инфраструктура
+
+Обычно достаточно трёх процессов:
 
 1. FastAPI
-2. Telegram bot
-3. Cloudflare Tunnel для Gmail OAuth callback
+2. Telegram Bot
+3. Cloudflare Tunnel
 
-TODO(vps): после появления VPS описать production-like запуск через постоянный домен вместо Cloudflare Tunnel.
+FastAPI ← Cloudflare Tunnel ← Google OAuth
+     ↑
+ Telegram Bot
 
-## Testing
+TODO(vps): заменить Cloudflare Tunnel постоянным доменом после переезда на VPS.
 
-Запуск всех тестов:
+⸻
 
-```bash
-poetry run pytest -q
-```
+📧 Gmail OAuth Development
 
-Типизация:
+Локальный flow:
 
-```bash
-poetry run mypy src
-```
+1. Поднять FastAPI
+2. Запустить tunnel
+3. Получить публичный URL
+4. Обновить Redirect URI в Google Cloud
+5. Нажать Integrations → Gmail → Connect Gmail
+6. Пройти Google Consent Screen
+7. Дождаться callback
 
-Линтер:
+Подробности:
 
-```bash
-poetry run ruff check .
-```
+docs/oauth.md
 
-## Gmail OAuth Development
+⸻
 
-Локальный OAuth flow выглядит так:
+🔗 start_oauth_tunnel.sh
 
-1. Поднять FastAPI.
-2. Поднять Cloudflare Quick Tunnel.
-3. Получить публичный callback URL.
-4. Обновить Redirect URI в Google Cloud Console.
-5. В Telegram нажать:
-   `Integrations` -> `Gmail` -> `Connect Gmail`
-6. Пройти Google consent screen.
-7. Дождаться callback в локальный FastAPI.
+Для локальной OAuth-разработки:
 
-Подробнее про сам OAuth flow: [oauth.md](/Users/katrin/PycharmProjects/finpipe/docs/oauth.md)
-
-### OAuth Callback Endpoint
-
-Используется маршрут:
-
-`GET /oauth/gmail/callback`
-
-Он принимает:
-
-- `code`
-- `state`
-- `error`
-
-И передаёт обработку в существующий Gmail OAuth callback service.
-
-## start_oauth_tunnel.sh
-
-Для локальной OAuth-разработки используется:
-
-TODO(vps): оставить `start_oauth_tunnel.sh` как dev-only инструмент и убрать его из основного сценария запуска.
-
-```bash
 ./scripts/start_oauth_tunnel.sh
-```
 
-Этот скрипт:
+Скрипт:
 
-- запускает Cloudflare Quick Tunnel;
-- получает публичный URL из `cloudflared`;
-- формирует callback URL вида:
-  `https://<tunnel-host>/oauth/gmail/callback`
-- обновляет локальную конфигурацию через `.env`
-- печатает готовый Redirect URI для Google OAuth
+* запускает Cloudflare Quick Tunnel;
+* получает публичный URL;
+* формирует OAuth callback URL;
+* обновляет локальную конфигурацию;
+* печатает готовый Redirect URI.
 
-Пример результата:
+Пример:
 
-```text
 Tunnel URL:
 https://example.trycloudflare.com
 OAuth Redirect URI:
 https://example.trycloudflare.com/oauth/gmail/callback
-```
 
-Если FastAPI слушает не `8000`, можно передать порт:
+Другой порт:
 
-```bash
 PORT=8080 ./scripts/start_oauth_tunnel.sh
-```
 
-После каждого нового tunnel URL нужно скопировать напечатанный `OAuth Redirect URI` в Google Cloud Console:
+После каждого нового tunnel URL необходимо обновить:
 
-`APIs & Services` -> `Credentials` -> OAuth Web client -> `Authorized redirect URIs`
+Google Cloud Console
+→ APIs & Services
+→ Credentials
+→ OAuth Web Client
+→ Authorized Redirect URIs
 
-Для Telegram OAuth используются `GMAIL_CLIENT_ID` и `GMAIL_CLIENT_SECRET` из `.env`. Если они не заданы, код использует `GMAIL_CREDENTIALS_PATH` как fallback.
+⸻
 
-## Debugging
+🔍 Debugging
 
-Полезные точки проверки во время разработки:
+Health:
 
-- health endpoint:
-  `curl http://localhost:8000/health`
-- OAuth sessions в SQLite:
-  `sqlite3 data/finpipe.db`
-- логи приложения:
-  `logs/app.log`
-
-Для проверки состояния OAuth удобно смотреть:
-
-```bash
-sqlite3 data/finpipe.db "SELECT id,state,telegram_id,status,expires_at,used_at FROM oauth_sessions ORDER BY id DESC LIMIT 5;"
-```
-
-И Gmail account:
-
-```bash
-sqlite3 data/finpipe.db "SELECT id,owner_telegram_id,gmail_refresh_token IS NOT NULL,gmail_connected_at,gmail_last_error FROM gmail_account ORDER BY id DESC LIMIT 5;"
-```
-
-## Troubleshooting
-
-### Cloudflare Error 1033
-
-Причина:
-
-Tunnel не может достучаться до локального FastAPI.
-
-Проверка:
-
-```bash
 curl http://localhost:8000/health
-```
 
-Если health endpoint не отвечает, сначала поднимите FastAPI.
+Последние OAuth sessions:
 
-### redirect_uri_mismatch
+sqlite3 data/finpipe.db \
+"SELECT id,state,telegram_id,status,expires_at,used_at
+FROM oauth_sessions
+ORDER BY id DESC
+LIMIT 5;"
 
-Причина:
+Последние Gmail подключения:
+
+sqlite3 data/finpipe.db \
+"SELECT id,
+        owner_telegram_id,
+        gmail_refresh_token IS NOT NULL,
+        gmail_connected_at,
+        gmail_last_error
+FROM gmail_account
+ORDER BY id DESC
+LIMIT 5;"
+
+⸻
+
+🧪 Testing
+
+Все тесты:
+
+poetry run pytest -q
+
+Типизация:
+
+poetry run mypy src
+
+Линтер:
+
+poetry run ruff check .
+
+⸻
+
+🚨 Troubleshooting
+
+Cloudflare Error 1033
+
+Tunnel не может достучаться до FastAPI.
+
+Проверить:
+
+curl http://localhost:8000/health
+
+⸻
+
+redirect_uri_mismatch
 
 Google OAuth Redirect URI не совпадает с текущим tunnel URL.
 
 Решение:
 
-1. Перезапустить `./scripts/start_oauth_tunnel.sh`
-2. Скопировать новый `OAuth Redirect URI`
-3. Обновить `Authorized redirect URIs` в Google Cloud Console
+1. Перезапустить tunnel
+2. Скопировать новый Redirect URI
+3. Обновить его в Google Cloud Console
 
-Проверка:
+⸻
 
-- OAuth URL должен содержать тот же `redirect_uri`, что и `GMAIL_OAUTH_CALLBACK_URL`;
-- этот URI должен быть добавлен именно в Web OAuth client в Google Cloud Console.
-
-### OAuth callback returns 400
-
-Причина:
-
-Отсутствует `code` или `state`, либо callback открыт повторно с уже использованным state.
+OAuth callback returns 400
 
 Проверить:
 
-- действительно ли flow начался через `Connect Gmail`
-- не был ли открыт старый callback URL
-- есть ли новая запись в `oauth_sessions`
+* flow запущен через Connect Gmail;
+* callback не открыт повторно;
+* в oauth_sessions появилась новая запись.
 
-### Gmail connect requested while callback flow is disabled
+⸻
 
-Причина:
+Gmail connect requested while callback flow is disabled
 
-Не включён OAuth callback flow.
+В .env должно быть:
 
-Решение:
-
-Добавить в `.env`:
-
-```dotenv
 GMAIL_OAUTH_CALLBACK_ENABLED=true
-```
-
-И убедиться, что задан `GMAIL_OAUTH_CALLBACK_URL`.
+GMAIL_OAUTH_CALLBACK_URL=https://...
