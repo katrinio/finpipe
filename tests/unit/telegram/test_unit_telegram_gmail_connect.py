@@ -54,13 +54,11 @@ def test_gmail_connect_sends_inline_authorization_button(
                         {
                             "text": GmailButtons.GMAIL_CONNECT_INLINE,
                             "url": authorization_url,
-                        }
-                    ],
-                    [
+                        },
                         {
                             "text": "🏠 Домой",
                             "callback_data": "🏠 Домой",
-                        }
+                        },
                     ],
                 ]
             },
