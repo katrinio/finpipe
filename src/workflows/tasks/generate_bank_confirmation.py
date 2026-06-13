@@ -93,7 +93,7 @@ def generate_bank_confirmation(
         amount = amount or extract_amount(bank_template)
         UserConfig.upsert(
             telegram_id=telegram_id,
-            received_amount_eur=amount,
+            bank_received_amount_eur=amount,
         )
         bank_details = BankDetails.get_by_owner(telegram_id)
         if bank_details is None:

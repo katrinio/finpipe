@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import DocumentsMenuButtons, InvoiceMenuButtons, NavigationButtons
+from src.integrations.telegram.ui.buttons import ConversionOrderButtons, DocumentsMenuButtons, InvoiceMenuButtons, NavigationButtons
 
 
 def build_document_menu() -> dict:
@@ -9,8 +9,8 @@ def build_document_menu() -> dict:
                 {"text": DocumentsMenuButtons.BANK_CONFIRMATION},
             ],
             [
-                {"text": NavigationButtons.HOME},
                 {"text": DocumentsMenuButtons.CONVERSION_ORDER},
+                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,
@@ -27,6 +27,25 @@ def build_invoice_menu() -> dict:
             [
                 {"text": NavigationButtons.HOME},
                 {"text": InvoiceMenuButtons.GENERATE_INVOICE},
+            ],
+        ],
+        "resize_keyboard": True,
+    }
+
+
+def build_conversion_order_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": ConversionOrderButtons.SET_AMOUNT},
+                {"text": ConversionOrderButtons.GET_AMOUNT},
+            ],
+            [
+                {"text": ConversionOrderButtons.USE_BANK_AMOUNT},
+                {"text": ConversionOrderButtons.GENERATE},
+            ],
+            [
+                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,

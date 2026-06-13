@@ -2,6 +2,7 @@
 
 from src.integrations.telegram.buttons import (
     PUBLIC_COMMANDS,
+    ConversionOrderButtons,
     DocumentsMenuButtons,
     GmailButtons,
     IntegrationsButtons,
@@ -17,6 +18,7 @@ from src.integrations.telegram.buttons import (
 
 __all__ = [
     "PUBLIC_COMMANDS",
+    "ConversionOrderButtons",
     "DocumentsMenuButtons",
     "GmailButtons",
     "IntegrationsButtons",
