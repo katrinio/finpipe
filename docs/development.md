@@ -148,6 +148,12 @@ https://example.trycloudflare.com/oauth/gmail/callback
 PORT=8080 ./scripts/start_oauth_tunnel.sh
 ```
 
+После каждого нового tunnel URL нужно скопировать напечатанный `OAuth Redirect URI` в Google Cloud Console:
+
+`APIs & Services` -> `Credentials` -> OAuth Web client -> `Authorized redirect URIs`
+
+Для Telegram OAuth используются `GMAIL_CLIENT_ID` и `GMAIL_CLIENT_SECRET` из `.env`. Если они не заданы, код использует `GMAIL_CREDENTIALS_PATH` как fallback.
+
 ## Debugging
 
 Полезные точки проверки во время разработки:
@@ -198,6 +204,11 @@ Google OAuth Redirect URI не совпадает с текущим tunnel URL.
 1. Перезапустить `./scripts/start_oauth_tunnel.sh`
 2. Скопировать новый `OAuth Redirect URI`
 3. Обновить `Authorized redirect URIs` в Google Cloud Console
+
+Проверка:
+
+- OAuth URL должен содержать тот же `redirect_uri`, что и `GMAIL_OAUTH_CALLBACK_URL`;
+- этот URI должен быть добавлен именно в Web OAuth client в Google Cloud Console.
 
 ### OAuth callback returns 400
 

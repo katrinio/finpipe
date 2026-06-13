@@ -56,6 +56,13 @@ Route не содержит бизнес-логики. Он только:
 
 Не нужно хардкодить Cloudflare Tunnel URL в коде.
 
+OAuth client config для Telegram callback flow берётся из:
+
+- `GMAIL_CLIENT_ID` и `GMAIL_CLIENT_SECRET`, если они заданы;
+- иначе из файла `GMAIL_CREDENTIALS_PATH`.
+
+`GMAIL_TOKEN_PATH` относится к старому локальному Gmail quickstart-сценарию и не участвует в Telegram callback flow.
+
 ## Local Development
 
 Для локальной отладки Gmail OAuth через Cloudflare Quick Tunnel:
@@ -89,3 +96,5 @@ PORT=8080 ./scripts/start_oauth_tunnel.sh
 ```
 
 Если tunnel URL меняется, достаточно снова запустить скрипт и обновить redirect URI в Google Cloud.
+
+Важно: обновление `.env` или `credentials.json` не обновляет Google Cloud Console. Для каждого нового Quick Tunnel URL нужно добавить актуальный `OAuth Redirect URI` в `Authorized redirect URIs` у OAuth Web client.
