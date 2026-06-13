@@ -10,6 +10,7 @@ from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
 from src.integrations.telegram.handlers.system_handlers import SystemHandlers
+from src.integrations.telegram.messages.menu import MenuMessagesV2
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
     DocumentsMenuButtons,
@@ -108,6 +109,7 @@ class CommandRouter:
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
             OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.admin_menu(context.telegram_id),
             NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            MenuMessagesV2.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents
             DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
             DocumentsMenuButtons.BANK_CONFIRMATION: lambda context: self.document_handler.bank_confirmation(context.telegram_id),

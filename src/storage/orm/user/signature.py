@@ -8,6 +8,8 @@ from sqlalchemy import Boolean, Integer, String, delete, func, select, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
+from src.infrastructure.security.exceptions import SignatureDecryptionError
+from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.orm.base import BaseModel
 from src.utils.credentials import LOGGER
 
@@ -96,6 +98,25 @@ class Signature(BaseModel):
         """Проверяет наличие подписи для владельца."""
 
         return cls.get_by_owner(owner_telegram_id) is not None
+
+    @classmethod
+    def is_usable(cls, owner_telegram_id: int) -> bool:
+        """Проверяет, доступна ли подпись для расшифровки и bank workflow."""
+
+        signature = cls.get_active(owner_telegram_id)
+        if signature is None:
+            return False
+
+        signature_path = Path(signature.signature_path)
+        if not signature_path.exists():
+            return False
+
+        try:
+            SignatureCipher.decrypt_bytes(signature_path)
+        except FileNotFoundError, SignatureDecryptionError:
+            return False
+
+        return True
 
     @classmethod
     def delete(cls, owner_telegram_id: int) -> None:

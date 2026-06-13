@@ -72,3 +72,16 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         "💰 Invoice\n"
         "• 566 EUR",
     ]
+
+
+def test_profile_screen_marks_signature_unusable_when_file_is_missing(tmp_path: Path) -> None:
+    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    telegram_client = FakeTelegramClient()
+    handlers = ProfileHandlers(telegram_client, UserStateService)
+
+    Signature.create(owner_telegram_id=123, signature_path=tmp_path / "missing-signature.enc", signature_hash="hash")
+
+    handlers.show_profile(123)
+
+    assert "✍️ Подпись          ⭕" in telegram_client.sent_messages[0]
+    assert "• Не загружена" in telegram_client.sent_messages[0]

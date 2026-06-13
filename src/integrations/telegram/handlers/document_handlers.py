@@ -1,6 +1,7 @@
 import logging
 
 from src.constants import Message
+from src.infrastructure.security.exceptions import SignatureDecryptionError
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
@@ -77,6 +78,10 @@ class DocumentHandlers:
 
         try:
             bank_confirmation_path = generate_bank_confirmation(telegram_id)
+        except FileNotFoundError, SignatureDecryptionError:
+            LOGGER.info("Bank confirmation failed due to missing signature for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, BankMessagesV2.Validation.SIGNATURE_REQUIRED, reply_markup=build_document_menu())
+            return
         except BankPdfError as error:
             LOGGER.info("Bank confirmation failed for Telegram user %s", telegram_id)
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())

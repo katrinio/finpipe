@@ -83,7 +83,7 @@ class ProfileHandlers:
         company_profile = CompanyProfile.get_by_owner(telegram_id)
         bank_details = BankDetails.get_by_owner(telegram_id)
         user_config = UserConfig.get_by_owner(telegram_id)
-        signature = Signature.get_active(telegram_id)
+        signature_ready = Signature.is_usable(telegram_id)
 
         company_fields = {
             "company_name": company_profile.company_name if company_profile is not None else None,
@@ -107,7 +107,7 @@ class ProfileHandlers:
         company_status = self.get_section_status(company_fields)
         bank_status = self.get_section_status(bank_fields)
         payment_status = self.get_section_status(payment_fields)
-        signature_status = self.get_binary_status(signature is not None)
+        signature_status = self.get_binary_status(signature_ready)
         invoice_status = self.get_binary_status(user_config is not None and user_config.invoice_amount_eur is not None)
 
         missing_fields = (
@@ -155,7 +155,7 @@ class ProfileHandlers:
                 f"• Описание платежа: {self.format_field(payment_fields['payment_description'])}",
                 "",
                 "✍️ Подпись",
-                f"• {self.format_signature_state(signature is not None)}",
+                f"• {self.format_signature_state(signature_ready)}",
                 "",
                 "💰 Invoice",
                 f"• {self.format_invoice_amount(user_config.invoice_amount_eur if user_config is not None else None)}",

@@ -30,6 +30,19 @@ def test_home_callback_opens_main_menu() -> None:
     )
 
 
+def test_legacy_main_menu_text_opens_main_menu() -> None:
+    telegram_client = FakeTelegramClient()
+    bot = TelegramBot(cast(StorageDependencies, FakeStorage({123})), telegram=cast(TelegramClient, telegram_client))
+
+    bot.handle_message("🏠 Главное меню", telegram_id=123, username="alice")
+
+    assert telegram_client.sent_message_payloads[-1] == (
+        123,
+        NavigationButtons.HOME,
+        build_main_menu(is_owner=True),
+    )
+
+
 def test_main_menu_shows_admin_button_for_owner() -> None:
     menu = build_main_menu(is_owner=True)
 

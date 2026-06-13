@@ -70,10 +70,10 @@ class SignatureHandlers:
     def signature_status(self, telegram_id: int) -> None:
         """Сообщает, загружена ли подпись для пользователя."""
 
-        if not Signature.exists(telegram_id):
-            LOGGER.info("Signature status checked: not found for Telegram user %s", telegram_id)
+        if not Signature.is_usable(telegram_id):
+            LOGGER.info("Signature status checked: not usable for Telegram user %s", telegram_id)
             self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.NOT_FOUND, reply_markup=build_signature_menu())
             return
 
-        LOGGER.info("Signature status checked: found for Telegram user %s", telegram_id)
+        LOGGER.info("Signature status checked: usable for Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.FOUND, reply_markup=build_signature_menu())
