@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
-from src.interfaces.web.app import app
 
 from src.integrations.gmail.exceptions import GmailOAuthError
+from src.interfaces.web.app import app
 
 client = TestClient(app)
 
