@@ -56,17 +56,36 @@ Route не содержит бизнес-логики. Он только:
 
 Не нужно хардкодить Cloudflare Tunnel URL в коде.
 
-## Local Development via Cloudflare Tunnel
+## Local Development
 
-Для локальной разработки:
+Для локальной отладки Gmail OAuth через Cloudflare Quick Tunnel:
 
-1. Поднимите FastAPI локально.
-2. Поднимите Cloudflare Quick Tunnel на этот локальный порт.
-3. Скопируйте публичный HTTPS URL туннеля.
-4. Установите:
+1. Поднимите FastAPI локально, обычно на `http://127.0.0.1:8000`.
+2. Запустите bootstrap-скрипт:
 
-`GMAIL_OAUTH_CALLBACK_URL=https://<your-public-host>/oauth/gmail/callback`
+```bash
+./scripts/start_oauth_tunnel.sh
+```
 
-5. Тот же URL должен быть зарегистрирован в Google OAuth client settings.
+3. Скрипт:
+   - запускает `cloudflared tunnel --url http://127.0.0.1:8000`;
+   - извлекает публичный `trycloudflare.com` URL;
+   - формирует callback:
+     `https://<tunnel-host>/oauth/gmail/callback`
+   - записывает его в корневой `.env` как `GMAIL_OAUTH_CALLBACK_URL=...`
+   - печатает `Tunnel URL` и `OAuth Redirect URI`.
 
-Если tunnel URL меняется, обновить нужно только `GMAIL_OAUTH_CALLBACK_URL` и настройку redirect URI в Google Cloud.
+4. Возьмите напечатанный `OAuth Redirect URI` и добавьте его в Google OAuth client settings.
+5. Убедитесь, что `GMAIL_OAUTH_CALLBACK_ENABLED=true`.
+6. После этого можно запускать сценарий:
+   - Telegram -> `📧 Gmail` -> `🔗 Подключить`
+   - Google OAuth
+   - callback в локальный FastAPI через tunnel
+
+Если FastAPI слушает другой порт, перед запуском скрипта задайте:
+
+```bash
+PORT=8080 ./scripts/start_oauth_tunnel.sh
+```
+
+Если tunnel URL меняется, достаточно снова запустить скрипт и обновить redirect URI в Google Cloud.

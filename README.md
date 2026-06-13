@@ -437,3 +437,10 @@ pytest
 - улучшение документации;
 - расширение тестового покрытия;
 - подготовка к VPS-деплою.
+
+
+## MVP Limitation
+
+Cloudflare Quick Tunnel выдаёт новый URL при каждом запуске.
+
+После перезапуска туннеля необходимо обновить Redirect URI в Google OAuth Client.
