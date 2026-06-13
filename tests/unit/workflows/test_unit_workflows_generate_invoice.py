@@ -11,11 +11,12 @@ from src.storage.orm.system.document_generation_history import DocumentGeneratio
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf
+from tests.helpers.database import initialize_test_database
 
 
 def test_generate_invoice_pdf_uses_user_config_invoice_amount(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     UserConfig.upsert(telegram_id=123, invoice_amount_eur=1500)
     CompanyProfile.upsert(
         owner_telegram_id=123,
@@ -54,7 +55,7 @@ def test_generate_invoice_pdf_uses_user_config_invoice_amount(tmp_path: Path) ->
 
 def test_generate_invoice_pdf_fails_when_invoice_amount_is_missing(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     CompanyProfile.upsert(
         owner_telegram_id=123,
         company_name="Acme Ltd",
@@ -91,7 +92,7 @@ def test_generate_invoice_pdf_fails_when_invoice_amount_is_missing(tmp_path: Pat
 
 def test_generate_invoice_pdf_allows_regeneration_for_same_invoice_number(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     UserConfig.upsert(telegram_id=123, invoice_amount_eur=1500)
     CompanyProfile.upsert(
         owner_telegram_id=123,

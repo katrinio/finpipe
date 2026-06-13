@@ -18,7 +18,7 @@ def bootstrap_primary_admin(db_path: Path = Dir.STORAGE_DB) -> None:
     """Создаёт primary admin и, если доступна, регистрирует его подпись."""
 
     database = Database(build_sqlite_url(db_path))
-    database.initialize_schema()
+    database.bind_models()
 
     telegram_id = int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID"))
     user_name = EnvVar.get_required_env("BOT_OWNER_TELEGRAM_USERNAME")

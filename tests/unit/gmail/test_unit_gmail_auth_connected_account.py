@@ -5,11 +5,12 @@ from src.infrastructure.security.token_cipher import TokenCipher
 from src.integrations.gmail import auth
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.gmail_account import GmailAccount
+from tests.helpers.database import initialize_test_database
 
 
 def test_load_connected_account_credentials_refreshes_gmail_account_token(tmp_path, monkeypatch) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "123")
     monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("GMAIL_CLIENT_ID", "client-id")
@@ -39,7 +40,7 @@ def test_load_connected_account_credentials_refreshes_gmail_account_token(tmp_pa
 
 def test_get_gmail_service_prefers_connected_account_credentials(tmp_path, monkeypatch) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "123")
     monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("GMAIL_CLIENT_ID", "client-id")

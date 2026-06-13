@@ -3,11 +3,11 @@ from pathlib import Path
 
 import pytest
 
+from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.ui.buttons import OwnerButtons
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
-from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser, KnownUser
 from tests.fakes.fake_telegram import FakeTelegramClient
@@ -22,8 +22,9 @@ class TestTelegramBot:
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "owner")
-        bootstrap_primary_admin(tmp_path / "storage.sqlite3")
-        storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+        db_path = tmp_path / "storage.sqlite3"
+        storage = build_storage_dependencies(db_path)
+        bootstrap_primary_admin(db_path)
 
         bot = TelegramBot(storage, telegram=fake_telegram_client())
 
@@ -128,8 +129,9 @@ class TestTelegramBot:
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "owner")
-        bootstrap_primary_admin(tmp_path / "storage.sqlite3")
-        storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+        db_path = tmp_path / "storage.sqlite3"
+        storage = build_storage_dependencies(db_path)
+        bootstrap_primary_admin(db_path)
         KnownUser.upsert(telegram_id=123456789, username="target_user", first_name="Target")
 
         telegram_client = fake_telegram_client(

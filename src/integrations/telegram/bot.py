@@ -1,5 +1,6 @@
 """Локальный Telegram listener и обработчик команд."""
 
+from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import BotInfo
@@ -10,7 +11,6 @@ from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import PUBLIC_COMMANDS
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.services.known_user_service import KnownUserService
-from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import (
     StorageDependencies,
     build_storage_dependencies,
@@ -290,8 +290,9 @@ class TelegramBot:
 def main() -> None:
     """Точка входа для Telegram listener."""
 
+    storage = build_storage_dependencies(Dir.STORAGE_DB)
     bootstrap_primary_admin()
-    bot = TelegramBot(build_storage_dependencies(Dir.STORAGE_DB))
+    bot = TelegramBot(storage)
 
     LOGGER.info("Starting Telegram listener loop")
     while True:

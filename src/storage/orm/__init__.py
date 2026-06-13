@@ -14,6 +14,7 @@ from src.storage.orm.system.user_state_storage import UserStateStorage
 from src.storage.orm.user.allowed_user import AllowedUser, UserRole
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from src.storage.orm.user.gmail_account import GmailAccount
 from src.storage.orm.user.signature import Signature
 from src.storage.orm.user.user_config import UserConfig
 
@@ -25,6 +26,7 @@ __all__ = [
     "DocumentGenerationHistory",
     "DocumentGenerationStatus",
     "DocumentType",
+    "GmailAccount",
     "KnownUser",
     "OAuthSession",
     "ProcessedMessage",

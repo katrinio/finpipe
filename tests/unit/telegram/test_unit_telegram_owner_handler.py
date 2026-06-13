@@ -8,11 +8,12 @@ from src.integrations.telegram.ui.messages import BotInfo
 from src.storage.orm import AllowedUser, KnownUser, UserRole
 from src.storage.orm.database import Database, build_sqlite_url
 from tests.fakes.fake_telegram import FakeTelegramClient
+from tests.helpers.database import initialize_test_database
 
 
 def test_add_user_is_available_only_for_owner(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
 
@@ -34,7 +35,7 @@ def test_add_user_is_available_only_for_owner(tmp_path: Path) -> None:
 
 def test_add_user_denies_non_owner(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "user", UserRole.USER)
 
     telegram = FakeTelegramClient()
@@ -50,7 +51,7 @@ def test_add_user_denies_non_owner(tmp_path: Path) -> None:
 
 def test_add_user_denies_unknown_known_user(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
 
     telegram = FakeTelegramClient()
@@ -66,7 +67,7 @@ def test_add_user_denies_unknown_known_user(tmp_path: Path) -> None:
 
 def test_add_user_confirmation_shows_keyboard(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
 
@@ -86,7 +87,7 @@ def test_add_user_confirmation_shows_keyboard(tmp_path: Path) -> None:
 
 def test_add_user_confirmation_ignores_free_text(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
 
@@ -106,7 +107,7 @@ def test_add_user_confirmation_ignores_free_text(tmp_path: Path) -> None:
 
 def test_add_user_confirmation_succeeds_via_button(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
 
@@ -125,7 +126,7 @@ def test_add_user_confirmation_succeeds_via_button(tmp_path: Path) -> None:
 
 def test_add_user_confirmation_cancel_returns_to_admin_menu(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
 
@@ -145,7 +146,7 @@ def test_add_user_confirmation_cancel_returns_to_admin_menu(tmp_path: Path) -> N
 
 def test_remove_user_revokes_only_allowlist_access(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     AllowedUser.create(2, "target", UserRole.USER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
@@ -163,7 +164,7 @@ def test_remove_user_revokes_only_allowlist_access(tmp_path: Path) -> None:
 
 def test_remove_user_confirmation_shows_keyboard(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     AllowedUser.create(2, "target", UserRole.USER)
     KnownUser.upsert(telegram_id=2, username=None, first_name="John")
@@ -184,7 +185,7 @@ def test_remove_user_confirmation_shows_keyboard(tmp_path: Path) -> None:
 
 def test_remove_user_confirmation_cancel_returns_to_admin_menu(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     AllowedUser.create(2, "target", UserRole.USER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
@@ -205,7 +206,7 @@ def test_remove_user_confirmation_cancel_returns_to_admin_menu(tmp_path: Path) -
 
 def test_list_users_uses_known_user_labels(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     AllowedUser.create(2, "target", UserRole.USER)
     KnownUser.upsert(telegram_id=1, username="owner", first_name="Owner")
@@ -223,7 +224,7 @@ def test_list_users_uses_known_user_labels(tmp_path: Path) -> None:
 
 def test_add_user_unknown_known_user_returns_users_menu(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
 
     telegram = FakeTelegramClient()
@@ -240,7 +241,7 @@ def test_add_user_unknown_known_user_returns_users_menu(tmp_path: Path) -> None:
 
 def test_add_user_confirmation_success_returns_users_menu(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     AllowedUser.create(1, "owner", UserRole.OWNER)
     KnownUser.upsert(telegram_id=2, username="target", first_name="Target")
 

@@ -8,6 +8,7 @@ from src.integrations.telegram.ui.messages import BotInfo
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.system.oauth_session import OAuthSession
 from tests.fakes.fake_telegram import FakeTelegramClient
+from tests.helpers.database import initialize_test_database
 
 
 def test_gmail_connect_sends_inline_authorization_button(
@@ -15,7 +16,7 @@ def test_gmail_connect_sends_inline_authorization_button(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
     telegram = FakeTelegramClient()
     handler = GmailHandlers(telegram)
     authorization_url = "https://accounts.google.com/o/oauth2/auth?state=state-1"
