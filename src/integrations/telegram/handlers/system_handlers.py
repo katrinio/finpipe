@@ -1,7 +1,7 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_last_action, format_whoami
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
-from src.integrations.telegram.ui.messages import BotInfo
+from src.integrations.telegram.ui.messages import AuditLogMessagesV2, BotInfo
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm.system.audit_log import AuditLog
 
@@ -36,7 +36,7 @@ class SystemHandlers:
 
         actions = self.audit_log.list_recent(1)
         if not actions:
-            self.telegram.send_message(telegram_id, BotInfo.NO_AUDIT_LOG_RECORDS)
+            self.telegram.send_message(telegram_id, AuditLogMessagesV2.Status.IS_EMPTY)
             return
 
         self.telegram.send_message(telegram_id, format_last_action(actions[0]))

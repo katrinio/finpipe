@@ -92,15 +92,18 @@ class SignatureMessagesV2:
         DELETED = "🗑️ Подпись удалена."
 
 
-class InvoiceMessages:
-    GENERATING_INVOICE = "⏳ Формируется Salary Invoice..."
-    INVOICE_SENT = "✅ Salary Invoice отправлен."
-    NO_INVOICE_AMOUNT = "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму»."
-    AMOUNT_SAVED = "✅ Сумма Salary Invoice сохранена: {0} EUR"
-    INPUT_INVOICE_AMOUNT = "💰 Введите сумму Salary Invoice:"
+class InvoiceMessagesV2:
+    class Amount:
+        SAVED = Msg.success("Сумма Salary Invoice сохранена: {0} EUR")
+        INPUT = "💰 Введите сумму Salary Invoice:"
 
-    # validation errors
-    INVOICE_AMOUNT_NOT_INT = "❌ Сумма должна содержать только цифры.\nПример: 1500"
+    class Generation:
+        IN_PROGRESS = "⏳ Формируется Salary Invoice..."
+        SENT = Msg.success("Salary Invoice отправлен.")
+
+    class Validation:
+        NOT_INT = Msg.error("Сумма должна содержать только цифры.\nПример: 1500")
+        NO_INVOICE_AMOUNT = "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму»."
 
 
 class BankMessages:
@@ -112,8 +115,9 @@ class ConversionOrderMessages:
     NO_EXCHANGE_AMOUNT = "❌ Сумма к обмену не определена.\nСначала обработайте банковский PDF, чтобы сохранить полученную сумму."
 
 
-class AuditLogMessages:
-    NO_AUDIT_LOG_RECORDS = "📝 Записи аудита отсутствуют."
+class AuditLogMessagesV2:
+    class Status:
+        IS_EMPTY = "📝 Записи аудита отсутствуют."
 
 
 class ProfileMessageV2:
@@ -163,5 +167,5 @@ class OwnerMessages:
     NO_SUCH_USER = "❌ У пользователя нет доступа или он не найден в списке."
 
 
-class BotInfo(CommonMessages, InvoiceMessages, AuditLogMessages, MenuMessages, BankMessages):
+class BotInfo(CommonMessages, MenuMessages, BankMessages):
     pass
