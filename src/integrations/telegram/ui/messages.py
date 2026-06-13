@@ -42,6 +42,8 @@ class CommonMessages:
 
     SYSTEM_ERROR = "💥 Произошла внутренняя ошибка."
 
+    USE_CONFIRMATION_BTN = "Используйте кнопки подтверждения ниже."
+
 
 class GmailMessages:
     GMAIL_CONNECTED = "✅ Gmail подключён."
@@ -76,11 +78,21 @@ class SignatureMessages:
 class InvoiceMessages:
     GENERATING_INVOICE = "⏳ Формируется Salary Invoice..."
     INVOICE_SENT = "✅ Salary Invoice отправлен."
+    NO_INVOICE_AMOUNT = "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму»."
+    AMOUNT_SAVED = "✅ Сумма Salary Invoice сохранена: {0} EUR"
+    INPUT_INVOICE_AMOUNT = "💰 Введите сумму Salary Invoice:"
+
+    # validation errors
+    INVOICE_AMOUNT_NOT_INT = "❌ Сумма должна содержать только цифры.\nПример: 1500"
 
 
 class BankMessages:
     GENERATING_BANK_CONFIRMATION = "⏳ Формируется подтверждение для банка..."
     BANK_CONFIRMATION_SENT = "✅ Подтверждение для банка отправлено."
+
+
+class ConversionOrderMessages:
+    NO_EXCHANGE_AMOUNT = "❌ Сумма к обмену не определена.\nСначала обработайте банковский PDF, чтобы сохранить полученную сумму."
 
 
 class AuditLogMessages:
@@ -92,6 +104,8 @@ class ProfileMessages:
     PROFILE_TEMPLATE_REQUIREMENTS = (
         "✍️ Пришлите заполненный шаблон в YAML формате.\n\nТребования:\n- YAML\n- до 2 МБ\n- заполнен словарем значений по ключам шаблона"
     )
+    PROFILE_TEMPLATE_UPLOADED = "✅ Профиль успешно загружен.\nКомпания: {0}\nБанк: {1}"
+
     PROFILE_TEMPLATE_UPDATED = "✅ Данные пользователя успешно обновлены."
 
     # validation errors
@@ -108,6 +122,24 @@ class MenuMessages:
 
     SETTINGS = "⚙️ Настройки"
     STATUS = "ℹ️ Статус"
+
+
+class OwnerMessages:
+    INPUT_USER_ID = "Введите Telegram ID пользователя, который уже открыл бота."
+    INPUT_USER_ID_TO_REVOKE = "Введите Telegram ID пользователя, у которого нужно отозвать доступ."
+    USER_TO_ADD_IS_FOUND = "👤 Пользователь найден\n• {0}\n• ID: {1}\nВыдать доступ?"
+    USER_TO_REVOKE_IS_FOUND = "👤 Пользователь найден\n• {0}\n• ID: {1}\nОтозвать доступ?"
+    NO_ONE_WAIT_ACCESS = "Нет ожидающего подтверждения на выдачу доступа."
+    USER_ADDED = "✅ Пользователь добавлен."
+    USER_REVOKED = "✅ Доступ пользователя отозван."
+    YOU_BEEN_ADDED = "✅ Администратор добавил вас в список пользователей."
+    EMPTY_USER_LIST = "Список пользователей пуст."
+    ADD_USER_CMD = "Использование: /add_user <telegram_id>"
+
+    # validation errors
+    USER_ID_NOT_INT = "Введите корректный Telegram ID, состоящий только из цифр."
+    USER_ID_NOT_KNOWN = "❌ Пользователь ещё не взаимодействовал с ботом.\nПопросите пользователя открыть бота и нажать /start."
+    NO_SUCH_USER = "❌ У пользователя нет доступа или он не найден в списке."
 
 
 class BotInfo(CommonMessages, GmailMessages, SignatureMessages, InvoiceMessages, AuditLogMessages, MenuMessages, ProfileMessages, BankMessages):

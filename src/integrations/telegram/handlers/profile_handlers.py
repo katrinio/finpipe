@@ -55,10 +55,7 @@ class ProfileHandlers:
             return
 
         LOGGER.info("Profile template uploaded for Telegram user %s", telegram_id)
-        self.telegram.send_message(
-            telegram_id,
-            (f"✅ Профиль успешно загружен.\nКомпания: {company_profile.company_name}\nБанк: {bank_details.bank_name}"),
-        )
+        self.telegram.send_message(telegram_id, BotInfo.PROFILE_TEMPLATE_UPLOADED.format(company_profile.company_name, bank_details.bank_name))
 
     def upload_template(self, telegram_id: int) -> None:
         """Переводит пользователя в режим загрузки YAML-профиля."""

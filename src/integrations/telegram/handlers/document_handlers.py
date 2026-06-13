@@ -4,7 +4,7 @@ from src.constants import Message
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.messages import BotInfo
+from src.integrations.telegram.ui.messages import BotInfo, ConversionOrderMessages, InvoiceMessages
 from src.services.bank.exceptions import BankPdfError
 from src.services.conversion_order.exceptions import TransferRequestError
 from src.services.invoice.exceptions import InvoiceError
@@ -26,22 +26,19 @@ class DocumentHandlers:
         """Переводит пользователя в режим ввода суммы Salary Invoice."""
 
         UserStateService.set_state(telegram_id, UserState.WAITING_INVOICE_AMOUNT)
-        self.telegram.send_message(telegram_id, "💰 Введите сумму Salary Invoice:")
+        self.telegram.send_message(telegram_id, InvoiceMessages.INPUT_INVOICE_AMOUNT)
 
     def handle_invoice_amount_input(self, telegram_id: int, text: str | None) -> None:
         """Сохраняет сумму Salary Invoice после валидации текстового ввода."""
 
         if text is None or not text.isdigit() or int(text) <= 0:
-            self.telegram.send_message(
-                telegram_id,
-                "❌ Сумма должна содержать только цифры.\nПример: 1500",
-            )
+            self.telegram.send_message(telegram_id, InvoiceMessages.INVOICE_AMOUNT_NOT_INT)
             return
 
         amount = int(text)
         UserConfig.upsert(telegram_id=telegram_id, invoice_amount_eur=amount)
         UserStateService.clear_state(telegram_id)
-        self.telegram.send_message(telegram_id, f"✅ Сумма Salary Invoice сохранена: {amount} EUR")
+        self.telegram.send_message(telegram_id, InvoiceMessages.AMOUNT_SAVED.format(amount))
 
     def invoice(self, telegram_id: int) -> None:
         """Запускает генерацию Salary Invoice и отправляет результат пользователю."""
@@ -62,7 +59,7 @@ class DocumentHandlers:
 
         current_amount = UserConfig.get_by_owner(telegram_id)
         if current_amount is None or current_amount.invoice_amount_eur is None:
-            self.telegram.send_message(telegram_id, "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму».")
+            self.telegram.send_message(telegram_id, InvoiceMessages.NO_INVOICE_AMOUNT)
             return
 
         self.telegram.send_message(telegram_id, f"💶 Текущая сумма Salary Invoice: {current_amount.invoice_amount_eur} EUR")
@@ -88,10 +85,7 @@ class DocumentHandlers:
         config = UserConfig.get_by_owner(telegram_id)
         if config is None or config.exchange_amount_eur is None:
             LOGGER.warning("Conversion order generation blocked by missing exchange amount for Telegram user %s", telegram_id)
-            self.telegram.send_message(
-                telegram_id,
-                "🏦 Сумма к обмену не определена.\nСначала обработайте банковский PDF, чтобы сохранить полученную сумму.",
-            )
+            self.telegram.send_message(telegram_id, ConversionOrderMessages.NO_EXCHANGE_AMOUNT)
             return
 
         try:
