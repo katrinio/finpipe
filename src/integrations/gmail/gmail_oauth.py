@@ -5,7 +5,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from src.integrations.gmail.exceptions import GmailOAuthError
+from src.integrations.gmail.exceptions import (
+    GmailOAuthError,
+    GmailOAuthInvalidStateError,
+    GmailOAuthStateExpiredError,
+    GmailOAuthStateNotActiveError,
+    GmailOAuthTokenExchangeError,
+)
 from src.storage.orm.system.oauth_session import OAuthSession
 from src.utils.credentials import EnvVar
 
@@ -72,12 +78,15 @@ class GmailOAuth:
 
         oauth_session = OAuthSession.get_by_state(state)
         if oauth_session is None:
-            raise GmailOAuthError("Invalid OAuth state")
+            raise GmailOAuthInvalidStateError("Invalid OAuth state")
         if oauth_session.status != "pending":
-            raise GmailOAuthError("OAuth state is not active")
-        if oauth_session.expires_at < datetime.now(UTC):
+            raise GmailOAuthStateNotActiveError("OAuth state is not active")
+        expires_at = oauth_session.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=UTC)
+        if expires_at < datetime.now(UTC):
             OAuthSession.mark_expired(state)
-            raise GmailOAuthError("OAuth state expired")
+            raise GmailOAuthStateExpiredError("OAuth state expired")
         return oauth_session
 
     @classmethod
@@ -129,7 +138,7 @@ class GmailOAuth:
         except GmailOAuthError:
             raise
         except Exception as error:
-            raise GmailOAuthError("Failed to exchange OAuth code for Gmail credentials") from error
+            raise GmailOAuthTokenExchangeError("Failed to exchange OAuth code for Gmail credentials") from error
 
     @classmethod
     def _build_flow(cls, callback_url: str) -> Any:

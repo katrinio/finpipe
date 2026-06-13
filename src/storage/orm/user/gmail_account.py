@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Integer, String, func, select, update
+from sqlalchemy import Integer, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import DateTime
 
@@ -47,16 +47,16 @@ class GmailAccount(BaseModel):
         """Сохраняет токен и метаданные успешного Gmail-подключения."""
 
         with cls.session() as session:
-            session.execute(
-                update(cls)
-                .where(cls.owner_telegram_id == telegram_id)
-                .values(
-                    gmail_refresh_token=gmail_refresh_token,
-                    gmail_email=gmail_email,
-                    gmail_connected_at=current_utc_timestamp(),
-                    gmail_last_error=None,
-                )
-            )
+            statement = select(cls).where(cls.owner_telegram_id == telegram_id).limit(1)
+            gmail_account = session.scalar(statement)
+            if gmail_account is None:
+                gmail_account = cls(owner_telegram_id=telegram_id)
+                session.add(gmail_account)
+
+            gmail_account.gmail_refresh_token = gmail_refresh_token
+            gmail_account.gmail_email = gmail_email
+            gmail_account.gmail_connected_at = current_utc_timestamp()
+            gmail_account.gmail_last_error = None
             session.commit()
 
     @classmethod
@@ -64,16 +64,16 @@ class GmailAccount(BaseModel):
         """Очищает сохранённые Gmail-учётные данные пользователя."""
 
         with cls.session() as session:
-            session.execute(
-                update(cls)
-                .where(cls.owner_telegram_id == telegram_id)
-                .values(
-                    gmail_refresh_token=None,
-                    gmail_email=None,
-                    gmail_connected_at=None,
-                    gmail_last_error=None,
-                )
-            )
+            statement = select(cls).where(cls.owner_telegram_id == telegram_id).limit(1)
+            gmail_account = session.scalar(statement)
+            if gmail_account is None:
+                gmail_account = cls(owner_telegram_id=telegram_id)
+                session.add(gmail_account)
+
+            gmail_account.gmail_refresh_token = None
+            gmail_account.gmail_email = None
+            gmail_account.gmail_connected_at = None
+            gmail_account.gmail_last_error = None
             session.commit()
 
     @classmethod
@@ -88,5 +88,11 @@ class GmailAccount(BaseModel):
         """Сохраняет последнюю ошибку Gmail-подключения."""
 
         with cls.session() as session:
-            session.execute(update(cls).where(cls.owner_telegram_id == telegram_id).values(gmail_last_error=error_message))
+            statement = select(cls).where(cls.owner_telegram_id == telegram_id).limit(1)
+            gmail_account = session.scalar(statement)
+            if gmail_account is None:
+                gmail_account = cls(owner_telegram_id=telegram_id)
+                session.add(gmail_account)
+
+            gmail_account.gmail_last_error = error_message
             session.commit()

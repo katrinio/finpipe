@@ -4,7 +4,11 @@ import pytest
 from cryptography.fernet import Fernet
 
 from src.infrastructure.security.token_cipher import TokenCipher
-from src.integrations.gmail.exceptions import GmailOAuthError
+from src.integrations.gmail.exceptions import (
+    GmailOAuthError,
+    GmailOAuthStateNotActiveError,
+    GmailOAuthTokenExchangeError,
+)
 from src.integrations.gmail.gmail_oauth import GmailOAuthResult
 from src.integrations.gmail.oauth_callback import GmailOAuthCallbackService
 from src.storage.orm.database import Database, build_sqlite_url
@@ -83,6 +87,43 @@ def test_callback_service_wraps_unexpected_failure(
     )
 
     with pytest.raises(GmailOAuthError, match="Callback processing failed"):
+        GmailOAuthCallbackService.handle_callback(code="code-1", state="state-1", error=None)
+
+    failed_session = OAuthSession.get_by_state(session.state)
+    assert failed_session is not None
+    assert failed_session.status == "failed"
+
+
+def test_reused_state_raises_specific_error(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+    monkeypatch.setenv("GMAIL_OAUTH_CALLBACK_URL", "https://example.test/oauth/gmail/callback")
+    expires_at = datetime.now(UTC) + timedelta(minutes=15)
+    OAuthSession.create(telegram_id=123, telegram_username="alice", state="state-1", expires_at=expires_at)
+    OAuthSession.mark_used("state-1")
+
+    with pytest.raises(GmailOAuthStateNotActiveError, match="OAuth state is not active"):
+        GmailOAuthCallbackService.handle_callback(code="code-1", state="state-1", error=None)
+
+
+def test_token_exchange_failure_marks_session_failed(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database.initialize_schema()
+    monkeypatch.setenv("GMAIL_OAUTH_CALLBACK_URL", "https://example.test/oauth/gmail/callback")
+    expires_at = datetime.now(UTC) + timedelta(minutes=15)
+    session = OAuthSession.create(telegram_id=123, telegram_username="alice", state="state-1", expires_at=expires_at)
+    monkeypatch.setattr(
+        "src.integrations.gmail.oauth_callback.GmailOAuth.exchange_code",
+        lambda code, callback_url: (_ for _ in ()).throw(GmailOAuthTokenExchangeError("Failed to exchange OAuth code for Gmail credentials")),
+    )
+
+    with pytest.raises(GmailOAuthTokenExchangeError, match="Failed to exchange OAuth code for Gmail credentials"):
         GmailOAuthCallbackService.handle_callback(code="code-1", state="state-1", error=None)
 
     failed_session = OAuthSession.get_by_state(session.state)
