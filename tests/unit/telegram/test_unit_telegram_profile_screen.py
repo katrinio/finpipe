@@ -30,7 +30,7 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         iban="RS35123456789012345678",
         bic="EXAMPLERSBG",
     )
-    UserConfig.upsert(telegram_id=123, invoice_amount=566)
+    UserConfig.upsert(telegram_id=123, invoice_amount_eur=566)
     Signature.create(owner_telegram_id=123, signature_path=tmp_path / "signature.png", signature_hash="hash")
 
     handlers.show_profile(123)

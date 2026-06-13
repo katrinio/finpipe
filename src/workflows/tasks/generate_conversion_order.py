@@ -30,7 +30,9 @@ LOGGER = logging.getLogger(__name__)
 
 def generate_conversion_order_pdf(
     telegram_id: int,
-    amount: str,
+    exchange_amount_eur: float,
+    invoice_amount_eur: int | None = None,
+    received_amount_eur: float | None = None,
     invoice_date: date | None = None,
     template_path: Path = Dir.CONVERSION_ORDER_TEMPLATE,
     output_dir: Path = Dir.CONVERSION_ORDER_OUTPUT_DIR,
@@ -43,6 +45,12 @@ def generate_conversion_order_pdf(
     output_pdf_path = output_dir / f"conversion-order-{invoice_period.invoice_number}.{Format.PDF}"
 
     LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
+    LOGGER.info(
+        "Preparing transfer request: invoice=%s EUR, received=%s EUR, exchange=%s EUR",
+        invoice_amount_eur,
+        received_amount_eur,
+        exchange_amount_eur,
+    )
 
     try:
         bank_details = BankDetails.get_by_owner(telegram_id)
@@ -57,12 +65,16 @@ def generate_conversion_order_pdf(
 
         conversion_order_data = ConversionOrderData(
             account_number=bank_details.account_number,
-            amount=amount,
+            exchange_amount_eur=format_eur_amount(exchange_amount_eur),
             city=company_profile.city or "",
             date=invoice_period.invoice_date,
             name=bank_details.account_holder,
         )
 
+        LOGGER.info(
+            "Rendering transfer request document with exchange amount: %s EUR",
+            exchange_amount_eur,
+        )
         generate_conversion_order(
             template_path=template_path,
             output_pdf_path=output_pdf_path,
@@ -121,7 +133,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     output_pdf_path = generate_conversion_order_pdf(
         telegram_id=args.telegram_id,
-        amount=amount,
+        exchange_amount_eur=float(amount),
         invoice_date=args.invoice_date,
         template_path=args.template,
         output_dir=args.output_dir,
@@ -230,6 +242,12 @@ def resolve_signature_for_user(telegram_id: int, signature: Path | None) -> Path
         return signature
 
     return Path(active_signature.signature_path)
+
+
+def format_eur_amount(value: float) -> str:
+    """Форматирует сумму EUR для подстановки в документ."""
+
+    return f"{value:.2f}"
 
 
 if __name__ == "__main__":
