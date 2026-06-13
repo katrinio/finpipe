@@ -10,7 +10,6 @@ packages = [
 
 [tool.poetry.scripts]
 start_bot = "src.integrations.telegram.bot:main"
-setup_database = "poetry run setup_database"
 
 [tool.poetry.dependencies]
 python = ">=3.14,<3.15"
