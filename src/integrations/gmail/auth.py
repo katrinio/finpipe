@@ -21,6 +21,7 @@ GMAIL_SCOPES = (
 def get_gmail_service() -> Any:
     """Возвращает готовый Gmail API service с валидным OAuth-токеном."""
 
+    # TODO(vps): заменить локальный token.json на создание Gmail service из refresh token в GmailAccount.
     token_path = EnvVar.get_env_path("GMAIL_TOKEN_PATH")
     credentials = EnvVar.load_credentials(token_path, GMAIL_SCOPES)
 
@@ -56,6 +57,7 @@ def refresh_or_create_credentials(
         raise FileNotFoundError(message)
 
     LOGGER.info("Starting Gmail OAuth browser login")
+    # TODO(vps): удалить desktop OAuth flow после полного перехода Gmail API на callback flow и постоянный домен.
     flow = InstalledAppFlow.from_client_secrets_file(
         str(credentials_path),
         GMAIL_SCOPES,

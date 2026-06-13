@@ -50,6 +50,8 @@ Route не содержит бизнес-логики. Он только:
 
 `GMAIL_OAUTH_CALLBACK_URL`
 
+TODO(vps): перенести OAuth callback на постоянный HTTPS-домен и зафиксировать его в Google OAuth Web client.
+
 Эта переменная используется:
 
 - при формировании Google OAuth authorization URL;
@@ -67,6 +69,8 @@ OAuth client config для Telegram callback flow берётся из:
 ## Local Development
 
 Для локальной отладки Gmail OAuth через Cloudflare Quick Tunnel:
+
+TODO(vps): после деплоя на VPS оставить этот раздел только как инструкцию для локальной разработки.
 
 1. Поднимите FastAPI локально, обычно на `http://127.0.0.1:8000`.
 2. Запустите bootstrap-скрипт:

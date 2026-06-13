@@ -67,6 +67,8 @@ curl http://localhost:8000/health
 2. Telegram bot
 3. Cloudflare Tunnel для Gmail OAuth callback
 
+TODO(vps): после появления VPS описать production-like запуск через постоянный домен вместо Cloudflare Tunnel.
+
 ## Testing
 
 Запуск всех тестов:
@@ -119,6 +121,8 @@ poetry run ruff check .
 ## start_oauth_tunnel.sh
 
 Для локальной OAuth-разработки используется:
+
+TODO(vps): оставить `start_oauth_tunnel.sh` как dev-only инструмент и убрать его из основного сценария запуска.
 
 ```bash
 ./scripts/start_oauth_tunnel.sh
