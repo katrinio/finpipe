@@ -3,11 +3,12 @@ from pathlib import Path
 from src.storage.orm import DocumentGenerationHistory
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
+from tests.helpers.database import initialize_test_database
 
 
 def test_document_generation_history_stores_multiple_attempts_for_same_document(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     DocumentGenerationHistory.add_attempt(
         DocumentType.SALARY_INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.FAILED, error_message="boom"
@@ -27,7 +28,7 @@ def test_document_generation_history_stores_multiple_attempts_for_same_document(
 
 def test_document_generation_history_returns_last_attempt(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     DocumentGenerationHistory.add_attempt(
         DocumentType.SALARY_INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.FAILED, error_message="boom"
@@ -43,7 +44,7 @@ def test_document_generation_history_returns_last_attempt(tmp_path: Path) -> Non
 
 def test_document_generation_history_supports_all_document_types(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     DocumentGenerationHistory.add_attempt(DocumentType.SALARY_INVOICE, "2026-05", telegram_id=1, status=DocumentGenerationStatus.SUCCESS)
     DocumentGenerationHistory.add_attempt(DocumentType.BANK_CONFIRMATION, None, telegram_id=1, status=DocumentGenerationStatus.SUCCESS)

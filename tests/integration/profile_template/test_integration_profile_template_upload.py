@@ -8,6 +8,7 @@ from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils import Utils
+from tests.helpers.database import initialize_test_database
 
 PROFILE_YAML = b"""
 company_name: Test Company
@@ -30,7 +31,7 @@ payment_description: Salary payment
 
 def test_profile_upload_persists_company_profile_and_bank_details(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     ProfileTemplateService.upload(
         telegram_id=123,
@@ -97,7 +98,7 @@ def test_profile_upload_rejects_incomplete_profile_without_persisting_data(
     missing_fields: list[str],
 ) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     with pytest.raises(InvalidProfileTemplateError) as exc_info:
         ProfileTemplateService.upload(

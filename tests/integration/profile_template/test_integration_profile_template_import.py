@@ -4,6 +4,7 @@ from src.services.profile_template.profile_template_service import ProfileTempla
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from tests.helpers.database import initialize_test_database
 
 PROFILE_YAML = b"""
 company_name: Test Company
@@ -20,7 +21,7 @@ bic: TESTRSBG
 
 def test_profile_import_happy_path_creates_company_profile_and_bank_details(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     profile = ProfileTemplateService.parse(PROFILE_YAML)
     ProfileTemplateService.import_profile(telegram_id=123, profile=profile)
@@ -44,7 +45,7 @@ def test_profile_import_happy_path_creates_company_profile_and_bank_details(tmp_
 
 def test_profile_reimport_updates_existing_records(tmp_path: Path) -> None:
     database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     first_profile = ProfileTemplateService.parse(PROFILE_YAML)
     ProfileTemplateService.import_profile(telegram_id=123, profile=first_profile)

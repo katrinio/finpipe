@@ -290,8 +290,9 @@ class TelegramBot:
 def main() -> None:
     """Точка входа для Telegram listener."""
 
+    storage = build_storage_dependencies(Dir.STORAGE_DB)
     bootstrap_primary_admin()
-    bot = TelegramBot(build_storage_dependencies(Dir.STORAGE_DB))
+    bot = TelegramBot(storage)
 
     LOGGER.info("Starting Telegram listener loop")
     while True:

@@ -7,13 +7,14 @@ from src.storage.orm.base import BaseModel
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.company_profile import CompanyProfile
+from tests.helpers.database import initialize_test_database
 
 
 def test_sqlite_data_survives_database_reinitialization(tmp_path: Path) -> None:
     db_path = tmp_path / "data" / "finpipe.db"
 
     first_database = Database(build_sqlite_url(db_path))
-    first_database.initialize_schema()
+    initialize_test_database(first_database)
 
     CompanyProfile.upsert(
         owner_telegram_id=123,
@@ -26,7 +27,7 @@ def test_sqlite_data_survives_database_reinitialization(tmp_path: Path) -> None:
     assert first_profile.company_name == "Test Company"
 
     second_database = Database(build_sqlite_url(db_path))
-    second_database.initialize_schema()
+    initialize_test_database(second_database)
 
     second_profile = CompanyProfile.get_by_owner(123)
     assert second_profile is not None
@@ -39,7 +40,7 @@ def test_sqlite_schema_matches_orm_models(tmp_path: Path) -> None:
     db_path = tmp_path / "data" / "finpipe.db"
 
     database = Database(build_sqlite_url(db_path))
-    database.initialize_schema()
+    initialize_test_database(database)
 
     with database.engine.connect() as connection:
         for table in BaseModel.metadata.sorted_tables:
@@ -54,7 +55,7 @@ def test_alembic_schema_supports_document_generation_history(tmp_path: Path) -> 
     database = Database(build_sqlite_url(db_path))
     table_name = DocumentGenerationHistory.__tablename__
 
-    database.initialize_schema()
+    initialize_test_database(database)
 
     with database.engine.connect() as connection:
         columns = {row[1] for row in connection.execute(text(f"PRAGMA table_info({table_name})")).all()}

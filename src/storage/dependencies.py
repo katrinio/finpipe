@@ -3,8 +3,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from scripts.bootstrap_allowed_users import run_alembic_upgrade_head
 from src.constants import Dir
+from src.storage.migrations import run_alembic_upgrade_head
 from src.storage.orm import AuditLog, ProcessedMessage
 from src.storage.orm.database import Database, build_sqlite_url
 from src.storage.orm.system.document_generation_history import DocumentGenerationHistory

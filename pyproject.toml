@@ -9,12 +9,8 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-gen_invoice = "src.workflows.tasks.generate_invoice:main"
-gen_transfer_request = "src.workflows.tasks.generate_transfer_request:main"
-get_bank_email = "src.workflows.tasks.fetch_bank_email:main"
-fill_bank_pdf = "src.workflows.tasks.fill_bank_pdf:main"
-clear_processed_history = "src.workflows.tasks.clear_processed_history:main"
 start_bot = "src.integrations.telegram.bot:main"
+setup_database = "scripts.bootstrap_allowed_users:main"
 
 [tool.poetry.dependencies]
 python = ">=3.14,<3.15"

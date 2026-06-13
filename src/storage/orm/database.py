@@ -1,4 +1,4 @@
-"""Настройка SQLAlchemy engine, session factory и инициализации схемы."""
+"""Настройка SQLAlchemy engine и session factory."""
 
 import logging
 from pathlib import Path
@@ -27,18 +27,6 @@ class Database:
         """Возвращает SQLAlchemy engine."""
 
         return self._engine
-
-    def initialize_schema(self) -> None:
-        """Применяет миграции Alembic и привязывает ORM-модели к текущей БД.
-
-        Метод оставлен как совместимый helper для тестов и старых composition points.
-        Runtime-код должен предпочитать явный `alembic upgrade head` на старте.
-        """
-
-        from scripts.bootstrap_allowed_users import run_alembic_upgrade_head
-
-        run_alembic_upgrade_head(self._sqlite_file_path())
-        self.bind_models()
 
     def bind_models(self) -> None:
         """Привязывает ORM-модели к engine без создания или изменения схемы."""
