@@ -135,7 +135,9 @@ def test_resolve_workflow_signature_path_recovers_legacy_path_when_user_file_exi
     legacy_path = tmp_path / "signatures" / "signature.enc"
     fallback_path = tmp_path / "signatures" / "249517409_sign.enc"
     fallback_path.parent.mkdir(parents=True, exist_ok=True)
-    fallback_path.write_bytes(b"encrypted-signature")
+    source = tmp_path / "signature.png"
+    source.write_bytes(b"signature-bytes")
+    SignatureCipher.encrypt_file(source, fallback_path)
 
     Signature.create(owner_telegram_id=249517409, signature_path=legacy_path, signature_hash="hash")
 

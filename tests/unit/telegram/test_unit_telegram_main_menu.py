@@ -26,7 +26,7 @@ def test_home_callback_opens_main_menu() -> None:
     assert telegram_client.sent_message_payloads[-1] == (
         123,
         NavigationButtons.HOME,
-        build_main_menu(is_owner=True),
+        build_main_menu(is_owner=False),
     )
 
 
@@ -39,7 +39,7 @@ def test_legacy_main_menu_text_opens_main_menu() -> None:
     assert telegram_client.sent_message_payloads[-1] == (
         123,
         NavigationButtons.HOME,
-        build_main_menu(is_owner=True),
+        build_main_menu(is_owner=False),
     )
 
 

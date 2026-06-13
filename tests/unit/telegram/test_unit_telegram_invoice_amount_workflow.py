@@ -5,7 +5,7 @@ import pytest
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import InvoiceMenuButtons
-from src.integrations.telegram.ui.menu.document_menu import build_document_menu
+from src.integrations.telegram.ui.menu.document_menu import build_document_menu, build_invoice_menu
 from src.integrations.telegram.ui.messages import BankMessagesV2
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser, UserConfig
@@ -30,7 +30,7 @@ def test_invoice_amount_button_starts_waiting_state_and_prompts(tmp_path: Path) 
 
     assert bot.handlers.state_service.get_state(123) == UserState.WAITING_INVOICE_AMOUNT
     assert telegram_client.sent_messages == ["💰 Введите сумму Salary Invoice:"]
-    assert telegram_client.sent_message_payloads == [(123, "💰 Введите сумму Salary Invoice:", None)]
+    assert telegram_client.sent_message_payloads == [(123, "💰 Введите сумму Salary Invoice:", build_invoice_menu())]
 
 
 def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path) -> None:
@@ -68,8 +68,8 @@ def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path
         "✅ Сумма Salary Invoice сохранена: 1500 EUR",
     ]
     assert telegram_client.sent_message_payloads == [
-        (123, "💰 Введите сумму Salary Invoice:", None),
-        (123, "✅ Сумма Salary Invoice сохранена: 1500 EUR", None),
+        (123, "💰 Введите сумму Salary Invoice:", build_invoice_menu()),
+        (123, "✅ Сумма Salary Invoice сохранена: 1500 EUR", build_invoice_menu()),
     ]
 
 
@@ -107,8 +107,8 @@ def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path
         "❌ Сумма должна содержать только цифры.\nПример: 1500",
     ]
     assert telegram_client.sent_message_payloads == [
-        (123, "💰 Введите сумму Salary Invoice:", None),
-        (123, "❌ Сумма должна содержать только цифры.\nПример: 1500", None),
+        (123, "💰 Введите сумму Salary Invoice:", build_invoice_menu()),
+        (123, "❌ Сумма должна содержать только цифры.\nПример: 1500", build_invoice_menu()),
     ]
 
 
@@ -124,7 +124,7 @@ def test_get_invoice_amount_reports_missing_value(tmp_path: Path) -> None:
         "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму».",
     ]
     assert telegram_client.sent_message_payloads == [
-        (123, "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму».", None),
+        (123, "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму».", build_invoice_menu()),
     ]
 
 

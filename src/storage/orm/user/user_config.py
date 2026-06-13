@@ -52,6 +52,7 @@ class UserConfig(BaseModel):
         cls,
         telegram_id: int,
         invoice_amount_eur: int | None = None,
+        received_amount_eur: float | None = None,
         bank_received_amount_eur: float | None = None,
         conversion_amount_eur: float | None = None,
         exchange_amount_eur: float | None = None,
@@ -65,6 +66,8 @@ class UserConfig(BaseModel):
             resolved_conversion_amount = conversion_amount_eur
             if resolved_conversion_amount is None:
                 resolved_conversion_amount = exchange_amount_eur
+            if bank_received_amount_eur is None:
+                bank_received_amount_eur = received_amount_eur
 
             if config is None:
                 config = cls(
