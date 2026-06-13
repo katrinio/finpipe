@@ -237,11 +237,11 @@ def resolve_signature_for_user(telegram_id: int, signature: Path | None) -> Path
     if signature != Dir.SIGNATURE_ENC:
         return signature
 
-    active_signature = Signature.get_active(telegram_id)
-    if active_signature is None:
-        return signature
+    workflow_signature = Signature.resolve_workflow_signature_path(telegram_id)
+    if workflow_signature is not None:
+        return workflow_signature
 
-    return Path(active_signature.signature_path)
+    return signature
 
 
 def format_eur_amount(value: float) -> str:

@@ -103,20 +103,40 @@ class Signature(BaseModel):
     def is_usable(cls, owner_telegram_id: int) -> bool:
         """Проверяет, доступна ли подпись для расшифровки и bank workflow."""
 
+        return cls.resolve_workflow_signature_path(owner_telegram_id) is not None
+
+    @classmethod
+    def resolve_workflow_signature_path(cls, owner_telegram_id: int) -> Path | None:
+        """Возвращает существующий путь к подписи и чинит запись, если путь устарел."""
+
         signature = cls.get_active(owner_telegram_id)
         if signature is None:
-            return False
+            return None
 
-        signature_path = Path(signature.signature_path)
-        if not signature_path.exists():
-            return False
+        current_path = Path(signature.signature_path)
+        if current_path.exists():
+            try:
+                SignatureCipher.decrypt_bytes(current_path)
+            except FileNotFoundError, SignatureDecryptionError:
+                return None
+            return current_path
 
-        try:
-            SignatureCipher.decrypt_bytes(signature_path)
-        except FileNotFoundError, SignatureDecryptionError:
-            return False
+        fallback_path = current_path.parent / f"{owner_telegram_id}_sign.enc"
+        if fallback_path.exists():
+            try:
+                SignatureCipher.decrypt_bytes(fallback_path)
+            except FileNotFoundError, SignatureDecryptionError:
+                return None
 
-        return True
+            cls.create(
+                owner_telegram_id=owner_telegram_id,
+                signature_path=fallback_path,
+                signature_hash=cls._hash_path(fallback_path),
+                active=True,
+            )
+            return fallback_path
+
+        return None
 
     @classmethod
     def delete(cls, owner_telegram_id: int) -> None:

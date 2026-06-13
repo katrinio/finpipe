@@ -29,3 +29,13 @@ def test_resolve_signature_for_user_falls_back_to_default_when_user_signature_mi
     initialize_test_database(database)
 
     assert resolve_signature_for_user(42, Dir.SIGNATURE_ENC) == Dir.SIGNATURE_ENC
+
+
+def test_resolve_signature_for_user_falls_back_to_default_when_active_signature_file_is_missing(tmp_path: Path) -> None:
+    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    initialize_test_database(database)
+
+    missing_signature = tmp_path / "missing_sign.enc"
+    Signature.create(owner_telegram_id=42, signature_path=missing_signature)
+
+    assert resolve_signature_for_user(42, Dir.SIGNATURE_ENC) == missing_signature
