@@ -46,7 +46,7 @@ def test_add_user_denies_non_owner(tmp_path: Path) -> None:
     assert AllowedUser.exists(2) is False
     assert telegram.sent_messages == [CommonMessagesV2.Errors.ACCESS_DENIED]
     assert telegram.sent_messages_with_chat_ids == [(1, CommonMessagesV2.Errors.ACCESS_DENIED)]
-    assert telegram.sent_message_payloads == [(1, CommonMessagesV2.Errors.ACCESS_DENIEDD, build_guest_menu())]
+    assert telegram.sent_message_payloads == [(1, CommonMessagesV2.Errors.ACCESS_DENIED, build_guest_menu())]
 
 
 def test_add_user_denies_unknown_known_user(tmp_path: Path) -> None:
