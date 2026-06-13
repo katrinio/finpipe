@@ -1,3 +1,6 @@
+from src.integrations.telegram.buttons.navigation import NavigationButtons
+
+
 class SystemButtons:
     HELP = "📚 Помощь"
     HEALTHCHECK = "❤️ Healthcheck"
@@ -8,4 +11,5 @@ class SystemButtons:
 
 PUBLIC_COMMANDS = {
     SystemButtons.WHOAMI,
+    NavigationButtons.HOME,
 }

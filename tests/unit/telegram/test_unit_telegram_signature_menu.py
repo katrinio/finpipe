@@ -44,8 +44,10 @@ def test_signature_menu_contains_signature_actions() -> None:
                 {"text": SignatureButtons.SIGNATURE_UPLOAD},
             ],
             [
-                {"text": NavigationButtons.BACK},
                 {"text": SignatureButtons.SIGNATURE_STATUS},
+            ],
+            [
+                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,

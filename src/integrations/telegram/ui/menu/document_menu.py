@@ -9,7 +9,7 @@ def build_document_menu() -> dict:
                 {"text": DocumentsMenuButtons.BANK_CONFIRMATION},
             ],
             [
-                {"text": NavigationButtons.BACK},
+                {"text": NavigationButtons.HOME},
                 {"text": DocumentsMenuButtons.CONVERSION_ORDER},
             ],
         ],
@@ -25,7 +25,7 @@ def build_invoice_menu() -> dict:
                 {"text": InvoiceMenuButtons.GET_INVOICE_AMOUNT},
             ],
             [
-                {"text": NavigationButtons.BACK},
+                {"text": NavigationButtons.HOME},
                 {"text": InvoiceMenuButtons.GENERATE_INVOICE},
             ],
         ],

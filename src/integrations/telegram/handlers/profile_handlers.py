@@ -5,6 +5,7 @@ from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
 from src.integrations.telegram.ui.messages import ProfileMessageV2
 from src.services.profile_template.exceptions import InvalidProfileTemplateError, InvalidProfileTemplateFormatError, ProfileTemplateTooLargeError
 from src.services.profile_template.profile_template_service import ProfileTemplateService
@@ -35,15 +36,15 @@ class ProfileHandlers:
             )
         except InvalidProfileTemplateFormatError:
             LOGGER.warning("Profile template rejected by format for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, ProfileMessageV2.Validation.NOT_YAML)
+            self.telegram.send_message(telegram_id, ProfileMessageV2.Validation.NOT_YAML, reply_markup=build_profile_menu())
             return
         except ProfileTemplateTooLargeError:
             LOGGER.warning("Profile template rejected by size for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, ProfileMessageV2.Validation.TOO_LARGE)
+            self.telegram.send_message(telegram_id, ProfileMessageV2.Validation.TOO_LARGE, reply_markup=build_profile_menu())
             return
         except InvalidProfileTemplateError as error:
             LOGGER.warning("Profile template validation failed for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, str(error))
+            self.telegram.send_message(telegram_id, str(error), reply_markup=build_profile_menu())
             return
 
         self.state_service.clear_state(telegram_id)
@@ -51,25 +52,29 @@ class ProfileHandlers:
         bank_details = BankDetails.get_by_owner(telegram_id)
         if company_profile is None or bank_details is None:
             LOGGER.warning("Profile template upload completed without persisted profile for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, ProfileMessageV2.Upload.UPDATED)
+            self.telegram.send_message(telegram_id, ProfileMessageV2.Upload.UPDATED, reply_markup=build_profile_menu())
             return
 
         LOGGER.info("Profile template uploaded for Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, ProfileMessageV2.Upload.UPLOADED.format(company_profile.company_name, bank_details.bank_name))
+        self.telegram.send_message(
+            telegram_id,
+            ProfileMessageV2.Upload.UPLOADED.format(company_profile.company_name, bank_details.bank_name),
+            reply_markup=build_profile_menu(),
+        )
 
     def upload_template(self, telegram_id: int) -> None:
         """Переводит пользователя в режим загрузки YAML-профиля."""
 
         LOGGER.info("Profile template upload requested by Telegram user %s", telegram_id)
         self.state_service.set_state(telegram_id, UserState.WAITING_PROFILE_TEMPLATE_UPLOAD)
-        self.telegram.send_message(telegram_id, ProfileMessageV2.Upload.REQUIREMENTS)
+        self.telegram.send_message(telegram_id, ProfileMessageV2.Upload.REQUIREMENTS, reply_markup=build_profile_menu())
 
     def download_template(self, telegram_id: int) -> None:
         """Отправляет пользователю актуальный YAML-шаблон профиля."""
 
         LOGGER.info("Profile template download requested by Telegram user %s", telegram_id)
         self.telegram.send_document(telegram_id, document_path=Dir.PROFILE_TEMPLATE)
-        self.telegram.send_message(telegram_id, ProfileMessageV2.Upload.TEMPLATE_SENT)
+        self.telegram.send_message(telegram_id, ProfileMessageV2.Upload.TEMPLATE_SENT, reply_markup=build_profile_menu())
 
     def show_profile(self, telegram_id: int) -> None:
         """Показывает сводку готовности профиля и его текущие значения."""
@@ -157,7 +162,7 @@ class ProfileHandlers:
             ]
         )
 
-        self.telegram.send_message(telegram_id, "\n".join(profile_parts))
+        self.telegram.send_message(telegram_id, "\n".join(profile_parts), reply_markup=build_profile_menu())
 
     @staticmethod
     def get_section_status(fields: Mapping[str, object | None]) -> str:

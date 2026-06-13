@@ -8,7 +8,11 @@ from src.integrations.telegram.handlers.state_handlers import StateHandler
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import PUBLIC_COMMANDS
+from src.integrations.telegram.ui.menu.admin_menu import build_users_menu
+from src.integrations.telegram.ui.menu.document_menu import build_invoice_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
+from src.integrations.telegram.ui.menu.menu import build_main_menu
+from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
 from src.integrations.telegram.ui.messages import CommonMessagesV2
 from src.services.known_user_service import KnownUserService
 from src.storage.dependencies import (
@@ -116,6 +120,21 @@ class TelegramBot:
 
         return text, telegram_id, user.get("username")
 
+    def extract_callback_data(self, update: dict) -> tuple[str | None, int, str | None] | None:
+        """Извлекает callback-кнопку Telegram."""
+
+        callback_query = update.get("callback_query")
+        if not callback_query:
+            return None
+
+        data = callback_query.get("data")
+        user = callback_query.get("from", {})
+        telegram_id = user.get("id")
+        if telegram_id is None:
+            return None
+
+        return data, telegram_id, user.get("username")
+
     def extract_document_upload_data(self, update: dict) -> tuple[str, int, str, bytes] | None:
         """Извлекает данные файла из Telegram update."""
 
@@ -174,7 +193,11 @@ class TelegramBot:
                     LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
 
                     UserStateService.clear_state(telegram_id)
-                    self.telegram.send_message(telegram_id, "Текущая операция отменена.")
+                    self.telegram.send_message(
+                        telegram_id,
+                        CommonMessagesV2.Actions.OPERATION_CANCELLED,
+                        reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+                    )
 
                     return False
 
@@ -187,7 +210,11 @@ class TelegramBot:
                 LOGGER.info("Cancelling state %s for Telegram user %s", state.name, telegram_id)
 
                 UserStateService.clear_state(telegram_id)
-                self.telegram.send_message(telegram_id, "Текущая операция отменена.")
+                self.telegram.send_message(
+                    telegram_id,
+                    CommonMessagesV2.Actions.OPERATION_CANCELLED,
+                    reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+                )
 
                 return False
 
@@ -195,7 +222,11 @@ class TelegramBot:
 
         file_data = self.extract_document_upload_data(update)
         if file_data is None:
-            self.telegram.send_message(telegram_id, state_handler.error_message)
+            self.telegram.send_message(
+                telegram_id,
+                state_handler.error_message,
+                reply_markup=self._build_state_navigation_menu(telegram_id, state),
+            )
             self.update_storage.mark_processed(update["update_id"])
             return True
 
@@ -218,12 +249,29 @@ class TelegramBot:
         self.update_storage.mark_processed(update["update_id"])
         return True
 
+    def _build_state_navigation_menu(self, telegram_id: int, state: UserState) -> dict:
+        if state == UserState.WAITING_SIGNATURE_UPLOAD:
+            return build_signature_menu()
+        if state == UserState.WAITING_PROFILE_TEMPLATE_UPLOAD:
+            return build_profile_menu()
+        if state == UserState.WAITING_INVOICE_AMOUNT:
+            return build_invoice_menu()
+        if state in {
+            UserState.WAITING_NEW_USER_ID,
+            UserState.WAITING_NEW_USER_CONFIRMATION,
+            UserState.WAIT_CONFIRM_ADD_USER,
+            UserState.WAITING_REMOVE_USER_ID,
+            UserState.WAIT_CONFIRM_REMOVE_USER,
+        }:
+            return build_users_menu()
+        return build_main_menu(is_owner=AllowedUser.is_owner(telegram_id))
+
     # authorization and routing
     def process_update(self, update: dict) -> None:
         """Обрабатывает один Telegram update."""
 
         self._register_known_user(update)
-        data = self.extract_message_data(update)
+        data = self.extract_message_data(update) or self.extract_callback_data(update)
         if data is None:
             return
 

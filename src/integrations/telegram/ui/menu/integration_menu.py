@@ -5,7 +5,7 @@ def build_integration_menu() -> dict:
     return {
         "keyboard": [
             [
-                {"text": NavigationButtons.BACK},
+                {"text": NavigationButtons.HOME},
                 {"text": IntegrationsButtons.GMAIL},
             ],
         ],
@@ -21,7 +21,7 @@ def build_gmail_menu() -> dict:
                 {"text": GmailButtons.GMAIL_CONNECT},
             ],
             [
-                {"text": NavigationButtons.BACK},
+                {"text": NavigationButtons.HOME},
                 {"text": GmailButtons.GMAIL_STATUS},
             ],
         ],

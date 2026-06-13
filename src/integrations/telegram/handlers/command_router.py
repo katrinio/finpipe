@@ -107,7 +107,7 @@ class CommandRouter:
             MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
             OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.admin_menu(context.telegram_id),
-            NavigationButtons.BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents
             DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
             DocumentsMenuButtons.BANK_CONFIRMATION: lambda context: self.document_handler.bank_confirmation(context.telegram_id),
