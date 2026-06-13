@@ -43,6 +43,11 @@ class Database:
         if not database_exists:
             LOGGER.info("Initialized SQLAlchemy storage at %s", self._database_url)
 
+    def bind_models(self) -> None:
+        """Привязывает ORM-модели к engine без создания или изменения схемы."""
+
+        BaseModel.database = self
+
     def session(self) -> Session:
         """Создаёт новую независимую сессию."""
 

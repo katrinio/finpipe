@@ -3,11 +3,11 @@ from pathlib import Path
 
 import pytest
 
+from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.commands import BotInfo
 from src.integrations.telegram.ui.buttons import OwnerButtons
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
-from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser, KnownUser
 from tests.fakes.fake_telegram import FakeTelegramClient

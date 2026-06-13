@@ -4,6 +4,9 @@ import hashlib
 import logging
 from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
+
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.orm import AllowedUser, Signature
@@ -17,8 +20,9 @@ LOGGER = logging.getLogger(__name__)
 def bootstrap_primary_admin(db_path: Path = Dir.STORAGE_DB) -> None:
     """Создаёт primary admin и, если доступна, регистрирует его подпись."""
 
+    run_alembic_upgrade_head(db_path)
     database = Database(build_sqlite_url(db_path))
-    database.initialize_schema()
+    database.bind_models()
 
     telegram_id = int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID"))
     user_name = EnvVar.get_required_env("BOT_OWNER_TELEGRAM_USERNAME")
@@ -68,6 +72,15 @@ def resolve_signature_source_path() -> Path:
     if not signature_path.is_absolute():
         return EnvVar.PROJECT_ROOT / signature_path
     return signature_path
+
+
+def run_alembic_upgrade_head(db_path: Path = Dir.STORAGE_DB) -> None:
+    """Применяет миграции Alembic к указанной SQLite базе."""
+
+    config = Config(str(EnvVar.PROJECT_ROOT / "alembic.ini"))
+    config.attributes["skip_logging_config"] = True
+    config.set_main_option("sqlalchemy.url", build_sqlite_url(db_path))
+    command.upgrade(config, "head")
 
 
 def main() -> None:

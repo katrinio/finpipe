@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 from cryptography.fernet import Fernet
 
+from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
-from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.orm import Signature
 from src.storage.orm.database import Database, build_sqlite_url
 from src.workflows.tasks.encrypt_signature import encrypt_signature_workflow

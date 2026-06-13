@@ -2,10 +2,10 @@
 
 import os
 
+from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
-from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
 from src.utils.credentials import LOGGER

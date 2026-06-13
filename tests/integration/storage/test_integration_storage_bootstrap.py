@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from cryptography.fernet import Fernet
 
+from scripts.bootstrap_allowed_users import bootstrap_primary_admin, run_alembic_upgrade_head
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
-from src.storage.bootstrap_allowed_users import bootstrap_primary_admin
 from src.storage.orm import AllowedUser, Signature, UserRole
 from src.storage.orm.database import Database, build_sqlite_url
 from src.utils.credentials import EnvVar
@@ -73,8 +73,9 @@ def test_bootstrap_primary_admin_promotes_existing_owner_record(
     monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "9001_sign.enc")
 
     db_path = tmp_path / "storage.sqlite3"
+    run_alembic_upgrade_head(db_path)
     database = Database(build_sqlite_url(db_path))
-    database.initialize_schema()
+    database.bind_models()
     AllowedUser.create(9001, "existing", UserRole.USER)
 
     bootstrap_primary_admin(db_path)

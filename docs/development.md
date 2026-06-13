@@ -11,6 +11,10 @@
 - SQLite
 - `cloudflared` для локальной OAuth-разработки
 
+- poetry run alembic revision --autogenerate -m "description"
+- poetry run alembic upgrade head
+- poetry run alembic downgrade -1
+
 Подготовка окружения:
 
 ```bash
