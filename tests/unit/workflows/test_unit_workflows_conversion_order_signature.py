@@ -38,4 +38,4 @@ def test_resolve_signature_for_user_falls_back_to_default_when_active_signature_
     missing_signature = tmp_path / "missing_sign.enc"
     Signature.create(owner_telegram_id=42, signature_path=missing_signature)
 
-    assert resolve_signature_for_user(42, Dir.SIGNATURE_ENC) == missing_signature
+    assert resolve_signature_for_user(42, Dir.SIGNATURE_ENC) == Dir.SIGNATURE_ENC

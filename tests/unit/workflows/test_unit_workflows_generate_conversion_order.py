@@ -10,7 +10,7 @@ from src.workflows.tasks import generate_conversion_order as workflow
 from tests.helpers.database import initialize_test_database
 
 
-def test_generate_conversion_order_uses_exchange_amount_and_logs_amounts(
+def test_generate_conversion_order_uses_conversion_amount_and_logs_amounts(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
@@ -53,8 +53,8 @@ def test_generate_conversion_order_uses_exchange_amount_and_logs_amounts(
     output_path = workflow.generate_conversion_order_pdf(
         telegram_id=123,
         invoice_amount_eur=1500,
-        received_amount_eur=1450.75,
-        exchange_amount_eur=1200.5,
+        bank_received_amount_eur=1450.75,
+        conversion_amount_eur=1200.5,
         output_dir=tmp_path,
     )
 

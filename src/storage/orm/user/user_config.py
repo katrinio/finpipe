@@ -14,6 +14,7 @@ class UserConfig(BaseModel):
 
     telegram_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     invoice_amount_eur: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    received_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
     bank_received_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
     conversion_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
     exchange_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -69,6 +70,7 @@ class UserConfig(BaseModel):
                 config = cls(
                     telegram_id=telegram_id,
                     invoice_amount_eur=invoice_amount_eur,
+                    received_amount_eur=bank_received_amount_eur,
                     bank_received_amount_eur=bank_received_amount_eur,
                     conversion_amount_eur=resolved_conversion_amount,
                     exchange_amount_eur=resolved_conversion_amount,
@@ -78,6 +80,7 @@ class UserConfig(BaseModel):
                 if invoice_amount_eur is not None:
                     config.invoice_amount_eur = invoice_amount_eur
                 if bank_received_amount_eur is not None:
+                    config.received_amount_eur = bank_received_amount_eur
                     config.bank_received_amount_eur = bank_received_amount_eur
                 if resolved_conversion_amount is not None:
                     config.conversion_amount_eur = resolved_conversion_amount

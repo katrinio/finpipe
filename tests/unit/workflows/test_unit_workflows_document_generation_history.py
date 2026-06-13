@@ -37,7 +37,7 @@ def test_generate_conversion_order_records_failed_attempt(tmp_path: Path) -> Non
     with pytest.raises(ValueError, match="Банковские реквизиты не настроены"):
         generate_conversion_order_pdf(
             telegram_id=123,
-            exchange_amount_eur=1500,
+            conversion_amount_eur=1500,
             output_dir=tmp_path,
         )
 
