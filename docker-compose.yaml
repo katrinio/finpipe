@@ -10,18 +10,14 @@ services:
     ports:
       - "5433:5432"
 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U finpipe -d finpipe"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  finpipe:
-    build: .
-
-    environment:
-      DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
-
-    depends_on:
-      postgres:
-        condition: service_healthy
+volumes:
+  postgres_data:
