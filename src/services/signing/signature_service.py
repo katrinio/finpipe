@@ -33,6 +33,7 @@ class SignatureService:
 
         temp_path = cls._save_temp_png(file_bytes)
         destination = cls._build_destination(telegram_id)
+        success = False
 
         try:
             encrypted_path = SignatureCipher.encrypt_file(temp_path, destination)
@@ -43,8 +44,11 @@ class SignatureService:
                 signature_hash=signature_hash,
                 active=True,
             )
+            success = True
         finally:
             delete_file(temp_path, LOGGER)
+            if not success:
+                delete_file(destination, LOGGER)
 
     @staticmethod
     def _build_destination(telegram_id: int) -> Path:
