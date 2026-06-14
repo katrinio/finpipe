@@ -4,7 +4,6 @@ import pytest
 from cryptography.fernet import Fernet
 
 from scripts.bootstrap_allowed_users import bootstrap_primary_admin
-from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.orm import Signature
 from src.storage.orm.database import Database, build_sqlite_url
@@ -21,13 +20,13 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "admin")
     SignatureCipher._cipher = None
-    monkeypatch.setattr(Dir, "STORAGE_DB", tmp_path / "storage.sqlite3")
 
     source = tmp_path / "signature.png"
     destination = tmp_path / "signature.enc"
     source.write_bytes(b"signature-bytes")
 
     db_path = tmp_path / "storage.sqlite3"
+    monkeypatch.setenv("DATABASE_URL", build_sqlite_url(db_path))
     initialize_test_database(Database(build_sqlite_url(db_path)))
     bootstrap_primary_admin(db_path)
 
