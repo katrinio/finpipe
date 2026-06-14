@@ -231,3 +231,4 @@ src/storage/*.sqlite3
 src/storage/*.sqlite3-shm
 src/storage/*.sqlite3-wal
 /BACKLOG.md
+/BEFORE_DEPLOY.md
