@@ -1,7 +1,6 @@
 """Локальный Telegram listener и обработчик команд."""
 
 from scripts.bootstrap_allowed_users import bootstrap_primary_admin
-from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.handlers.command_router import CommandRouter
 from src.integrations.telegram.handlers.state_handlers import StateHandler
@@ -338,7 +337,7 @@ class TelegramBot:
 def main() -> None:
     """Точка входа для Telegram listener."""
 
-    storage = build_storage_dependencies(Dir.STORAGE_DB)
+    storage = build_storage_dependencies()
     bootstrap_primary_admin()
     bot = TelegramBot(storage)
 

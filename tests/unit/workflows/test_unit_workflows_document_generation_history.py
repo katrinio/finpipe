@@ -4,15 +4,15 @@ import pytest
 
 from src.services.bank.exceptions import BankPdfValidationError
 from src.storage.orm import DocumentGenerationHistory
-from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.database import Database
 from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
-from tests.helpers.database import initialize_test_database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 def test_fill_bank_confirmation_records_failed_attempt(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     with pytest.raises(BankPdfValidationError, match="Bank confirmation source PDF not found"):
@@ -31,7 +31,7 @@ def test_fill_bank_confirmation_records_failed_attempt(tmp_path: Path) -> None:
 
 
 def test_generate_conversion_order_records_failed_attempt(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     with pytest.raises(ValueError, match="Банковские реквизиты не настроены"):

@@ -1,12 +1,12 @@
 from pathlib import Path
 
 from src.storage.orm import AllowedUser, UserRole
-from src.storage.orm.database import Database, build_sqlite_url
-from tests.helpers.database import initialize_test_database
+from src.storage.orm.database import Database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 def test_allowed_user_create_persists_user_and_marks_existence(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     AllowedUser.create(123, "alice")
@@ -22,7 +22,7 @@ def test_allowed_user_create_persists_user_and_marks_existence(tmp_path: Path) -
 
 
 def test_allowed_user_upsert_updates_username_without_duplicate_records(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     AllowedUser.create(123, "alice")
@@ -36,7 +36,7 @@ def test_allowed_user_upsert_updates_username_without_duplicate_records(tmp_path
 
 
 def test_allowed_user_role_helpers_detect_owner_and_admin(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     AllowedUser.create(1, "owner", UserRole.OWNER)

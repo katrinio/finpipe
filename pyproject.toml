@@ -21,6 +21,7 @@ google-auth-oauthlib = "^1.4.0"
 python-dotenv = "^1.2.2"
 docxtpl = "^0.20.2"
 sqlalchemy = "^2.0.41"
+psycopg = { version = "^3.2.0", extras = ["binary"] }
 pillow = "^12.2.0"
 faker = "^40.21.0"
 cryptography = "^48.0.0"

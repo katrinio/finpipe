@@ -9,9 +9,9 @@ from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.orm import AllowedUser, Signature
-from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.database import Database
 from src.utils.credentials import EnvVar
-from tests.helpers.database import initialize_test_database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 @pytest.fixture(autouse=True)
@@ -25,7 +25,7 @@ def signature_encryption_key(monkeypatch: pytest.MonkeyPatch) -> Generator[None]
 
 
 def test_signature_create_persists_and_reuses_owner(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     first_path = tmp_path / "signature-v1.png"
@@ -62,9 +62,9 @@ def test_bootstrap_primary_admin_creates_admin_and_active_signature(
     monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
     monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "777_sign.enc")
 
-    db_path = tmp_path / "storage.sqlite3"
-    initialize_test_database(Database(build_sqlite_url(db_path)))
-    bootstrap_primary_admin(db_path)
+    db_path = tmp_path / "test.db"
+    initialize_test_database(Database(build_test_database_url(db_path)))
+    bootstrap_primary_admin()
 
     admin = AllowedUser.get_by_telegram_id(777)
     signature = Signature.get_active(777)
@@ -90,12 +90,12 @@ def test_bootstrap_primary_admin_is_idempotent(
     monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
     monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "777_sign.enc")
 
-    db_path = tmp_path / "storage.sqlite3"
-    initialize_test_database(Database(build_sqlite_url(db_path)))
-    bootstrap_primary_admin(db_path)
+    db_path = tmp_path / "test.db"
+    initialize_test_database(Database(build_test_database_url(db_path)))
+    bootstrap_primary_admin()
     first_signature = Signature.get_by_owner(777)
 
-    bootstrap_primary_admin(db_path)
+    bootstrap_primary_admin()
     second_signature = Signature.get_by_owner(777)
 
     assert first_signature is not None
@@ -107,7 +107,7 @@ def test_bootstrap_primary_admin_is_idempotent(
 
 
 def test_signature_delete_removes_db_row_and_file(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     signature_path = tmp_path / "777_sign.enc"
@@ -129,7 +129,7 @@ def test_signature_delete_removes_db_row_and_file(tmp_path: Path) -> None:
 
 
 def test_resolve_workflow_signature_path_recovers_legacy_path_when_user_file_exists(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     legacy_path = tmp_path / "signatures" / "signature.enc"

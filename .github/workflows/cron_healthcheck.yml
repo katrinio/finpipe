@@ -7,10 +7,26 @@ jobs:
   daily-healthcheck:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: finpipe_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d finpipe_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
       BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/finpipe_test
 
     steps:
       - uses: actions/checkout@v5
@@ -27,6 +43,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install
+
+      - name: Debug database url
+        run: echo "DATABASE_URL=${DATABASE_URL}"
+
 
       - name: Run Unit Tests
         id: units
