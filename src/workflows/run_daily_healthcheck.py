@@ -19,6 +19,7 @@ def main() -> int:
         build_storage_dependencies()
         bootstrap_primary_admin()
         owner = AllowedUser.get_owner()
+        allowed_users_count = len(AllowedUser.list_all())
         if owner is None:
             raise RuntimeError("Owner is not bootstrapped in storage")
         TelegramClient().send_daily_report(
@@ -27,6 +28,7 @@ def main() -> int:
             integration_status=os.environ["INTEGRATION_STATUS"],
             telegram_status=os.environ["TELEGRAM_STATUS"],
             duration_seconds=int(os.environ["DURATION"]),
+            allowed_users_count=allowed_users_count,
         )
     except Exception:
         LOGGER.exception("Healthcheck failed.")

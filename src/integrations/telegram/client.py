@@ -94,27 +94,24 @@ class TelegramClient:
         integration_status: str,
         telegram_status: str,
         duration_seconds: int,
+        allowed_users_count: int,
     ) -> None:
         """Отправляет итоговый отчёт по ежедневной проверке проекта."""
 
-        overall_success = all(
-            status == "success"
-            for status in (
-                unit_status,
-                integration_status,
-                telegram_status,
-            )
-        )
-
-        icon = "✅" if overall_success else "❌"
-
         report_message = (
-            f"{icon} Finpipe daily check\n\n"
+            "🌅 Finpipe daily check"
             f"Unit tests: {Utils.format_status(unit_status)}\n"
             f"Integration tests: {Utils.format_status(integration_status)}\n"
             f"Telegram bot: {Utils.format_status(telegram_status)}\n"
             f"Duration: {duration_seconds}s\n\n"
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
+            "📊 Finpipe usage"
+            f"Users: {allowed_users_count}"
+            f"Active signatures: 🫟"
+            f"Generated invoices: 🫟"
+            f"Generated bank PDFs: 🫟"
+            f"Google accounts connected: 🫟"
+            f"Errors (24h): 🫟"
         )
 
         self.send_message(chat_id, report_message)
