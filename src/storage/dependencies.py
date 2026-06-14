@@ -1,9 +1,7 @@
 """Сборка storage-зависимостей для composition root workflow-слоя."""
 
 from dataclasses import dataclass
-from pathlib import Path
 
-from src.storage.config import DatabaseConfig
 from src.storage.migrations import run_alembic_upgrade_head
 from src.storage.orm import AuditLog, ProcessedMessage
 from src.storage.orm.database import Database
@@ -19,12 +17,11 @@ class StorageDependencies:
     processed_messages: type[ProcessedMessage]
 
 
-def build_storage_dependencies(database_url: str | Path | None = None) -> StorageDependencies:
+def build_storage_dependencies() -> StorageDependencies:
     """Применяет миграции и возвращает репозитории для workflow-композиции."""
 
-    resolved_database_url = DatabaseConfig.get_database_url(database_url)
-    run_alembic_upgrade_head(resolved_database_url)
-    database = Database(resolved_database_url)
+    run_alembic_upgrade_head()
+    database = Database.from_env()
     database.bind_models()
 
     return StorageDependencies(

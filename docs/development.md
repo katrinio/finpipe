@@ -10,7 +10,7 @@
 
 * Python 3.14
 * Poetry
-* SQLite
+* PostgreSQL
 * cloudflared (для локальной Gmail OAuth разработки)
 
 Подготовка окружения:
@@ -60,7 +60,13 @@ cp .env.dist .env
 
 `poetry run python src/integrations/telegram/bot.py`
 
-Бот использует: `data/finpipe.db` и настройки из .env.
+Бот использует `DATABASE_URL` и настройки из `.env`.
+
+Пример для PostgreSQL:
+
+```env
+DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
+```
 
 ⸻
 
@@ -160,24 +166,25 @@ Health:
 curl http://localhost:8000/health
 
 Последние OAuth sessions:
-```
-sqlite3 data/finpipe.db \
-"SELECT id,state,telegram_id,status,expires_at,used_at
+
+```sql
+SELECT id, state, telegram_id, status, expires_at, used_at
 FROM oauth_sessions
 ORDER BY id DESC
-LIMIT 5;"
+LIMIT 5;
 ```
+
 Последние Gmail подключения:
-```
-sqlite3 data/finpipe.db \
-"SELECT id,
-        owner_telegram_id,
-        gmail_refresh_token IS NOT NULL,
-        gmail_connected_at,
-        gmail_last_error
+
+```sql
+SELECT id,
+       owner_telegram_id,
+       gmail_refresh_token IS NOT NULL,
+       gmail_connected_at,
+       gmail_last_error
 FROM gmail_account
 ORDER BY id DESC
-LIMIT 5;"
+LIMIT 5;
 ```
 ⸻
 

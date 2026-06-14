@@ -9,7 +9,6 @@ from pathlib import Path
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
-from src.storage.config import DatabaseConfig
 from src.storage.migrations import run_alembic_upgrade_head
 from src.storage.orm import AllowedUser, Signature
 from src.storage.orm.database import Database
@@ -66,7 +65,7 @@ def encrypt_signature_workflow(source: Path, destination: Path) -> Path:
     signature_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
 
     run_alembic_upgrade_head()
-    database = Database(DatabaseConfig.get_database_url())
+    database = Database.from_env()
     database.bind_models()
     owner = AllowedUser.get_owner()
     if owner is None:
