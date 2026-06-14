@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
+from src.storage.config import DatabaseConfig
 from src.storage.exceptions import StorageConfigurationError
 from src.storage.orm.base import BaseModel
 
@@ -21,6 +22,12 @@ class Database:
         self._engine = create_engine(database_url, echo=echo, future=True)
         self._session_factory = sessionmaker(bind=self._engine, expire_on_commit=False, class_=Session)
         self._configure_sqlite()
+
+    @property
+    def database_url(self) -> str:
+        """Returns the configured database URL."""
+
+        return self._database_url
 
     @property
     def engine(self) -> Engine:
@@ -66,4 +73,4 @@ class Database:
 def build_sqlite_url(db_path: Path) -> str:
     """Строит SQLAlchemy URL для SQLite-файла."""
 
-    return f"sqlite:///{db_path}"
+    return DatabaseConfig.build_sqlite_url(db_path)
