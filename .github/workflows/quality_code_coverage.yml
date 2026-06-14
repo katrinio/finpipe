@@ -12,22 +12,22 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: finpipe
+          POSTGRES_PASSWORD: finpipe
           POSTGRES_DB: finpipe_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d finpipe_test"
+          --health-cmd "pg_isready -U finpipe -d finpipe_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
 
     env:
       SIGNATURE_ENCRYPTION_KEY: ${{ secrets.SIGNATURE_ENCRYPTION_KEY }}
-      DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/finpipe_test
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
         run: poetry install
 
       - name: Debug database url
-        run: echo "DATABASE_URL=${DATABASE_URL}"
+        run: echo "TEST_DATABASE_URL=${TEST_DATABASE_URL}"
 
       - name: Generate coverage report
         run: |
