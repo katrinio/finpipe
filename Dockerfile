@@ -5,12 +5,12 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+COPY pyproject.toml poetry.lock README.md ./
+
 RUN pip install --no-cache-dir poetry
 
-COPY pyproject.toml poetry.lock ./
-
 RUN poetry config virtualenvs.create false \
-    && poetry install --only main --no-interaction --no-ansi
+    && poetry install --only main --no-root --no-interaction --no-ansi
 
 COPY alembic.ini README.md ./
 COPY src ./src
@@ -19,4 +19,4 @@ COPY scripts ./scripts
 COPY templates ./templates
 COPY attachments ./attachments
 
-CMD ["start_bot"]
+CMD ["python", "-m", "src.integrations.telegram.bot"]
