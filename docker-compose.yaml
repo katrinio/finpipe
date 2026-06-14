@@ -19,5 +19,18 @@ services:
       timeout: 5s
       retries: 5
 
+  finpipe:
+    build: .
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
