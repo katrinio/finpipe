@@ -28,7 +28,7 @@ def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
                 quoted_names = ", ".join(f'"{table_name}"' for table_name in table_names)
                 connection.execute(text(f"TRUNCATE TABLE {quoted_names} RESTART IDENTITY CASCADE"))
     except Exception as exc:  # pragma: no cover - surfaces environment misconfiguration
-        raise RuntimeError("PostgreSQL test database is unavailable. Set DATABASE_URL to a reachable PostgreSQL database.") from exc
+        raise RuntimeError(f"PostgreSQL test database is unavailable: {type(exc).__name__}: {exc}. DATABASE_URL={database_url!r}") from exc
     finally:
         engine.dispose()
 
@@ -63,6 +63,6 @@ def _ensure_database_exists(database_url: str) -> None:
             if not exists:
                 connection.execute(text(f'CREATE DATABASE "{url.database}"'))
     except Exception as exc:
-        raise RuntimeError(f"PostgreSQL test database is unavailable. DATABASE_URL={database_url!r}") from exc
+        raise RuntimeError(f"PostgreSQL test database is unavailable: {type(exc).__name__}: {exc}. DATABASE_URL={database_url!r}") from exc
     finally:
         admin_engine.dispose()
