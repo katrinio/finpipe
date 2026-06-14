@@ -1,5 +1,7 @@
 """Локальный Telegram listener и обработчик команд."""
 
+import time
+
 from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.handlers.command_router import CommandRouter
@@ -13,6 +15,7 @@ from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
 from src.integrations.telegram.ui.messages import CommonMessagesV2
+from src.logging_config import configure_logging
 from src.services.known_user_service import KnownUserService
 from src.storage.dependencies import (
     StorageDependencies,
@@ -337,6 +340,7 @@ class TelegramBot:
 def main() -> None:
     """Точка входа для Telegram listener."""
 
+    configure_logging()
     storage = build_storage_dependencies()
     bootstrap_primary_admin()
     bot = TelegramBot(storage)
@@ -347,7 +351,8 @@ def main() -> None:
             bot.poll()
         except Exception:
             LOGGER.exception("Telegram listener iteration failed")
-            raise
+            time.sleep(5)
+        time.sleep(1)
 
 
 if __name__ == "__main__":
