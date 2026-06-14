@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
@@ -9,22 +11,22 @@ pytest_plugins = (
     "tests.fixtures.storage",
     "tests.fixtures.telegram",
 )
+assert os.getenv("TEST_DATABASE_URL"), "TEST_DATABASE_URL is missing"
 
 
 @pytest.fixture(autouse=True)
 def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
     """Uses dedicated PostgreSQL test database and clears it per test."""
-    print("______≠T")
 
     database_url = DatabaseConfig.get_test_database_url()
 
-    print("______database_url =", database_url)
+    print("database_url =", database_url)
 
     monkeypatch.setenv("DATABASE_URL", database_url)
 
     url = make_url(database_url)
-    print("______parsed database =", url.database)
-    print("______parsed host =", url.host)
+    print("parsed database =", url.database)
+    print("parsed host =", url.host)
 
     _ensure_database_exists(database_url)
     engine = create_engine(database_url, future=True)
