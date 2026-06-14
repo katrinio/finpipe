@@ -14,7 +14,7 @@ pytest_plugins = (
 @pytest.fixture(autouse=True)
 def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
     """Uses dedicated PostgreSQL test database and clears it per test."""
-    print("______FIXTURE START")
+    print("______≠T")
 
     database_url = DatabaseConfig.get_test_database_url()
 
@@ -43,7 +43,11 @@ def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _ensure_database_exists(database_url: str) -> None:
+    print("RAW DATABASE URL:", database_url)
     url = make_url(database_url)
+    print("HOST:", url.host)
+    print("PORT:", url.port)
+    print("DB:", url.database)
     if url.get_backend_name() != "postgresql":
         raise RuntimeError("Tests require PostgreSQL. Set TEST_DATABASE_URL to a PostgreSQL URL.")
 
