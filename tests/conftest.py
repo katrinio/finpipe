@@ -23,12 +23,11 @@ def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
     print("database_url =", database_url)
 
     monkeypatch.setenv("DATABASE_URL", database_url)
-
-    print("parsed database =", database_url.database)
-    print("parsed host =", database_url.host)
     from sqlalchemy.engine import make_url
 
     url = make_url(database_url)
+    print("parsed database =", url.database)
+    print("parsed host =", url.host)
 
     raise RuntimeError(f"DATABASE_URL={database_url}, HOST={url.host}, DB={url.database}")
     _ensure_database_exists(database_url)
