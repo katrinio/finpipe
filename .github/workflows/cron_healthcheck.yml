@@ -18,7 +18,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d finpipe_test"
+          --health-cmd "pg_isready -U finpipe -d finpipe_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -43,6 +43,10 @@ jobs:
         run: |
           psql -h localhost -U finpipe -d postgres \
           -c "CREATE DATABASE finpipe_test;"
+
+      - name: Debug database env
+        run: |
+          echo "TEST_DATABASE_URL=$TEST_DATABASE_URL"
 
       - name: Install dependencies
         run: |

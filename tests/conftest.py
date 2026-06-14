@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
@@ -23,7 +25,8 @@ def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
 
     url = make_url(database_url)
     assert url.database.endswith("_test")
-
+    print("ENV TEST_DATABASE_URL =", os.getenv("TEST_DATABASE_URL"))
+    print("database_url =", database_url)
     _ensure_database_exists(database_url)
     engine = create_engine(database_url, future=True)
     try:
