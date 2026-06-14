@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from src.integrations.telegram.states import UserState
@@ -7,14 +7,14 @@ from src.storage.orm.database import Database
 from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.system.user_state_storage import UserStateStorage
-from tests.helpers.database import build_test_database_url, initialize_test_database
+from tests.helpers.database import initialize_test_database
 
 
 def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
-    database = Database(build_test_database_url(tmp_path / "test.db"))
+    database = Database.from_env()
     initialize_test_database(database)
 
-    now = datetime.now(UTC)
+    now = datetime.utcnow()
     AllowedUser.create(telegram_id=1, username="owner")
     allowed_user = AllowedUser.get_by_telegram_id(1)
     assert allowed_user is not None
@@ -26,7 +26,7 @@ def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
     assert abs((now - known_user.created_at).total_seconds()) < 5
     assert abs((now - known_user.last_seen_at).total_seconds()) < 5
 
-    expires_at = datetime.now(UTC).replace(microsecond=987654) + timedelta(minutes=15)
+    expires_at = datetime.utcnow().replace(microsecond=987654) + timedelta(minutes=15)
     OAuthSession.create(
         telegram_id=3,
         telegram_username="oauth",
@@ -48,10 +48,10 @@ def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
 
 
 def test_updated_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
-    database = Database(build_test_database_url(tmp_path / "test.db"))
+    database = Database.from_env()
     initialize_test_database(database)
 
-    now = datetime.now(UTC)
+    now = datetime.utcnow()
     UserConfig.upsert(telegram_id=10, invoice_amount_eur=1000)
     UserConfig.upsert(telegram_id=10, invoice_amount_eur=1500)
     user_config = UserConfig.get_by_owner(10)
