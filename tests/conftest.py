@@ -23,7 +23,7 @@ def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
     try:
         with engine.begin() as connection:
             inspector = inspect(connection)
-            table_names = inspector.get_table_names()
+            table_names = [table_name for table_name in inspector.get_table_names() if table_name != "alembic_version"]
             if table_names:
                 quoted_names = ", ".join(f'"{table_name}"' for table_name in table_names)
                 connection.execute(text(f"TRUNCATE TABLE {quoted_names} RESTART IDENTITY CASCADE"))
