@@ -5,17 +5,17 @@ import pytest
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.ui.buttons import GmailButtons
 from src.integrations.telegram.ui.messages import GmailMessagesV2
-from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.database import Database
 from src.storage.orm.system.oauth_session import OAuthSession
 from tests.fakes.fake_telegram import FakeTelegramClient
-from tests.helpers.database import initialize_test_database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 def test_gmail_connect_sends_inline_authorization_button(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     telegram = FakeTelegramClient()
     handler = GmailHandlers(telegram)

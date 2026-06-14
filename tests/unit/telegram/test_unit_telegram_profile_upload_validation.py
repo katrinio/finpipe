@@ -9,7 +9,7 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 def test_profile_upload_returns_success_message_with_real_values(tmp_path: Path) -> None:
-    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, state_service=UserStateService)
 
@@ -46,7 +46,7 @@ bic: TESTRSBG
 
 
 def test_profile_upload_rejects_incomplete_profile_without_persisting_data(tmp_path: Path) -> None:
-    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, state_service=UserStateService)
 

@@ -22,9 +22,8 @@ class TestTelegramBot:
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "owner")
-        db_path = tmp_path / "storage.sqlite3"
-        storage = build_storage_dependencies(db_path)
-        bootstrap_primary_admin(db_path)
+        storage = build_storage_dependencies()
+        bootstrap_primary_admin()
 
         bot = TelegramBot(storage, telegram=fake_telegram_client())
 
@@ -35,7 +34,7 @@ class TestTelegramBot:
         fake_telegram_client: Callable[..., FakeTelegramClient],
         tmp_path: Path,
     ) -> None:
-        storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+        storage = build_storage_dependencies()
         AllowedUser.create(123, "alice")
 
         bot = TelegramBot(storage, telegram=fake_telegram_client())
@@ -48,7 +47,7 @@ class TestTelegramBot:
         fake_telegram_client: Callable[..., FakeTelegramClient],
         tmp_path: Path,
     ) -> None:
-        build_storage_dependencies(tmp_path / "storage.sqlite3")
+        build_storage_dependencies()
         telegram_client = fake_telegram_client(
             {
                 "result": [
@@ -62,7 +61,7 @@ class TestTelegramBot:
                 ]
             }
         )
-        bot = TelegramBot(build_storage_dependencies(tmp_path / "storage.sqlite3"), telegram=telegram_client)
+        bot = TelegramBot(build_storage_dependencies(), telegram=telegram_client)
 
         caplog.clear()
         bot.process_update(
@@ -85,7 +84,7 @@ class TestTelegramBot:
         fake_telegram_client: Callable[..., FakeTelegramClient],
         tmp_path: Path,
     ) -> None:
-        storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+        storage = build_storage_dependencies()
         telegram_client = fake_telegram_client(
             {
                 "result": [
@@ -129,9 +128,8 @@ class TestTelegramBot:
     ) -> None:
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
         monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "owner")
-        db_path = tmp_path / "storage.sqlite3"
-        storage = build_storage_dependencies(db_path)
-        bootstrap_primary_admin(db_path)
+        storage = build_storage_dependencies()
+        bootstrap_primary_admin()
         KnownUser.upsert(telegram_id=123456789, username="target_user", first_name="Target")
 
         telegram_client = fake_telegram_client(

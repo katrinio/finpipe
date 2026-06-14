@@ -17,7 +17,7 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
     from src.utils.credentials import EnvVar
 
     EnvVar.reset_dotenv_cache()
-    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, UserStateService)
 
@@ -93,7 +93,7 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
 
 
 def test_profile_screen_marks_signature_unusable_when_file_is_missing(tmp_path: Path) -> None:
-    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, UserStateService)
 

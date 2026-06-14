@@ -1,10 +1,10 @@
 from pathlib import Path
 
 from src.services.profile_template.profile_template_service import ProfileTemplateService
-from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.database import Database
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
-from tests.helpers.database import initialize_test_database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 PROFILE_YAML = b"""
 company_name: Test Company
@@ -20,7 +20,7 @@ bic: TESTRSBG
 
 
 def test_profile_import_happy_path_creates_company_profile_and_bank_details(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     profile = ProfileTemplateService.parse(PROFILE_YAML)
@@ -44,7 +44,7 @@ def test_profile_import_happy_path_creates_company_profile_and_bank_details(tmp_
 
 
 def test_profile_reimport_updates_existing_records(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     first_profile = ProfileTemplateService.parse(PROFILE_YAML)

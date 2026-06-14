@@ -5,10 +5,20 @@ Finpipe — сервис для автоматизации Salary Invoice, Bank 
 Проект вырос из набора локальных скриптов в единый сервис с:
 
 - Telegram-ботом
-- SQLite-хранилищем
+- PostgreSQL-хранилищем
 - пользовательскими профилями
 - Gmail-интеграцией
 - историей генерации документов
+
+## Database
+
+Finpipe uses PostgreSQL.
+
+Example:
+
+```env
+DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
+```
 
 ## Main Features
 
@@ -61,8 +71,7 @@ poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
 
 ## Documentation
 
-- Development: [docs/development.md](/Users/katrin/PycharmProjects/finpipe/docs/development.md)
-- Gmail OAuth: [docs/oauth.md](/Users/katrin/PycharmProjects/finpipe/docs/oauth.md)
-- Storage: [docs/storage.md](/Users/katrin/PycharmProjects/finpipe/docs/storage.md)
-- Telegram UI: [src/integrations/telegram/README.md](/Users/katrin/PycharmProjects/finpipe/src/integrations/telegram/README.md)
-
+- Development: [docs/development.md](docs/development.md)
+- Gmail OAuth: [docs/oauth.md](docs/oauth.md)
+- Storage: [docs/storage.md](docs/storage.md)
+- Telegram UI: [src/integrations/telegram/README.md](src/integrations/telegram/README.md)

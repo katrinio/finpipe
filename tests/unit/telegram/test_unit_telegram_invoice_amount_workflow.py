@@ -13,7 +13,7 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 def test_invoice_amount_button_starts_waiting_state_and_prompts(tmp_path: Path) -> None:
-    storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+    storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
@@ -34,7 +34,7 @@ def test_invoice_amount_button_starts_waiting_state_and_prompts(tmp_path: Path) 
 
 
 def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path) -> None:
-    storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+    storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
@@ -74,7 +74,7 @@ def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path
 
 
 def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path: Path) -> None:
-    storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+    storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
@@ -113,7 +113,7 @@ def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path
 
 
 def test_get_invoice_amount_reports_missing_value(tmp_path: Path) -> None:
-    storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+    storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
@@ -129,7 +129,7 @@ def test_get_invoice_amount_reports_missing_value(tmp_path: Path) -> None:
 
 
 def test_bank_confirmation_reports_missing_signature(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    storage = build_storage_dependencies(tmp_path / "storage.sqlite3")
+    storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)

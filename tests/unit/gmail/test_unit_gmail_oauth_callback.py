@@ -11,17 +11,17 @@ from src.integrations.gmail.exceptions import (
 )
 from src.integrations.gmail.gmail_oauth import GmailOAuthResult
 from src.integrations.gmail.oauth_callback import GmailOAuthCallbackService
-from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.database import Database
 from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.user.gmail_account import GmailAccount
-from tests.helpers.database import initialize_test_database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 def test_successful_callback_connects_gmail_and_marks_session_used(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("GMAIL_OAUTH_CALLBACK_URL", "https://example.test/oauth/gmail/callback")
@@ -65,7 +65,7 @@ def test_callback_validation_errors_raise(code, state, error, message) -> None:
 
 
 def test_invalid_state_raises_gmail_oauth_error(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     monkeypatch.setenv("GMAIL_OAUTH_CALLBACK_URL", "https://example.test/oauth/gmail/callback")
 
@@ -77,7 +77,7 @@ def test_callback_service_wraps_unexpected_failure(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     monkeypatch.setenv("GMAIL_OAUTH_CALLBACK_URL", "https://example.test/oauth/gmail/callback")
     expires_at = datetime.now(UTC) + timedelta(minutes=15)
@@ -99,7 +99,7 @@ def test_reused_state_raises_specific_error(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     monkeypatch.setenv("GMAIL_OAUTH_CALLBACK_URL", "https://example.test/oauth/gmail/callback")
     expires_at = datetime.now(UTC) + timedelta(minutes=15)
@@ -114,7 +114,7 @@ def test_token_exchange_failure_marks_session_failed(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     monkeypatch.setenv("GMAIL_OAUTH_CALLBACK_URL", "https://example.test/oauth/gmail/callback")
     expires_at = datetime.now(UTC) + timedelta(minutes=15)
