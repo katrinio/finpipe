@@ -27,7 +27,7 @@ jobs:
 
     env:
       SIGNATURE_ENCRYPTION_KEY: ${{ secrets.SIGNATURE_ENCRYPTION_KEY }}
-      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      TEST_DATABASE_URL: postgresql+psycopg://finpipe:finpipe@localhost:5432/finpipe_test
 
     steps:
       - uses: actions/checkout@v4
