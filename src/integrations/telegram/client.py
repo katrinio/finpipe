@@ -6,7 +6,7 @@ from pathlib import Path
 from src.infrastructure.http.http_client import HttpClient
 from src.integrations.telegram.exceptions import TelegramApiError
 from src.utils import Utils
-from src.utils.credentials import EnvVar
+from src.utils.credentials import LOGGER, EnvVar
 
 
 class TelegramClient:
@@ -36,6 +36,7 @@ class TelegramClient:
         }
         if reply_markup is not None:
             payload["reply_markup"] = reply_markup
+        LOGGER.info("Sending daily report to chat_id=%s", self.token)
 
         self.http.post(
             f"{self.base_url}/sendMessage",
