@@ -62,7 +62,7 @@ def _ensure_database_exists(database_url: str) -> None:
             ).scalar_one_or_none()
             if not exists:
                 connection.execute(text(f'CREATE DATABASE "{url.database}"'))
-    except Exception as exc:  # pragma: no cover - environment-specific
-        raise RuntimeError("PostgreSQL test database is unavailable. Set DATABASE_URL to a reachable PostgreSQL database.") from exc
+    except Exception as exc:
+        raise RuntimeError(f"PostgreSQL test database is unavailable. DATABASE_URL={database_url!r}") from exc
     finally:
         admin_engine.dispose()
