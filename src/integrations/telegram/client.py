@@ -113,6 +113,7 @@ class TelegramClient:
             f"Integration tests: {Utils.format_status(integration_status)}\n"
             f"Telegram bot: {Utils.format_status(telegram_status)}\n"
             f"Duration: {duration_seconds}s\n\n"
+            "_____"
             "📊 Finpipe usage\n\n"
             f"Users: {allowed_users_count}\n"
             f"Active signatures: -\n"
@@ -120,6 +121,7 @@ class TelegramClient:
             f"Generated bank PDFs: -\n"
             f"Google accounts connected: -\n"
             f"Errors (24h): -\n-\n"
+            "_____"
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
         )
 
