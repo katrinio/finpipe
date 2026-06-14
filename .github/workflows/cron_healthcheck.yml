@@ -21,45 +21,43 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
       BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
-      TEST_DATABASE_URL: postgresql+psycopg://finpipe:finpipe@localhost:5432/finpipe_test
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
 
     steps:
       - uses: actions/checkout@v5
-
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-
       - name: Record start time
-        run: echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
 
+        run: echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
       - name: Install dependencies
+
         run: |
           python -m pip install --upgrade pip
           pip install poetry
           poetry install
-
-      - name: Run Unit Tests
-        id: units
-        continue-on-error: true
-        run: |
-          poetry run pytest tests/unit -s
 
       - name: Install LibreOffice
         run: |
           sudo apt-get update
           sudo apt-get install -y libreoffice
 
+      - name: Run Unit Tests
+        id: units
+        continue-on-error: true
+        run: |
+          poetry run pytest tests/unit
+
       - name: Run Integration Tests
         id: integration
         continue-on-error: true
         run: |
-          poetry run pytest tests/integration -s
+          poetry run pytest tests/integration
 
       - name: Run Telegram Health Check
         id: telegram
@@ -73,6 +71,7 @@ jobs:
           echo "DURATION=$(( $(date +%s) - $START_TIME ))" >> $GITHUB_ENV
 
       - name: Send Health Report
+        if: always()
         env:
           UNIT_STATUS: ${{ steps.units.outcome }}
           INTEGRATION_STATUS: ${{ steps.integration.outcome }}
@@ -80,20 +79,16 @@ jobs:
           DURATION: ${{ env.DURATION }}
         run: |
           poetry run python -m src.workflows.run_daily_healthcheck
-          
 
       - name: Send Health Failure
         if: failure()
         run: |
           PIPELINE_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-      
           curl -X POST \
             "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.BOT_OWNER_TELEGRAM_ID }}" \
             -d text="❌ Healthcheck failed
-      
           Repository: ${{ github.repository }}
           Branch: ${{ github.ref_name }}
           Commit: ${{ github.sha }}
-          
           🔗 Pipeline: ${PIPELINE_URL}"
