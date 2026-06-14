@@ -25,6 +25,7 @@ DEFAULT_DB_PATH = Dir.STORAGE_DB
 def build_storage_dependencies(db_path: Path = DEFAULT_DB_PATH) -> StorageDependencies:
     """Применяет миграции и возвращает репозитории для workflow-композиции."""
 
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     run_alembic_upgrade_head(db_path)
     database = Database(build_sqlite_url(db_path))
     database.bind_models()
