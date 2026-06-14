@@ -37,6 +37,11 @@ class TelegramClient:
         if reply_markup is not None:
             payload["reply_markup"] = reply_markup
         LOGGER.info("Sending daily report to chat_id=%s", self.token)
+        LOGGER.info(
+            "Sending daily report to chat_id ending with %s",
+            str(self.token)[-4:],
+        )
+        print(f"DEBUG chat_id={chat_id}")
 
         self.http.post(
             f"{self.base_url}/sendMessage",
