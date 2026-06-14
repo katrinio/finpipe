@@ -9,6 +9,7 @@ pytest_plugins = (
     "tests.fixtures.storage",
     "tests.fixtures.telegram",
 )
+raise RuntimeError("CONFTST LOADED")
 
 
 @pytest.fixture(autouse=True)
