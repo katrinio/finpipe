@@ -38,11 +38,11 @@ def main() -> int:
     received_amount_eur = extract_amount(bank_template_path)
     UserConfig.upsert(
         telegram_id=owner.telegram_id,
-        received_amount_eur=received_amount_eur,
+        bank_received_amount_eur=received_amount_eur,
     )
     user_config = UserConfig.get_by_owner(owner.telegram_id)
     exchange_amount_eur = (
-        user_config.exchange_amount_eur if user_config is not None and user_config.exchange_amount_eur is not None else received_amount_eur
+        user_config.conversion_amount_eur if user_config is not None and user_config.conversion_amount_eur is not None else received_amount_eur
     )
     invoice_amount_eur = user_config.invoice_amount_eur if user_config is not None else None
 
@@ -52,8 +52,8 @@ def main() -> int:
     conversion_order_pdf_path = generate_conversion_order_pdf(
         owner.telegram_id,
         invoice_amount_eur=invoice_amount_eur,
-        received_amount_eur=received_amount_eur,
-        exchange_amount_eur=exchange_amount_eur,
+        bank_received_amount_eur=received_amount_eur,
+        conversion_amount_eur=exchange_amount_eur,
     )
     telegram_client.send_message(owner.telegram_id, Message.CONVERSION_ORDER_GENERATED)
 

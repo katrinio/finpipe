@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from cryptography.fernet import Fernet
+
+from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.state_service import UserStateService
 from src.storage.dependencies import build_storage_dependencies
@@ -10,6 +13,10 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) -> None:
+    SignatureCipher._cipher = None
+    from src.utils.credentials import EnvVar
+
+    EnvVar.reset_dotenv_cache()
     build_storage_dependencies(tmp_path / "storage.sqlite3")
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, UserStateService)
@@ -31,7 +38,18 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         bic="EXAMPLERSBG",
     )
     UserConfig.upsert(telegram_id=123, invoice_amount_eur=566)
-    Signature.create(owner_telegram_id=123, signature_path=tmp_path / "signature.png", signature_hash="hash")
+    source = tmp_path / "signature.png"
+    source.write_bytes(b"signature-bytes")
+    encrypted = tmp_path / "signature.enc"
+    SignatureCipher._cipher = None
+    from src.utils.credentials import EnvVar
+
+    EnvVar.reset_dotenv_cache()
+    import os
+
+    os.environ["SIGNATURE_ENCRYPTION_KEY"] = Fernet.generate_key().decode()
+    SignatureCipher.encrypt_file(source, encrypted)
+    Signature.create(owner_telegram_id=123, signature_path=encrypted, signature_hash="hash")
 
     handlers.show_profile(123)
 
@@ -72,3 +90,16 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         "💰 Invoice\n"
         "• 566 EUR",
     ]
+
+
+def test_profile_screen_marks_signature_unusable_when_file_is_missing(tmp_path: Path) -> None:
+    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    telegram_client = FakeTelegramClient()
+    handlers = ProfileHandlers(telegram_client, UserStateService)
+
+    Signature.create(owner_telegram_id=123, signature_path=tmp_path / "missing-signature.enc", signature_hash="hash")
+
+    handlers.show_profile(123)
+
+    assert "✍️ Подпись          ⭕" in telegram_client.sent_messages[0]
+    assert "• Не загружена" in telegram_client.sent_messages[0]

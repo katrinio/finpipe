@@ -3,6 +3,7 @@ import logging
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
+from src.integrations.telegram.ui.menu.profile_menu import build_signature_menu
 from src.integrations.telegram.ui.messages import SignatureMessagesV2
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
@@ -23,7 +24,7 @@ class SignatureHandlers:
 
         LOGGER.info("Signature upload requested by Telegram user %s", telegram_id)
         self.state_service.set_state(telegram_id, UserState.WAITING_SIGNATURE_UPLOAD)
-        self.telegram.send_message(telegram_id, SignatureMessagesV2.Upload.REQUIREMENTS)
+        self.telegram.send_message(telegram_id, SignatureMessagesV2.Upload.REQUIREMENTS, reply_markup=build_signature_menu())
 
     def handle_signature_upload(self, telegram_id: int, file_name: str, file_size: int, file_bytes: bytes) -> None:
         """Проверяет и сохраняет загруженную подпись пользователя."""
@@ -38,20 +39,20 @@ class SignatureHandlers:
             )
         except InvalidSignatureFormatError:
             LOGGER.warning("Signature rejected by format for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, SignatureMessagesV2.Validation.NOT_PNG)
+            self.telegram.send_message(telegram_id, SignatureMessagesV2.Validation.NOT_PNG, reply_markup=build_signature_menu())
             return
         except SignatureTooLargeError:
             LOGGER.warning("Signature rejected by size for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, SignatureMessagesV2.Validation.TOO_LARGE)
+            self.telegram.send_message(telegram_id, SignatureMessagesV2.Validation.TOO_LARGE, reply_markup=build_signature_menu())
             return
         except InvalidSignatureImageError:
             LOGGER.warning("Signature rejected by content for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, SignatureMessagesV2.Validation.UPLOAD_ERROR)
+            self.telegram.send_message(telegram_id, SignatureMessagesV2.Validation.UPLOAD_ERROR, reply_markup=build_signature_menu())
             return
 
         self.state_service.clear_state(telegram_id)
         LOGGER.info("Signature uploaded for Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, SignatureMessagesV2.Upload.UPDATED)
+        self.telegram.send_message(telegram_id, SignatureMessagesV2.Upload.UPDATED, reply_markup=build_signature_menu())
 
     def delete_signature(self, telegram_id: int) -> None:
         """Удаляет текущую подпись пользователя."""
@@ -59,21 +60,20 @@ class SignatureHandlers:
         signature = Signature.get_active(telegram_id)
         if signature is None:
             LOGGER.warning("Signature delete requested but not found for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.NOT_FOUND)
-            return
+            self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.NOT_FOUND, reply_markup=build_signature_menu())
             return
 
         Signature.delete(telegram_id)
         LOGGER.info("Signature deleted for Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, SignatureMessagesV2.Delete.DELETED)
+        self.telegram.send_message(telegram_id, SignatureMessagesV2.Delete.DELETED, reply_markup=build_signature_menu())
 
     def signature_status(self, telegram_id: int) -> None:
         """Сообщает, загружена ли подпись для пользователя."""
 
-        if not Signature.exists(telegram_id):
-            LOGGER.info("Signature status checked: not found for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.NOT_FOUND)
+        if not Signature.is_usable(telegram_id):
+            LOGGER.info("Signature status checked: not usable for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.NOT_FOUND, reply_markup=build_signature_menu())
             return
 
-        LOGGER.info("Signature status checked: found for Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.FOUND)
+        LOGGER.info("Signature status checked: usable for Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, SignatureMessagesV2.Status.FOUND, reply_markup=build_signature_menu())

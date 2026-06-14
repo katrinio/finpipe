@@ -4,7 +4,7 @@ from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 
 def test_guest_menu_contains_only_whoami() -> None:
     assert build_guest_menu() == {
-        "keyboard": [[{"text": "👤 Кто я"}]],
+        "keyboard": [[{"text": "👤 Кто я"}, {"text": "🏠 Домой"}]],
         "resize_keyboard": True,
     }
 
