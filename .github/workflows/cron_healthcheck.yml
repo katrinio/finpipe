@@ -62,7 +62,7 @@ jobs:
         id: units
         continue-on-error: true
         run: |
-          poetry run pytest tests/unit -vv -ra
+          poetry run pytest tests/unit -s
 
       - name: Install LibreOffice
         run: |
@@ -73,7 +73,7 @@ jobs:
         id: integration
         continue-on-error: true
         run: |
-          poetry run pytest tests/integration -vv -ra
+          poetry run pytest tests/integration -s
 
       - name: Run Telegram Health Check
         id: telegram
