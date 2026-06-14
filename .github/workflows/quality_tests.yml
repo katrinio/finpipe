@@ -43,8 +43,9 @@ jobs:
 
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
       SIGNATURE_ENCRYPTION_KEY: ${{ secrets.SIGNATURE_ENCRYPTION_KEY }}
+      BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
+      BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
 
     steps:
       - uses: actions/checkout@v5
