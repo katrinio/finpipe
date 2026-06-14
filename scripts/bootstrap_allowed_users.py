@@ -11,6 +11,7 @@ from src.storage.orm import AllowedUser, Signature
 from src.storage.orm.database import Database
 from src.storage.orm.user.allowed_user import UserRole
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ def bootstrap_primary_admin() -> None:
             )
 
             if signature_source.exists() and signature_source != signature_destination:
-                signature_source.unlink()
+                delete_file(signature_source, LOGGER)
         else:
             LOGGER.info("Signature source is absent, skipping signature bootstrap for Telegram user %s", telegram_id)
     else:

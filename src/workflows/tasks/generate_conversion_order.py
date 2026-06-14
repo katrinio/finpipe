@@ -24,6 +24,7 @@ from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.storage.orm.user.signature import Signature
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ def generate_conversion_order_pdf(
         bank_received_amount_eur,
         conversion_amount_eur,
     )
+    success = False
 
     try:
         bank_details = BankDetails.get_by_owner(telegram_id)
@@ -84,6 +86,7 @@ def generate_conversion_order_pdf(
             output_pdf_path,
             resolve_signature_for_user(telegram_id, signature),
         )
+        success = True
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
             document_type=DocumentType.CONVERSION_ORDER,
@@ -94,16 +97,24 @@ def generate_conversion_order_pdf(
         )
         LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
         raise
+    finally:
+        if not success:
+            delete_file(output_pdf_path, LOGGER)
+            delete_file(output_pdf_path.with_suffix(".docx"), LOGGER)
 
-    DocumentGenerationHistory.add_attempt(
-        document_type=DocumentType.CONVERSION_ORDER,
-        document_number=document_number,
-        telegram_id=telegram_id,
-        status=DocumentGenerationStatus.SUCCESS,
-        error_message=None,
-    )
-    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
-    return output_pdf_path
+    if success:
+        DocumentGenerationHistory.add_attempt(
+            document_type=DocumentType.CONVERSION_ORDER,
+            document_number=document_number,
+            telegram_id=telegram_id,
+            status=DocumentGenerationStatus.SUCCESS,
+            error_message=None,
+        )
+        LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
+        return output_pdf_path
+
+    msg = "Conversion Order generation did not complete"
+    raise RuntimeError(msg)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

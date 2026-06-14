@@ -12,6 +12,7 @@ from src.infrastructure.security.exceptions import SignatureDecryptionError
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.orm.base import BaseModel
 from src.utils.credentials import LOGGER
+from src.utils.files import delete_file
 
 
 class Signature(BaseModel):
@@ -153,7 +154,7 @@ class Signature(BaseModel):
             session.commit()
 
             if signature_path.exists():
-                signature_path.unlink()
+                delete_file(signature_path, LOGGER)
 
     @staticmethod
     def _hash_path(signature_path: Path | str) -> str:
