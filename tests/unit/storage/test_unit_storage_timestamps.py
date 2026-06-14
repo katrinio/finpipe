@@ -37,7 +37,7 @@ def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
     oauth_session = OAuthSession.get_by_state("state-1")
     assert oauth_session is not None
     assert abs((now - oauth_session.created_at).total_seconds()) < 5
-    assert oauth_session.expires_at.microsecond == 987654
+    assert oauth_session.expires_at.microsecond == 0
     assert oauth_session.used_at is not None
     assert abs((now - oauth_session.used_at).total_seconds()) < 5
 
