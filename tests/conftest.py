@@ -29,7 +29,7 @@ def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
     print("parsed database =", url.database)
     print("parsed host =", url.host)
 
-    raise RuntimeError(f"DATABASE_URL={database_url}, HOST={url.host}, DB={url.database}")
+    # raise RuntimeError(f"DATABASE_URL={database_url}, HOST={url.host}, DB={url.database}")
     _ensure_database_exists(database_url)
     engine = create_engine(database_url, future=True)
     try:
