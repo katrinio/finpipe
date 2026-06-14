@@ -6,7 +6,7 @@ from src.storage.orm import KnownUser
 
 
 def test_known_user_registered_on_first_interaction(tmp_path: Path) -> None:
-    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    build_storage_dependencies()
 
     KnownUserService.register_interaction(
         telegram_id=123,
@@ -21,7 +21,7 @@ def test_known_user_registered_on_first_interaction(tmp_path: Path) -> None:
 
 
 def test_known_user_updates_username_on_repeat_interaction(tmp_path: Path) -> None:
-    build_storage_dependencies(tmp_path / "storage.sqlite3")
+    build_storage_dependencies()
     KnownUserService.register_interaction(
         telegram_id=123,
         username="alice",

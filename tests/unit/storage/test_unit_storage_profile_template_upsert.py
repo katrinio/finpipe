@@ -1,14 +1,14 @@
 from datetime import datetime
 from pathlib import Path
 
-from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.database import Database
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
-from tests.helpers.database import initialize_test_database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 def test_company_profile_upsert_creates_and_updates_without_overwriting_with_none(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     CompanyProfile.upsert(
@@ -38,7 +38,7 @@ def test_company_profile_upsert_creates_and_updates_without_overwriting_with_non
 
 
 def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     BankDetails.upsert(

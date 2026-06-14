@@ -1,7 +1,6 @@
 """Настройка SQLAlchemy engine и session factory."""
 
 import logging
-from pathlib import Path
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -47,9 +46,3 @@ class Database:
         """Создаёт новую независимую сессию."""
 
         return self._session_factory()
-
-
-def build_sqlite_url(db_path: Path) -> str:
-    """Legacy helper kept for test fixtures that still create temporary SQLite databases."""
-
-    return f"sqlite:///{db_path}"

@@ -3,15 +3,15 @@ from pathlib import Path
 
 from src.integrations.telegram.states import UserState
 from src.storage.orm import AllowedUser, DocumentGenerationHistory, KnownUser, Signature, UserConfig
-from src.storage.orm.database import Database, build_sqlite_url
+from src.storage.orm.database import Database
 from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
 from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.system.user_state_storage import UserStateStorage
-from tests.helpers.database import initialize_test_database
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     AllowedUser.create(telegram_id=1, username="owner")
@@ -47,7 +47,7 @@ def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
 
 
 def test_updated_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
-    database = Database(build_sqlite_url(tmp_path / "storage.sqlite3"))
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
     UserConfig.upsert(telegram_id=10, invoice_amount_eur=1000)

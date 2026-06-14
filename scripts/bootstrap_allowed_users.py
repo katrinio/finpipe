@@ -6,6 +6,7 @@ from pathlib import Path
 
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
+from src.storage.config import DatabaseConfig
 from src.storage.orm import AllowedUser, Signature
 from src.storage.orm.database import Database
 from src.storage.orm.user.allowed_user import UserRole
@@ -17,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 def bootstrap_primary_admin() -> None:
     """Создаёт primary admin и, если доступна, регистрирует его подпись."""
 
-    database = Database.from_env()
+    database = Database(DatabaseConfig.get_database_url())
     database.bind_models()
 
     telegram_id = int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID"))
