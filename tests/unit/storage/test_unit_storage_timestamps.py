@@ -51,7 +51,7 @@ def test_updated_timestamps_are_stored_without_microseconds(tmp_path: Path) -> N
     database = Database.from_env()
     initialize_test_database(database)
 
-    now = datetime.now(UTC)
+    now = datetime.now(UTC).replace(tzinfo=None)
     UserConfig.upsert(telegram_id=10, invoice_amount_eur=1000)
     UserConfig.upsert(telegram_id=10, invoice_amount_eur=1500)
     user_config = UserConfig.get_by_owner(10)
