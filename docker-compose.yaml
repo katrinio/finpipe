@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: finpipe
+      POSTGRES_USER: finpipe
+      POSTGRES_PASSWORD: finpipe
+
+    ports:
+      - "5433:5432"
+
+  finpipe:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
