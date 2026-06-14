@@ -16,7 +16,8 @@ pytest_plugins = (
 @pytest.fixture(autouse=True)
 def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
     """Uses dedicated PostgreSQL test database and clears it per test."""
-
+    print("TEST_DATABASE_URL ENV =", os.getenv("TEST_DATABASE_URL"))
+    print("DatabaseConfig.get_test_database_url() =", DatabaseConfig.get_test_database_url())
     database_url = DatabaseConfig.get_test_database_url()
     if "postgresql" not in database_url:
         return

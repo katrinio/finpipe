@@ -18,9 +18,9 @@ class DatabaseConfig:
 
     @classmethod
     def get_test_database_url(cls) -> str:
-        """Returns PostgreSQL URL used by automated tests."""
+        value = os.getenv("TEST_DATABASE_URL")
 
-        return os.getenv(
-            "TEST_DATABASE_URL",
-            "postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe_test",
-        )
+        if not value:
+            raise RuntimeError("TEST_DATABASE_URL is not configured")
+
+        return value
