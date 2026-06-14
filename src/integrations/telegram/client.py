@@ -99,19 +99,19 @@ class TelegramClient:
         """Отправляет итоговый отчёт по ежедневной проверке проекта."""
 
         report_message = (
-            "🌅 Finpipe daily check"
+            "🌅 Finpipe daily check-\n-\n"
             f"Unit tests: {Utils.format_status(unit_status)}\n"
             f"Integration tests: {Utils.format_status(integration_status)}\n"
             f"Telegram bot: {Utils.format_status(telegram_status)}\n"
             f"Duration: {duration_seconds}s\n\n"
+            "📊 Finpipe usage\n\n"
+            f"Users: {allowed_users_count}\n"
+            f"Active signatures: -\n"
+            f"Generated invoices: -\n"
+            f"Generated bank PDFs: -\n"
+            f"Google accounts connected: -\n"
+            f"Errors (24h): -\n-\n"
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
-            "📊 Finpipe usage"
-            f"Users: {allowed_users_count}"
-            f"Active signatures: 🫟"
-            f"Generated invoices: 🫟"
-            f"Generated bank PDFs: 🫟"
-            f"Google accounts connected: 🫟"
-            f"Errors (24h): 🫟"
         )
 
         self.send_message(chat_id, report_message)
