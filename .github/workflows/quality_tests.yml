@@ -85,7 +85,7 @@ jobs:
         if: matrix.suite == 'integration'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice
+          apt-get install -y --no-install-recommends libreoffice-writer
 
       - name: Run tests
         run: |

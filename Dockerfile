@@ -8,7 +8,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock README.md ./
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libreoffice \
+    && apt-get install -y --no-install-recommends libreoffice-writer \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir poetry
