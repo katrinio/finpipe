@@ -112,11 +112,11 @@ class TelegramClient:
         """Отправляет итоговый отчёт по ежедневной проверке проекта."""
 
         report_message = (
-            "🌅 Finpipe daily check-\n-\n"
+            "💅 Finpipe daily check-\n-\n"
             f"Unit tests: {Utils.format_status(unit_status)}\n"
             f"Integration tests: {Utils.format_status(integration_status)}\n"
             f"Telegram bot: {Utils.format_status(telegram_status)}\n"
-            f"Duration: {duration_seconds}s\n\n"
+            f"Duration: {duration_seconds}s\n"
             "_\n\n\n"
             "📊 Finpipe usage\n\n"
             f"Users: {allowed_users_count}\n"
@@ -124,7 +124,7 @@ class TelegramClient:
             f"Generated invoices: {generated_invoice_count}\n"
             f"Generated bank PDFs: {generated_bank_pdf}\n"
             f"Google accounts connected: {google_account_connected_count}\n"
-            f"Errors (24h): хз хз\n"
+            f"Errors (24h): n/a\n"
             "_\n\n"
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
         )
