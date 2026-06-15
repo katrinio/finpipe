@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from src.integrations.telegram.states import UserState
@@ -14,7 +14,7 @@ def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
     database = Database.from_env()
     initialize_test_database(database)
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
     AllowedUser.create(telegram_id=1, username="owner")
     allowed_user = AllowedUser.get_by_telegram_id(1)
     assert allowed_user is not None
@@ -26,7 +26,7 @@ def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
     assert abs((now - known_user.created_at).total_seconds()) < 5
     assert abs((now - known_user.last_seen_at).total_seconds()) < 5
 
-    expires_at = datetime.utcnow().replace(microsecond=987654) + timedelta(minutes=15)
+    expires_at = now.replace(microsecond=987654) + timedelta(minutes=15)
     OAuthSession.create(
         telegram_id=3,
         telegram_username="oauth",
@@ -51,7 +51,7 @@ def test_updated_timestamps_are_stored_without_microseconds(tmp_path: Path) -> N
     database = Database.from_env()
     initialize_test_database(database)
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
     UserConfig.upsert(telegram_id=10, invoice_amount_eur=1000)
     UserConfig.upsert(telegram_id=10, invoice_amount_eur=1500)
     user_config = UserConfig.get_by_owner(10)

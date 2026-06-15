@@ -160,3 +160,9 @@ class Signature(BaseModel):
     def _hash_path(signature_path: Path | str) -> str:
         path = Path(signature_path)
         return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    @classmethod
+    def count(cls) -> int:
+        with cls.session() as session:
+            statement = select(func.count()).select_from(cls)
+            return session.scalar(statement) or 0

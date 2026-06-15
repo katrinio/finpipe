@@ -26,7 +26,7 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     source.write_bytes(b"signature-bytes")
 
     db_path = tmp_path / "test.db"
-    monkeypatch.setenv("DATABASE_URL", build_test_database_url())
+    monkeypatch.setenv("TEST_DATABASE_URL", build_test_database_url())
     initialize_test_database(Database(build_test_database_url(db_path)))
     bootstrap_primary_admin()
 

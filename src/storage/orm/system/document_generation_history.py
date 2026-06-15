@@ -112,3 +112,9 @@ class DocumentGenerationHistory(BaseModel):
         """Проверяет, есть ли история генераций для типа и номера документа."""
 
         return cls.get_last_attempt(document_type, document_number) is not None
+
+    @classmethod
+    def count(cls, document_type: DocumentType) -> int:
+        with cls.session() as session:
+            statement = select(func.count()).where(cls.document_type == document_type).select_from(cls)
+            return session.scalar(statement) or 0
