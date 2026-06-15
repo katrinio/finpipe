@@ -21,6 +21,5 @@ COPY src ./src
 COPY migrations ./migrations
 COPY scripts ./scripts
 COPY templates ./templates
-COPY attachments ./attachments
 
 CMD ["python", "-m", "src.integrations.telegram.bot"]
