@@ -574,7 +574,7 @@ version = "40.21.0"
 description = "Faker is a Python package that generates fake data for you."
 optional = false
 python-versions = ">=3.10"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "faker-40.21.0-py3-none-any.whl", hash = "sha256:cb6601b2ae8e128895dc96814d271eab6b930a2d2d7932c6f9ff26785c24ee18"},
     {file = "faker-40.21.0.tar.gz", hash = "sha256:2fdee1b650a723a54432db9c6dfe17cfa29d1adc8bd60520444a07698524ba4d"},
@@ -2511,12 +2511,12 @@ version = "2026.2"
 description = "Provider of IANA time zone data"
 optional = false
 python-versions = ">=2"
-groups = ["main", "dev"]
+groups = ["main"]
+markers = "sys_platform == \"win32\" or platform_system == \"Windows\""
 files = [
     {file = "tzdata-2026.2-py2.py3-none-any.whl", hash = "sha256:bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7"},
     {file = "tzdata-2026.2.tar.gz", hash = "sha256:9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10"},
 ]
-markers = {main = "sys_platform == \"win32\"", dev = "platform_system == \"Windows\""}
 
 [[package]]
 name = "uritemplate"
@@ -2588,4 +2588,4 @@ python-discovery = ">=1.3.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "c8d8adee78501aa9111ec04d8126249e707956a8c81dd1b983c7e160f81ae15a"
+content-hash = "2409cb45fcbb081a95480c6e25253f22f2780f6557e01cfcb2df272a8cd44cf0"
