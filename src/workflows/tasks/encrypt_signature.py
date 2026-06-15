@@ -13,6 +13,7 @@ from src.storage.migrations import run_alembic_upgrade_head
 from src.storage.orm import AllowedUser, Signature
 from src.storage.orm.database import Database
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,26 +62,32 @@ def encrypt_signature_workflow(source: Path, destination: Path) -> Path:
         msg = f"Signature source not found: {source}"
         raise FileNotFoundError(msg)
 
-    destination = SignatureCipher.encrypt_file(source, destination)
-    signature_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
+    success = False
+    try:
+        destination = SignatureCipher.encrypt_file(source, destination)
+        signature_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
 
-    run_alembic_upgrade_head()
-    database = Database.from_env()
-    database.bind_models()
-    owner = AllowedUser.get_owner()
-    if owner is None:
-        msg = "Owner is not bootstrapped in storage"
-        raise RuntimeError(msg)
-    Signature.create(
-        owner_telegram_id=owner.telegram_id,
-        signature_path=destination,
-        signature_hash=signature_hash,
-        active=True,
-    )
-    # test_unit_workflows_encrypt_signature проверяет именно stdout
-    print(f"Signature encrypted: {source} -> {destination} (sha256={signature_hash})")
-    LOGGER.info("Signature encrypted successfully: %s -> %s", source, destination)
-    return destination
+        run_alembic_upgrade_head()
+        database = Database.from_env()
+        database.bind_models()
+        owner = AllowedUser.get_owner()
+        if owner is None:
+            msg = "Owner is not bootstrapped in storage"
+            raise RuntimeError(msg)
+        Signature.create(
+            owner_telegram_id=owner.telegram_id,
+            signature_path=destination,
+            signature_hash=signature_hash,
+            active=True,
+        )
+        success = True
+        # test_unit_workflows_encrypt_signature проверяет именно stdout
+        print(f"Signature encrypted: {source} -> {destination} (sha256={signature_hash})")
+        LOGGER.info("Signature encrypted successfully: %s -> %s", source, destination)
+        return destination
+    finally:
+        if not success:
+            delete_file(destination, LOGGER)
 
 
 if __name__ == "__main__":

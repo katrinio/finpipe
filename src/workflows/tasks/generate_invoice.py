@@ -17,6 +17,7 @@ from src.storage.orm.system.document_generation_history import DocumentGeneratio
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_SERVICE_AGREEMENT_DATE = "01.05.2025"
@@ -37,6 +38,7 @@ def generate_invoice_pdf(
     if DocumentGenerationHistory.has_attempts(DocumentType.SALARY_INVOICE, invoice_number):
         LOGGER.info("Document regeneration requested type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
     LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
+    success = False
 
     try:
         config = UserConfig.get_by_owner(telegram_id)
@@ -80,6 +82,7 @@ def generate_invoice_pdf(
             output_pdf_path=output_pdf_path,
             data=invoice_data,
         )
+        success = True
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
             document_type=DocumentType.SALARY_INVOICE,
@@ -90,16 +93,24 @@ def generate_invoice_pdf(
         )
         LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
         raise
+    finally:
+        if not success:
+            delete_file(output_pdf_path, LOGGER)
+            delete_file(output_pdf_path.with_suffix(".docx"), LOGGER)
 
-    DocumentGenerationHistory.add_attempt(
-        document_type=DocumentType.SALARY_INVOICE,
-        document_number=invoice_number,
-        telegram_id=telegram_id,
-        status=DocumentGenerationStatus.SUCCESS,
-        error_message=None,
-    )
-    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
-    return output_pdf_path
+    if success:
+        DocumentGenerationHistory.add_attempt(
+            document_type=DocumentType.SALARY_INVOICE,
+            document_number=invoice_number,
+            telegram_id=telegram_id,
+            status=DocumentGenerationStatus.SUCCESS,
+            error_message=None,
+        )
+        LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
+        return output_pdf_path
+
+    msg = "Salary Invoice generation did not complete"
+    raise RuntimeError(msg)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

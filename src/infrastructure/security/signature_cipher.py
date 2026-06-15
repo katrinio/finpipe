@@ -22,7 +22,7 @@ class SignatureCipher:
         if cls._cipher is None:
             try:
                 key = EnvVar.get_required_env("SIGNATURE_ENCRYPTION_KEY")
-            except Exception as exc:  # pragma: no cover - explicit runtime error path
+            except RuntimeError as exc:  # pragma: no cover - explicit runtime error path
                 msg = "Missing required environment variable: SIGNATURE_ENCRYPTION_KEY"
                 raise SignatureEncryptionError(msg) from exc
 

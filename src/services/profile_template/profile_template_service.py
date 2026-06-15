@@ -1,8 +1,10 @@
 """Импорт профиля пользователя из YAML в ORM."""
 
 import logging
+from datetime import datetime, time
 
 import yaml
+from sqlalchemy import select
 
 from src.services.profile_template.exceptions import InvalidProfileTemplateError
 from src.services.profile_template.profile_template import ProfileTemplate
@@ -112,27 +114,71 @@ class ProfileTemplateService:
         # Импорт сейчас делает полный upsert целиком.
         # Для re-import сценариев нужно перейти на обновление только изменённых значений,
         # чтобы не затирать пользовательские данные.
-        CompanyProfile.upsert(
-            owner_telegram_id=telegram_id,
-            company_name=profile.company_name,
-            company_address=profile.company_address,
-            registration_number=profile.registration_number,
-            city=profile.city,
-            service_agreement_date=Utils.parse_iso_date(profile.service_agreement_date),
-            payment_number=profile.payment_number,
-            payment_code=profile.payment_code,
-            payment_description=profile.payment_description,
-        )
+        with CompanyProfile.session() as session:
+            company_profile = session.scalar(select(CompanyProfile).where(CompanyProfile.owner_telegram_id == telegram_id).limit(1))
+            if company_profile is None:
+                company_profile = CompanyProfile(
+                    owner_telegram_id=telegram_id,
+                    company_name=cls._require_text(profile.company_name),
+                    company_address=cls._require_text(profile.company_address),
+                    registration_number=profile.registration_number,
+                    city=profile.city,
+                    service_agreement_date=cls._require_datetime(profile.service_agreement_date),
+                    payment_number=profile.payment_number,
+                    payment_code=profile.payment_code,
+                    payment_description=profile.payment_description,
+                )
+                session.add(company_profile)
+            else:
+                company_profile.company_name = cls._require_text(profile.company_name)
+                company_profile.company_address = cls._require_text(profile.company_address)
+                company_profile.registration_number = profile.registration_number
+                company_profile.city = profile.city
+                company_profile.service_agreement_date = cls._require_datetime(profile.service_agreement_date)
+                company_profile.payment_number = profile.payment_number
+                company_profile.payment_code = profile.payment_code
+                company_profile.payment_description = profile.payment_description
 
-        BankDetails.upsert(
-            owner_telegram_id=telegram_id,
-            account_holder=profile.account_holder,
-            account_holder_email=profile.account_holder_email,
-            account_holder_address=profile.account_holder_address,
-            amount=None,
-            bank_name=profile.bank_name,
-            account_number=profile.account_number,
-            iban=profile.iban,
-            bic=profile.bic,
-        )
+            bank_details = session.scalar(select(BankDetails).where(BankDetails.owner_telegram_id == telegram_id).limit(1))
+            if bank_details is None:
+                bank_details = BankDetails(
+                    owner_telegram_id=telegram_id,
+                    account_holder=cls._require_text(profile.account_holder),
+                    account_holder_email=profile.account_holder_email,
+                    account_holder_address=profile.account_holder_address,
+                    amount=None,
+                    bank_name=cls._require_text(profile.bank_name),
+                    account_number=cls._require_text(profile.account_number),
+                    iban=cls._require_text(profile.iban),
+                    bic=cls._require_text(profile.bic),
+                )
+                session.add(bank_details)
+            else:
+                bank_details.account_holder = cls._require_text(profile.account_holder)
+                bank_details.account_holder_email = profile.account_holder_email
+                bank_details.account_holder_address = profile.account_holder_address
+                bank_details.amount = None
+                bank_details.bank_name = cls._require_text(profile.bank_name)
+                bank_details.account_number = cls._require_text(profile.account_number)
+                bank_details.iban = cls._require_text(profile.iban)
+                bank_details.bic = cls._require_text(profile.bic)
+
+            session.commit()
         LOGGER.info("Profile data imported for Telegram user %s", telegram_id)
+
+    @staticmethod
+    def _require_text(value: str | None) -> str:
+        if value is None:
+            msg = "Profile field is missing"
+            raise InvalidProfileTemplateError(msg)
+        return value
+
+    @staticmethod
+    def _require_datetime(value: str | None) -> datetime | None:
+        if value is None:
+            return None
+
+        parsed_date = Utils.parse_iso_date(value)
+        if parsed_date is None:
+            return None
+        return datetime.combine(parsed_date, time.min)

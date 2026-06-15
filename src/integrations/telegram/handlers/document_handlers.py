@@ -11,6 +11,7 @@ from src.services.bank.exceptions import BankPdfError
 from src.services.conversion_order.exceptions import TransferRequestError
 from src.services.invoice.exceptions import InvoiceError
 from src.storage.orm import UserConfig
+from src.utils.files import delete_file
 from src.workflows.run_invoice_delivery import generate_and_send_invoice
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
@@ -78,7 +79,10 @@ class DocumentHandlers:
             return
 
         LOGGER.info("Bank confirmation generated for Telegram user %s", telegram_id)
-        self.telegram.send_document(telegram_id, bank_confirmation_path)
+        try:
+            self.telegram.send_document(telegram_id, bank_confirmation_path)
+        finally:
+            delete_file(bank_confirmation_path, LOGGER)
         self.telegram.send_message(telegram_id, BankMessagesV2.Generation.SENT, reply_markup=build_document_menu())
 
     def conversion_order_menu(self, telegram_id: int) -> None:
@@ -146,5 +150,9 @@ class DocumentHandlers:
             return
 
         LOGGER.info("Conversion order generated for Telegram user %s", telegram_id)
-        self.telegram.send_document(telegram_id, conversion_order_pdf_path)
+        try:
+            self.telegram.send_document(telegram_id, conversion_order_pdf_path)
+        finally:
+            delete_file(conversion_order_pdf_path, LOGGER)
+            delete_file(conversion_order_pdf_path.with_suffix(".docx"), LOGGER)
         self.telegram.send_message(telegram_id, Message.CONVERSION_ORDER_GENERATED, reply_markup=build_conversion_order_menu())

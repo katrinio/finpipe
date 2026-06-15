@@ -285,7 +285,7 @@ class TelegramBot:
             self.update_storage.mark_processed(update["update_id"])
             return
 
-        LOGGER.info("Authorized Telegram user %s (@%s)", telegram_id, username)
+        LOGGER.info("Authorized Telegram user %s", telegram_id)
 
         if self._process_waiting_state(telegram_id=telegram_id, update=update):
             return
@@ -294,7 +294,11 @@ class TelegramBot:
             self.update_storage.mark_processed(update["update_id"])
             return
 
-        LOGGER.info("Processing Telegram command %r from user %s (@%s)", text, telegram_id, username)
+        LOGGER.info(
+            "Processing Telegram command %s from user %s",
+            self._summarize_command(text),
+            telegram_id,
+        )
 
         try:
             self.handle_message(text=text, telegram_id=telegram_id, username=username)
@@ -335,6 +339,15 @@ class TelegramBot:
         if text in PUBLIC_COMMANDS:
             return True
         return AllowedUser.exists(telegram_id)
+
+    @staticmethod
+    def _summarize_command(text: str) -> str:
+        """Возвращает безопасное краткое описание пользовательского ввода."""
+
+        command = text.split(maxsplit=1)[0] if text else ""
+        if len(command) > 64:
+            command = command[:64]
+        return f"{command!r} (len={len(text)})"
 
 
 def main() -> None:

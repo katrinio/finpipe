@@ -10,6 +10,7 @@ from src.infrastructure.document.docx_to_pdf_converter import DocxToPdfConverter
 from src.infrastructure.document.replacement import Replacement
 from src.services.invoice.models import InvoiceData
 from src.services.invoice.render_pdf import InvoiceFallbackPdfRenderer
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ def generate_invoice(
     template_data = Replacement.to_template_data(data)
     replacements = Replacement.build_replacements(template_data)
     pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
+    success = False
 
     try:
         DocxTemplateRenderer.render(
@@ -41,6 +43,7 @@ def generate_invoice(
             output_path=output_pdf_path,
             data=pdf_data,
         )
+        success = True
     except FileNotFoundError as error:
         # При отсутствии шаблона сохраняем workflow рабочим через fallback PDF.
         LOGGER.warning(
@@ -48,6 +51,11 @@ def generate_invoice(
             error,
         )
         InvoiceFallbackPdfRenderer.render(output_pdf_path, pdf_data)
+        success = True
+    finally:
+        if not success:
+            delete_file(rendered_docx_path, LOGGER)
+            delete_file(output_pdf_path, LOGGER)
 
     LOGGER.info(
         "Generated invoice: docx=%s pdf=%s",

@@ -88,7 +88,11 @@ class CommandRouter:
                 self._audit(context, AuditStatus.SUCCESS)
 
         except Exception as error:
-            LOGGER.exception("Command failed: %s", text)
+            LOGGER.exception(
+                "Command failed for telegram user %s: %s",
+                context.telegram_id,
+                self._summarize_command(text),
+            )
             self.telegram.send_message(context.telegram_id, CommonMessagesV2.Errors.SYSTEM_ERROR)
             self._audit(context, AuditStatus.FAILED, str(error))
 
@@ -177,6 +181,15 @@ class CommandRouter:
 
     def _help(self, telegram_id: int) -> None:
         self.telegram.send_message(telegram_id, build_help_message())
+
+    @staticmethod
+    def _summarize_command(text: str) -> str:
+        """Сводит пользовательский ввод к безопасному краткому виду."""
+
+        command = text.split(maxsplit=1)[0] if text else ""
+        if len(command) > 64:
+            command = command[:64]
+        return f"{command!r} (len={len(text)})"
 
 
 TelegramHandlers = CommandRouter

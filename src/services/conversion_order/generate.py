@@ -11,6 +11,7 @@ from src.infrastructure.document.replacement import Replacement
 from src.services.conversion_order.models import ConversionOrderData
 from src.services.conversion_order.render_pdf import ConversionOrderFallbackPdfRenderer
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ def generate_conversion_order(
     template_payload = build_template_payload(template_data)
     replacements = Replacement.build_replacements(template_payload)
     pdf_data = {field_name: str(value) for field_name, value in template_data.items()}
+    success = False
 
     if not template_path.exists():
         # В CI шаблон может отсутствовать, но сам workflow должен завершаться успешно.
@@ -44,6 +46,7 @@ def generate_conversion_order(
             "Generated conversion order via fallback only: pdf=%s",
             output_pdf_path,
         )
+        success = True
         return output_pdf_path
 
     try:
@@ -58,12 +61,18 @@ def generate_conversion_order(
             output_path=output_pdf_path,
             data=pdf_data,
         )
+        success = True
     except FileNotFoundError as error:
         LOGGER.warning(
             "Conversion order template not found, using fallback PDF renderer: %s",
             error,
         )
         ConversionOrderFallbackPdfRenderer.render(output_pdf_path, pdf_data)
+        success = True
+    finally:
+        if not success:
+            delete_file(rendered_docx_path, LOGGER)
+            delete_file(output_pdf_path, LOGGER)
 
     LOGGER.info(
         "Generated conversion order: docx=%s pdf=%s",
