@@ -107,3 +107,9 @@ class AllowedUser(BaseModel):
     @user_name.setter
     def user_name(self, value: str | None) -> None:
         self.username = value
+
+    @classmethod
+    def count(cls) -> int:
+        with cls.session() as session:
+            statement = select(func.count()).select_from(cls)
+            return session.scalar(statement) or 0

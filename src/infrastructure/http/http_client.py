@@ -89,5 +89,7 @@ class HttpClient:
 
         LOGGER.info("HTTP %s %s", method, url)
         response = requests.request(method, url, timeout=timeout or self.DEFAULT_TIMEOUT, **kwargs)
+        if not response.ok:
+            LOGGER.error("HTTP %s %s\nResponse: %s", method, url, response.text)
         response.raise_for_status()
         return response

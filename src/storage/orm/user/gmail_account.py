@@ -96,3 +96,9 @@ class GmailAccount(BaseModel):
 
             gmail_account.gmail_last_error = error_message
             session.commit()
+
+    @classmethod
+    def count(cls) -> int:
+        with cls.session() as session:
+            statement = select(func.count()).select_from(cls)
+            return session.scalar(statement) or 0

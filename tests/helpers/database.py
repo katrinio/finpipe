@@ -9,7 +9,7 @@ def build_test_database_url(*_args: object, **_kwargs: object) -> str:
 
     from src.storage.config import DatabaseConfig
 
-    return DatabaseConfig.get_database_url()
+    return DatabaseConfig.get_test_database_url()
 
 
 def initialize_test_database(database: Database) -> None:

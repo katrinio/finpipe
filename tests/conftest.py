@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
@@ -9,34 +11,49 @@ pytest_plugins = (
     "tests.fixtures.storage",
     "tests.fixtures.telegram",
 )
+assert os.getenv("TEST_DATABASE_URL"), "TEST_DATABASE_URL is missing"
 
 
 @pytest.fixture(autouse=True)
 def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Uses the configured PostgreSQL database for tests and clears it per test."""
+    """Uses dedicated PostgreSQL test database and clears it per test."""
 
-    database_url = DatabaseConfig.get_database_url()
+    database_url = DatabaseConfig.get_test_database_url()
+
+    print("database_url =", database_url)
+
     monkeypatch.setenv("DATABASE_URL", database_url)
+    from sqlalchemy.engine import make_url
 
+    url = make_url(database_url)
+    print("parsed database =", url.database)
+    print("parsed host =", url.host)
+
+    # raise RuntimeError(f"DATABASE_URL={database_url}, HOST={url.host}, DB={url.database}")
     _ensure_database_exists(database_url)
     engine = create_engine(database_url, future=True)
     try:
         with engine.begin() as connection:
             inspector = inspect(connection)
+
             table_names = [table_name for table_name in inspector.get_table_names() if table_name != "alembic_version"]
+
             if table_names:
                 quoted_names = ", ".join(f'"{table_name}"' for table_name in table_names)
+
                 connection.execute(text(f"TRUNCATE TABLE {quoted_names} RESTART IDENTITY CASCADE"))
-    except Exception as exc:  # pragma: no cover - surfaces environment misconfiguration
-        raise RuntimeError(f"PostgreSQL test database is unavailable: {type(exc).__name__}: {exc}. DATABASE_URL={database_url!r}") from exc
     finally:
         engine.dispose()
 
 
 def _ensure_database_exists(database_url: str) -> None:
+    print("RAW DATABASE URL:", database_url)
     url = make_url(database_url)
+    print("HOST:", url.host)
+    print("PORT:", url.port)
+    print("DB:", url.database)
     if url.get_backend_name() != "postgresql":
-        raise RuntimeError("Tests require PostgreSQL. Set DATABASE_URL to a PostgreSQL URL.")
+        raise RuntimeError("Tests require PostgreSQL. Set TEST_DATABASE_URL to a PostgreSQL URL.")
 
     engine = None
     try:
@@ -63,6 +80,6 @@ def _ensure_database_exists(database_url: str) -> None:
             if not exists:
                 connection.execute(text(f'CREATE DATABASE "{url.database}"'))
     except Exception as exc:
-        raise RuntimeError(f"PostgreSQL test database is unavailable: {type(exc).__name__}: {exc}. DATABASE_URL={database_url!r}") from exc
+        raise RuntimeError(f"PostgreSQL test database is unavailable: {type(exc).__name__}: {exc}. TEST_DATABASE_URL={database_url!r}") from exc
     finally:
         admin_engine.dispose()
