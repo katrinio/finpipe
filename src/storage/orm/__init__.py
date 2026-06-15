@@ -1,5 +1,6 @@
 """ORM-сущности и base для storage-слоя."""
 
+from src.storage.orm.system.app_events import AppEvent
 from src.storage.orm.system.audit_log import AuditLog
 from src.storage.orm.system.document_generation_history import (
     DocumentGenerationHistory,
@@ -20,6 +21,7 @@ from src.storage.orm.user.user_config import UserConfig
 
 __all__ = [
     "AllowedUser",
+    "AppEvent",
     "AuditLog",
     "BankDetails",
     "CompanyProfile",
