@@ -92,7 +92,8 @@ class TelegramBot:
         updates = self.telegram.get_updates(offset=offset)
 
         result = updates.get("result", [])
-        LOGGER.info("Telegram poll returned %s updates", len(result))
+        if result:
+            LOGGER.info("Telegram poll returned %s updates", len(result))
 
         if not result:
             return 0
