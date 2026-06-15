@@ -29,24 +29,6 @@ def upgrade() -> None:
         sa.Column("details", sa.String(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.alter_column(
-        "user_state_storage",
-        "state",
-        existing_type=sa.VARCHAR(length=31),
-        type_=sa.Enum(
-            "WAITING_SIGNATURE_UPLOAD",
-            "WAITING_PROFILE_TEMPLATE_UPLOAD",
-            "WAITING_INVOICE_AMOUNT",
-            "WAITING_CONVERSION_AMOUNT",
-            "WAITING_NEW_USER_ID",
-            "WAITING_NEW_USER_CONFIRMATION",
-            "WAIT_CONFIRM_ADD_USER",
-            "WAITING_REMOVE_USER_ID",
-            "WAIT_CONFIRM_REMOVE_USER",
-            name="userstate",
-        ),
-        existing_nullable=False,
-    )
     # ### end Alembic commands ###
 
 
