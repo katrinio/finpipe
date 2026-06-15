@@ -3,8 +3,9 @@
 import logging
 from pathlib import Path
 
-from src.integrations.gmail import BankEmail, get_gmail_service
+from src.integrations.gmail.auth import get_gmail_service
 from src.integrations.gmail.downloader import download_attachments
+from src.integrations.gmail.gmail_models import BankEmail
 from src.integrations.gmail.search import find_bank_email
 from src.logging_config import configure_logging
 from src.storage.orm import ProcessedMessage

@@ -1,7 +1,9 @@
 import logging
 
-from src.integrations.gmail import GmailAccountService, GmailOAuth, GmailOAuthSettings
+from src.integrations.gmail.account_service import GmailAccountService
 from src.integrations.gmail.exceptions import GmailOAuthError
+from src.integrations.gmail.gmail_oauth import GmailOAuth
+from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.ui.buttons import GmailButtons, NavigationButtons
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu

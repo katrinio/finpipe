@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
@@ -11,6 +12,7 @@ pytest_plugins = (
     "tests.fixtures.storage",
     "tests.fixtures.telegram",
 )
+load_dotenv()
 assert os.getenv("TEST_DATABASE_URL"), "TEST_DATABASE_URL is missing"
 
 

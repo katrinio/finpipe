@@ -5,8 +5,8 @@ from pathlib import Path
 
 from src.infrastructure.http.http_client import HttpClient
 from src.integrations.telegram.exceptions import TelegramApiError
-from src.utils import Utils
 from src.utils.credentials import EnvVar
+from src.utils.utils import Utils
 
 
 class TelegramClient:
