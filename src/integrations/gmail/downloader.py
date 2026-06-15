@@ -5,8 +5,9 @@ import logging
 from pathlib import Path
 
 from src.constants import Dir
-from src.integrations.gmail import BankEmail, get_gmail_service
-from src.utils import Utils
+from src.integrations.gmail.auth import get_gmail_service
+from src.integrations.gmail.gmail_models import BankEmail
+from src.utils.utils import Utils
 
 LOGGER = logging.getLogger(__name__)
 

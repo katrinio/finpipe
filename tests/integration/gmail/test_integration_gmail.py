@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import time
 from pathlib import Path
 
 import pytest
@@ -11,17 +10,13 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from src.infrastructure.security.token_cipher import TokenCipher
-from src.integrations.gmail.gmail_oauth import GMAIL_SCOPES, GmailOAuth
-from src.integrations.gmail.settings import GmailOAuthSettings
+from src.integrations.gmail.oauth_token_bootstrap import GMAIL_SCOPES, normalize_client_config, save_credentials
 from src.storage.dependencies import build_storage_dependencies
-from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.user.gmail_account import GmailAccount
 
 load_dotenv()
 
 LOGGER = logging.getLogger(__name__)
-TOKEN_POLL_TIMEOUT_SECONDS = 180
-TOKEN_POLL_INTERVAL_SECONDS = 2
 
 
 @pytest.mark.skipif(
@@ -97,66 +92,39 @@ def test_gmail_integration() -> None:
 
 
 def load_or_create_credentials(credentials_path: Path, token_path: Path) -> Credentials:
-    creds: Credentials | None = None
-
     if token_path.exists():
         LOGGER.info("Загружаю OAuth-токен Gmail из файла %s", token_path)
         creds = Credentials.from_authorized_user_file(str(token_path), list(GMAIL_SCOPES))
+        if creds.valid:
+            return creds
+        if creds.expired and creds.refresh_token:
+            LOGGER.info("Обновляю истекший OAuth-токен Gmail")
+            creds.refresh(Request())
+            save_credentials(creds, token_path)
+            return creds
 
-    if creds and creds.valid:
-        return creds
+    restored = restore_credentials_from_database(credentials_path, token_path)
+    if restored is not None:
+        return restored
 
-    if creds and creds.expired and creds.refresh_token:
-        LOGGER.info("Обновляю истекший OAuth-токен Gmail")
-        creds.refresh(Request())
-        save_credentials(creds, token_path)
-        return creds
-
-    return bootstrap_credentials_via_callback_flow(credentials_path, token_path)
+    raise AssertionError("Gmail OAuth token is missing. Run scripts/generate_gmail_token.py")
 
 
-def bootstrap_credentials_via_callback_flow(credentials_path: Path, token_path: Path) -> Credentials:
-    LOGGER.info("Запускаю Gmail OAuth через существующий callback flow")
-
-    callback_url = GmailOAuthSettings.get_callback_url()
+def restore_credentials_from_database(credentials_path: Path, token_path: Path) -> Credentials | None:
     telegram_id = int(os.environ["BOT_OWNER_TELEGRAM_ID"])
-    telegram_username = os.getenv("BOT_OWNER_TELEGRAM_USERNAME")
-
     build_storage_dependencies()
-    authorization_url, session = GmailOAuth.build_authorization_url(
-        telegram_id=telegram_id,
-        telegram_username=telegram_username,
-        callback_url=callback_url,
-    )
+    gmail_account = GmailAccount.get_by_owner(telegram_id)
+    if gmail_account is None or not gmail_account.gmail_refresh_token:
+        return None
 
-    LOGGER.info("Откройте URL для авторизации Gmail OAuth: %s", authorization_url)
-    LOGGER.info("Ожидаю завершения callback для state=%s", session.state)
-
-    gmail_account = wait_for_connected_gmail_account(telegram_id=telegram_id, state=session.state)
-    assert gmail_account.gmail_refresh_token is not None, "В GmailAccount не сохранён refresh token"
-
+    LOGGER.info("Восстанавливаю OAuth-токен Gmail из refresh token в базе")
     refresh_token = TokenCipher.decrypt(gmail_account.gmail_refresh_token)
     creds = build_credentials_from_refresh_token(credentials_path, refresh_token)
     creds.refresh(Request())
     save_credentials(creds, token_path)
+    if not token_path.exists():
+        raise AssertionError("Не удалось сохранить Gmail token.json")
     return creds
-
-
-def wait_for_connected_gmail_account(telegram_id: int, state: str) -> GmailAccount:
-    deadline = time.monotonic() + TOKEN_POLL_TIMEOUT_SECONDS
-    while time.monotonic() < deadline:
-        session = OAuthSession.get_by_state(state)
-        gmail_account = GmailAccount.get_by_owner(telegram_id)
-
-        if session is not None and session.status == "used" and gmail_account is not None and gmail_account.gmail_refresh_token:
-            return gmail_account
-
-        if session is not None and session.status == "failed":
-            raise AssertionError(f"OAuth callback завершился ошибкой: {session.error_message}")
-
-        time.sleep(TOKEN_POLL_INTERVAL_SECONDS)
-
-    raise AssertionError("Не дождались Gmail OAuth callback и сохранения refresh token")
 
 
 def build_credentials_from_refresh_token(credentials_path: Path, refresh_token: str) -> Credentials:
@@ -172,8 +140,8 @@ def build_credentials_from_refresh_token(credentials_path: Path, refresh_token: 
             scopes=list(GMAIL_SCOPES),
         )
 
-    client_config = json.loads(credentials_path.read_text(encoding="utf-8"))
-    web_config = client_config["web"]
+    client_config = normalize_client_config(json.loads(credentials_path.read_text(encoding="utf-8")))
+    web_config = client_config["installed"]
     return Credentials(
         token=None,
         refresh_token=refresh_token,
@@ -182,8 +150,3 @@ def build_credentials_from_refresh_token(credentials_path: Path, refresh_token: 
         client_secret=web_config["client_secret"],
         scopes=list(GMAIL_SCOPES),
     )
-
-
-def save_credentials(credentials: Credentials, token_path: Path) -> None:
-    LOGGER.info("Сохраняю OAuth-токен Gmail в файл %s", token_path)
-    token_path.write_text(credentials.to_json(), encoding="utf-8")

@@ -2,11 +2,11 @@
 
 __all__ = ["Utils"]
 
-from src.utils.utils import Utils
-
 
 def __getattr__(name: str) -> object:
     if name == "Utils":
+        from src.utils.utils import Utils
+
         return Utils
 
     msg = f"module {__name__!r} has no attribute {name!r}"
