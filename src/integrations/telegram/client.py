@@ -5,9 +5,8 @@ from pathlib import Path
 
 from src.infrastructure.http.http_client import HttpClient
 from src.integrations.telegram.exceptions import TelegramApiError
-from src.storage.orm import AllowedUser
 from src.utils import Utils
-from src.utils.credentials import LOGGER, EnvVar
+from src.utils.credentials import EnvVar
 
 
 class TelegramClient:
@@ -37,15 +36,7 @@ class TelegramClient:
         }
         if reply_markup is not None:
             payload["reply_markup"] = reply_markup
-        LOGGER.info("Sending daily report to chat_id=%s", self.token)
-        LOGGER.info(
-            "Sending daily report to chat_id ending with %s",
-            str(self.token)[-4:],
-        )
-        owner = AllowedUser.get_owner()
-        print(f"DEBUG chat_id={chat_id}")
-        assert owner is not None
-        print(f"OWNER ID {owner.telegram_id}")
+
         self.http.post(
             f"{self.base_url}/sendMessage",
             json=payload,
