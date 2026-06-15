@@ -6,7 +6,7 @@ from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.storage.dependencies import build_storage_dependencies
-from src.storage.orm import AllowedUser
+from src.storage.orm import AllowedUser, DocumentGenerationHistory, DocumentType, GmailAccount, Signature
 from src.utils.credentials import LOGGER, EnvVar
 
 
@@ -19,7 +19,11 @@ def main() -> int:
         build_storage_dependencies()
         bootstrap_primary_admin()
         owner_telegram_id = EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID")
-        allowed_users_count = len(AllowedUser.list_all())
+        active_signatures_count = Signature.count()
+        allowed_users_count = AllowedUser.count()
+        generated_invoice_count = DocumentGenerationHistory.count(DocumentType.SALARY_INVOICE)
+        generated_bank_pdf = DocumentGenerationHistory.count(DocumentType.BANK_CONFIRMATION)
+        google_account_connected_count = GmailAccount.count()
 
         TelegramClient().send_daily_report(
             int(owner_telegram_id),
@@ -28,6 +32,10 @@ def main() -> int:
             telegram_status=os.environ["TELEGRAM_STATUS"],
             duration_seconds=int(os.environ["DURATION"]),
             allowed_users_count=allowed_users_count,
+            active_signatures_count=active_signatures_count,
+            generated_invoice_count=generated_invoice_count,
+            generated_bank_pdf=generated_bank_pdf,
+            google_account_connected_count=google_account_connected_count,
         )
     except Exception:
         LOGGER.exception("Healthcheck failed.")

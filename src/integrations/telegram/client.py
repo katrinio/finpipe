@@ -104,6 +104,10 @@ class TelegramClient:
         telegram_status: str,
         duration_seconds: int,
         allowed_users_count: int,
+        active_signatures_count: int,
+        generated_invoice_count: int,
+        generated_bank_pdf: int,
+        google_account_connected_count: int,
     ) -> None:
         """Отправляет итоговый отчёт по ежедневной проверке проекта."""
 
@@ -113,15 +117,15 @@ class TelegramClient:
             f"Integration tests: {Utils.format_status(integration_status)}\n"
             f"Telegram bot: {Utils.format_status(telegram_status)}\n"
             f"Duration: {duration_seconds}s\n\n"
-            "_____"
+            "_\n\n\n"
             "📊 Finpipe usage\n\n"
             f"Users: {allowed_users_count}\n"
-            f"Active signatures: -\n"
-            f"Generated invoices: -\n"
-            f"Generated bank PDFs: -\n"
-            f"Google accounts connected: -\n"
-            f"Errors (24h): -\n-\n"
-            "_____"
+            f"Active signatures: {active_signatures_count}\n"
+            f"Generated invoices: {generated_invoice_count}\n"
+            f"Generated bank PDFs: {generated_bank_pdf}\n"
+            f"Google accounts connected: {google_account_connected_count}\n"
+            f"Errors (24h): хз хз\n"
+            "_\n\n"
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
         )
 
