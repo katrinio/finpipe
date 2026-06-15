@@ -1,12 +1,15 @@
 """Workflow для генерации Salary Invoice и отправки его в Telegram."""
 
 import argparse
-from pathlib import Path
+import logging
 
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf
+
+LOGGER = logging.getLogger(__name__)
 
 
 def generate_and_send_invoice(chat_id: int) -> None:
@@ -19,15 +22,8 @@ def generate_and_send_invoice(chat_id: int) -> None:
     try:
         telegram_client.send_document(chat_id, document_path=pdf_path)
     finally:
-        _remove_generated_invoice_file(pdf_path)
-        _remove_generated_invoice_file(docx_path)
-
-
-def _remove_generated_invoice_file(path: Path) -> None:
-    """Удаляет временный сгенерированный файл Salary Invoice, если он существует."""
-
-    if path.exists():
-        path.unlink()
+        delete_file(pdf_path, LOGGER)
+        delete_file(docx_path, LOGGER)
 
 
 def main() -> int:

@@ -15,6 +15,7 @@ from src.services.signing.context import SignaturePositions
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -41,34 +42,40 @@ def generate_bank_confirmation_pdf(
         raise FileNotFoundError(msg)
 
     LOGGER.info("Rendering bank confirmation: input=%s output=%s", input_pdf, output_pdf)
-    reader = PdfReader(str(input_pdf))
-    page = reader.pages[0]
+    success = False
+    try:
+        reader = PdfReader(str(input_pdf))
+        page = reader.pages[0]
 
-    packet = BytesIO()
-    overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
-    draw_form_fields(overlay, build_bank_form_data(amount, date, company_profile, bank_details))
-    signature_bytes = SignatureCipher.decrypt_bytes(signature)
-    PdfSigner.draw_signature(
-        pdf_canvas=overlay,
-        signature=signature_bytes,
-        position=SignaturePositions.BANK,
-    )
-    overlay.save()
-    packet.seek(0)
+        packet = BytesIO()
+        overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
+        draw_form_fields(overlay, build_bank_form_data(amount, date, company_profile, bank_details))
+        signature_bytes = SignatureCipher.decrypt_bytes(signature)
+        PdfSigner.draw_signature(
+            pdf_canvas=overlay,
+            signature=signature_bytes,
+            position=SignaturePositions.BANK,
+        )
+        overlay.save()
+        packet.seek(0)
 
-    overlay_page = PdfReader(packet).pages[0]
-    page.merge_page(overlay_page)
+        overlay_page = PdfReader(packet).pages[0]
+        page.merge_page(overlay_page)
 
-    writer = PdfWriter()
-    writer.add_page(page)
-    for other_page in reader.pages[1:]:
-        writer.add_page(other_page)
+        writer = PdfWriter()
+        writer.add_page(page)
+        for other_page in reader.pages[1:]:
+            writer.add_page(other_page)
 
-    output_pdf.parent.mkdir(parents=True, exist_ok=True)
-    with output_pdf.open("wb") as file_handle:
-        writer.write(file_handle)
+        output_pdf.parent.mkdir(parents=True, exist_ok=True)
+        with output_pdf.open("wb") as file_handle:
+            writer.write(file_handle)
 
-    LOGGER.info("Bank confirmation PDF generated: %s", output_pdf)
+        LOGGER.info("Bank confirmation PDF generated: %s", output_pdf)
+        success = True
+    finally:
+        if not success:
+            delete_file(output_pdf, LOGGER)
 
 
 def build_bank_form_data(

@@ -1,6 +1,7 @@
 """Загрузка пользовательской подписи в encrypted storage и БД."""
 
 import hashlib
+import logging
 import tempfile
 from pathlib import Path
 
@@ -8,6 +9,9 @@ from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.services.signing.signature_validator import SignatureValidator
 from src.storage.orm import Signature
+from src.utils.files import delete_file
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SignatureService:
@@ -29,6 +33,7 @@ class SignatureService:
 
         temp_path = cls._save_temp_png(file_bytes)
         destination = cls._build_destination(telegram_id)
+        success = False
 
         try:
             encrypted_path = SignatureCipher.encrypt_file(temp_path, destination)
@@ -39,9 +44,11 @@ class SignatureService:
                 signature_hash=signature_hash,
                 active=True,
             )
+            success = True
         finally:
-            if temp_path.exists():
-                temp_path.unlink()
+            delete_file(temp_path, LOGGER)
+            if not success:
+                delete_file(destination, LOGGER)
 
     @staticmethod
     def _build_destination(telegram_id: int) -> Path:

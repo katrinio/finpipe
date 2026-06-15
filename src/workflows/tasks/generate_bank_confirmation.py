@@ -17,6 +17,7 @@ from src.storage.orm.user.company_profile import CompanyProfile
 from src.storage.orm.user.signature import Signature
 from src.storage.orm.user.user_config import UserConfig
 from src.utils.credentials import EnvVar
+from src.utils.files import delete_file
 from src.utils.utils import Utils
 
 LOGGER = logging.getLogger(__name__)
@@ -84,9 +85,14 @@ def generate_bank_confirmation(
 
     document_number: str | None = None
     LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.BANK_CONFIRMATION, document_number, telegram_id)
+    resolved_bank_template: Path | None = None
+    bank_output: Path | None = None
+    should_cleanup_source = bank_template is None
+    success = False
 
     try:
         bank_template = resolve_bank_template(bank_template)
+        resolved_bank_template = bank_template
         output_dir.mkdir(parents=True, exist_ok=True)
 
         LOGGER.info("Preparing bank confirmation from %s", bank_template)
@@ -119,6 +125,7 @@ def generate_bank_confirmation(
             bank_details=bank_details,
             signature=resolved_signature,
         )
+        success = True
     except Exception as error:
         DocumentGenerationHistory.add_attempt(
             document_type=DocumentType.BANK_CONFIRMATION,
@@ -129,17 +136,25 @@ def generate_bank_confirmation(
         )
         LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.BANK_CONFIRMATION, document_number, telegram_id)
         raise
+    finally:
+        if should_cleanup_source and resolved_bank_template is not None:
+            delete_file(resolved_bank_template, LOGGER)
 
-    DocumentGenerationHistory.add_attempt(
-        document_type=DocumentType.BANK_CONFIRMATION,
-        document_number=document_number,
-        telegram_id=telegram_id,
-        status=DocumentGenerationStatus.SUCCESS,
-        error_message=None,
-    )
-    LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.BANK_CONFIRMATION, document_number, telegram_id)
-    LOGGER.info("Bank confirmation saved to %s", bank_output)
-    return bank_output
+    if success:
+        assert bank_output is not None
+        DocumentGenerationHistory.add_attempt(
+            document_type=DocumentType.BANK_CONFIRMATION,
+            document_number=document_number,
+            telegram_id=telegram_id,
+            status=DocumentGenerationStatus.SUCCESS,
+            error_message=None,
+        )
+        LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.BANK_CONFIRMATION, document_number, telegram_id)
+        LOGGER.info("Bank confirmation saved to %s", bank_output)
+        return bank_output
+
+    msg = "Bank confirmation generation did not complete"
+    raise RuntimeError(msg)
 
 
 def resolve_bank_template(bank_template: Path | None) -> Path:

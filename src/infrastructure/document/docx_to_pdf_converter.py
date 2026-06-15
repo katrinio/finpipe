@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from src.infrastructure.document.exceptions import DocumentConversionError, UnsupportedDocumentBackendError
+from src.utils.files import delete_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -141,7 +142,7 @@ class DocxToPdfConverter:
             return
 
         LOGGER.debug("Removing existing PDF before conversion: %s", output_path)
-        output_path.unlink()
+        delete_file(output_path, LOGGER)
 
     @classmethod
     def open_with_pages(cls, rendered_docx_path: Path) -> None:

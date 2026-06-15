@@ -1,6 +1,7 @@
 """Единая точка выполнения HTTP-запросов проекта."""
 
 import logging
+import re
 from collections.abc import Mapping
 from typing import Any
 
@@ -8,6 +9,7 @@ import requests
 from requests import Response
 
 LOGGER = logging.getLogger(__name__)
+TELEGRAM_BOT_URL_PATTERN = re.compile(r"^(https://api\.telegram\.org/(?:file/)?bot)([^/]+)(/.*)?$")
 
 
 class HttpClient:
@@ -87,9 +89,20 @@ class HttpClient:
     ) -> Response:
         """Выполняет запрос и централизованно применяет базовые HTTP-правила."""
 
-        LOGGER.info("HTTP %s %s", method, url)
+        LOGGER.info("HTTP %s %s", method, self._redact_url(url))
         response = requests.request(method, url, timeout=timeout or self.DEFAULT_TIMEOUT, **kwargs)
         if not response.ok:
             LOGGER.error("HTTP %s %s\nResponse: %s", method, url, response.text)
         response.raise_for_status()
         return response
+
+    @staticmethod
+    def _redact_url(url: str) -> str:
+        """Скрывает секреты из URL, которые могут попасть в логи."""
+
+        match = TELEGRAM_BOT_URL_PATTERN.match(url)
+        if match is None:
+            return url
+
+        prefix, _token, suffix = match.groups()
+        return f"{prefix}***{suffix or ''}"
