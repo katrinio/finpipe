@@ -28,9 +28,6 @@ def main() -> int:
 
         TelegramClient().send_daily_report(
             int(owner_telegram_id),
-            unit_status=os.environ["UNIT_STATUS"],
-            integration_status=os.environ["INTEGRATION_STATUS"],
-            telegram_status=os.environ["TELEGRAM_STATUS"],
             duration_seconds=int(os.environ["DURATION"]),
             allowed_users_count=allowed_users_count,
             active_signatures_count=active_signatures_count,

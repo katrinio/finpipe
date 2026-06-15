@@ -5,7 +5,6 @@ from pathlib import Path
 
 from src.infrastructure.http.http_client import HttpClient
 from src.integrations.telegram.exceptions import TelegramApiError
-from src.utils import Utils
 from src.utils.credentials import EnvVar
 
 
@@ -90,9 +89,6 @@ class TelegramClient:
     def send_daily_report(
         self,
         chat_id: int,
-        unit_status: str,
-        integration_status: str,
-        telegram_status: str,
         duration_seconds: int,
         allowed_users_count: int,
         active_signatures_count: int,
@@ -104,10 +100,8 @@ class TelegramClient:
 
         report_message = (
             "💅 Finpipe daily check\n\n"
-            f"Unit tests: {Utils.format_status(unit_status)}\n"
-            f"Integration tests: {Utils.format_status(integration_status)}\n"
-            f"Telegram bot: {Utils.format_status(telegram_status)}\n"
             f"Duration: {duration_seconds}s\n"
+            "n/a\n"
             "_\n\n"
             "📊 Finpipe usage\n\n"
             f"Users: {allowed_users_count}\n"
@@ -117,6 +111,7 @@ class TelegramClient:
             f"Google accounts connected: {google_account_connected_count}\n"
             f"Errors (24h): n/a\n"
             "_\n\n"
+            f"Duration: {duration_seconds}s\n"
             f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
         )
 
