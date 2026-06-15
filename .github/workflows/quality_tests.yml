@@ -6,9 +6,16 @@ on:
       - main
   pull_request:
 
-jobs:
+env:
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  SIGNATURE_ENCRYPTION_KEY: ${{ secrets.SIGNATURE_ENCRYPTION_KEY }}
+  BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
+  BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
+  TEST_DATABASE_URL: postgresql+psycopg://finpipe:finpipe@localhost:5432/finpipe_test
 
+jobs:
   code-style:
+    name: 🎨 Code Style
     runs-on: ubuntu-latest
 
     steps:
@@ -30,8 +37,9 @@ jobs:
       - name: Run MyPy
         run: poetry run mypy src
 
-  tests:
-    name: ${{ matrix.suite }}
+  unit-tests:
+    name: 🧪 Unit Tests
+    needs: code-style
     runs-on: ubuntu-latest
 
     services:
@@ -41,7 +49,6 @@ jobs:
           POSTGRES_USER: finpipe
           POSTGRES_PASSWORD: finpipe
           POSTGRES_DB: finpipe_test
-
         ports:
           - 5432:5432
         options: >-
@@ -50,19 +57,49 @@ jobs:
           --health-timeout 5s
           --health-retries 20
 
-    strategy:
-      fail-fast: false
-      matrix:
-        suite:
-          - unit
-          - integration
+    steps:
+      - uses: actions/checkout@v5
 
-    env:
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      SIGNATURE_ENCRYPTION_KEY: ${{ secrets.SIGNATURE_ENCRYPTION_KEY }}
-      BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
-      BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
-      TEST_DATABASE_URL: postgresql+psycopg://finpipe:finpipe@localhost:5432/finpipe_test
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install
+
+      - name: Run Unit Tests + Coverage
+        run: |
+          poetry run pytest tests/unit \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-fail-under=70 \
+            -q \
+            -ra \
+            -o log_cli=false
+
+  integration-tests:
+    name: 🔗 Integration Tests
+    needs: unit-tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: finpipe
+          POSTGRES_PASSWORD: finpipe
+          POSTGRES_DB: finpipe_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U finpipe -d finpipe_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
 
     steps:
       - uses: actions/checkout@v5
@@ -71,10 +108,6 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Debug database url
-        run: |
-          echo "TEST_DATABASE_URL=${TEST_DATABASE_URL}"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -82,15 +115,13 @@ jobs:
           poetry install
 
       - name: Install LibreOffice
-        if: matrix.suite == 'integration'
         run: |
           sudo apt-get update
-          apt-get install -y --no-install-recommends libreoffice-writer
+          sudo apt-get install -y --no-install-recommends libreoffice-writer
 
-      - name: Run tests
+      - name: Run Integration Tests
         run: |
-          if [ "${{ matrix.suite }}" = "unit" ]; then
-            poetry run pytest tests/unit -q -ra -o log_cli=false
-          else
-            poetry run pytest tests/integration -q -ra -o log_cli=false
-          fi
+          poetry run pytest tests/integration \
+            -q \
+            -ra \
+            -o log_cli=false
