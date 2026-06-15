@@ -57,13 +57,13 @@ jobs:
         id: units
         continue-on-error: true
         run: |
-          poetry run pytest tests/unit -ra
+          poetry run pytest tests/unit -q -ra -o log_cli=false
 
       - name: Run Integration Tests
         id: integration
         continue-on-error: true
         run: |
-          poetry run pytest tests/integration -ra
+          poetry run pytest tests/integration -q -ra -o log_cli=false
 
       - name: Run Telegram Health Check
         id: telegram

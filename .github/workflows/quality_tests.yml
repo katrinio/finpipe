@@ -90,7 +90,7 @@ jobs:
       - name: Run tests
         run: |
           if [ "${{ matrix.suite }}" = "unit" ]; then
-            poetry run pytest tests/unit -ra
+            poetry run pytest tests/unit -q -ra -o log_cli=false
           else
-            poetry run pytest tests/integration -ra
+            poetry run pytest tests/integration -q -ra -o log_cli=false
           fi

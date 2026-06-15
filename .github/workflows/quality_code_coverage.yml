@@ -48,10 +48,7 @@ jobs:
 
       - name: Generate coverage report
         run: |
-          poetry run pytest tests/unit \
-            --cov=src \
-            --cov-report=xml \
-            -ra
+          poetry run pytest tests/unit --cov=src --cov-report=xml -q -o log_cli=false -ra
 
       - name: Validate coverage
         run: |
