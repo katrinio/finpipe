@@ -89,7 +89,7 @@ class HttpClient:
     ) -> Response:
         """Выполняет запрос и централизованно применяет базовые HTTP-правила."""
 
-        LOGGER.info("HTTP %s %s", method, self._redact_url(url))
+        LOGGER.debug("HTTP %s %s", method, self._redact_url(url))
         response = requests.request(method, url, timeout=timeout or self.DEFAULT_TIMEOUT, **kwargs)
         if not response.ok:
             LOGGER.error("HTTP %s %s\nResponse: %s", method, url, response.text)
