@@ -21,6 +21,7 @@ def main() -> int:
         owner_telegram_id = EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID")
         active_signatures_count = Signature.count()
         allowed_users_count = AllowedUser.count()
+        # TODO: для доков сделать мониторинг за сутки
         generated_invoice_count = DocumentGenerationHistory.count(DocumentType.SALARY_INVOICE)
         generated_bank_pdf = DocumentGenerationHistory.count(DocumentType.BANK_CONFIRMATION)
         google_account_connected_count = GmailAccount.count()
