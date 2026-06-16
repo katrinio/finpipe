@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import Integer, String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.exceptions import StorageRecordNotFoundError
 from src.storage.orm.base import BaseModel
@@ -15,13 +15,7 @@ class CompanyProfile(BaseModel):
 
     __tablename__ = "company_profile"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-
-    owner_telegram_id: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        unique=True,
-        index=True,
-    )
+    owner_telegram_id: Mapped[int] = mapped_column(BIGINT, nullable=False, unique=True, index=True)
     company_name: Mapped[str] = mapped_column(String)
     company_address: Mapped[str] = mapped_column(String)
     registration_number: Mapped[str | None] = mapped_column(String, nullable=True)

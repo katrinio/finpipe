@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, select, update
+from sqlalchemy import BIGINT, DateTime, Integer, String, select, update
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.storage.orm.base import BaseModel, current_utc_timestamp, normalize_timestamp
@@ -13,7 +13,7 @@ class OAuthSession(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     state: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
-    telegram_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    telegram_id: Mapped[int] = mapped_column(BIGINT, index=True, nullable=False)
     telegram_username: Mapped[str | None] = mapped_column(String, nullable=True)
     purpose: Mapped[str] = mapped_column(String, nullable=False, default="gmail_connect")
     status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
