@@ -7,6 +7,7 @@ class SystemButtons:
     ABOUT = "ℹ️ О проекте"
     WHOAMI = "👤 Кто я"
     STATUS = "📊 Статус профиля"
+    EASY_START = "🚀 Начало работы"
 
 
 PUBLIC_COMMANDS = {

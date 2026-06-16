@@ -161,6 +161,7 @@ class CommandRouter:
             SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(context.telegram_id),
             SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
+            SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
             OwnerButtons.STATISTICS: lambda context: self.system_handler.statistics(context.telegram_id),
