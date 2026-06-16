@@ -1,7 +1,7 @@
 from src.integrations.telegram.messages.common import Msg
 
 
-class ProfileMessageV2:
+class ProfileMessages:
     class Status:
         FOUND = Msg.success("Подпись загружена.")
         NOT_FOUND = Msg.warning("Подпись не найдена.")
@@ -17,7 +17,3 @@ class ProfileMessageV2:
     class Validation:
         NOT_YAML = Msg.error("Разрешены только YAML файлы.")
         TOO_LARGE = Msg.error("Размер файла превышает 2 МБ.")
-
-
-class ProfileMessages(ProfileMessageV2):
-    pass

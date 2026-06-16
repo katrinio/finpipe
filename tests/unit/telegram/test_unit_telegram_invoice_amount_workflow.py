@@ -6,7 +6,7 @@ from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import InvoiceMenuButtons
 from src.integrations.telegram.ui.menu.document_menu import build_document_menu, build_invoice_menu
-from src.integrations.telegram.ui.messages import BankMessagesV2
+from src.integrations.telegram.ui.messages import BankMessages
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser, UserConfig
 from tests.fakes.fake_telegram import FakeTelegramClient
@@ -143,10 +143,10 @@ def test_bank_confirmation_reports_missing_signature(tmp_path: Path, monkeypatch
 
     assert telegram_client.sent_messages == [
         "⏳ Формируется подтверждение для банка...",
-        BankMessagesV2.Validation.SIGNATURE_REQUIRED,
+        BankMessages.Validation.SIGNATURE_REQUIRED,
     ]
     assert telegram_client.sent_message_payloads[-1] == (
         123,
-        BankMessagesV2.Validation.SIGNATURE_REQUIRED,
+        BankMessages.Validation.SIGNATURE_REQUIRED,
         build_document_menu(),
     )

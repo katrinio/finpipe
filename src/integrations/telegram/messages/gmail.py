@@ -1,7 +1,7 @@
 from src.integrations.telegram.messages.common import Msg
 
 
-class GmailMessagesV2:
+class GmailMessages:
     # TODO(vps): уточнить production-сообщения Gmail OAuth с учётом постоянного домена и поддержки пользователя.
     class Status:
         CONNECTED = Msg.success("Gmail подключён.")
@@ -14,7 +14,3 @@ class GmailMessagesV2:
 
     class Validation:
         OAUTH_TEMPORARILY_UNAVAILABLE = Msg.warning("Подключение Gmail временно недоступно.")
-
-
-class GmailMessages(GmailMessagesV2):
-    GMAIL_CONNECTED = GmailMessagesV2.Status.CONNECTED

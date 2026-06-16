@@ -10,7 +10,7 @@ from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
 from src.integrations.telegram.handlers.system_handlers import SystemHandlers
-from src.integrations.telegram.messages.menu import MenuMessagesV2
+from src.integrations.telegram.messages.menu import MenuMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
     ConversionOrderButtons,
@@ -25,7 +25,7 @@ from src.integrations.telegram.ui.buttons import (
     SignatureButtons,
     SystemButtons,
 )
-from src.integrations.telegram.ui.messages import CommonMessagesV2
+from src.integrations.telegram.ui.messages import CommonMessages
 from src.services.monitoring.event_logger import EventLogger
 from src.services.signing.signature_service import SignatureService as _SignatureService
 from src.storage.orm.system.app_events import EventSeverity, EventType
@@ -83,8 +83,8 @@ class CommandRouter:
                 handler = self._command_handlers.get(OwnerButtons.REMOVE_USER)
 
             if handler is None:
-                self.telegram.send_message(context.telegram_id, CommonMessagesV2.Errors.NO_SUCH_COMMAND)
-                self._audit(context, AuditStatus.FAILED, CommonMessagesV2.Errors.NO_SUCH_COMMAND)
+                self.telegram.send_message(context.telegram_id, CommonMessages.Errors.NO_SUCH_COMMAND)
+                self._audit(context, AuditStatus.FAILED, CommonMessages.Errors.NO_SUCH_COMMAND)
             else:
                 handler(context)
                 self._audit(context, AuditStatus.SUCCESS)
@@ -106,7 +106,7 @@ class CommandRouter:
                     "error_message": str(error),
                 },
             )
-            self.telegram.send_message(context.telegram_id, CommonMessagesV2.Errors.SYSTEM_ERROR)
+            self.telegram.send_message(context.telegram_id, CommonMessages.Errors.SYSTEM_ERROR)
             self._audit(context, AuditStatus.FAILED, str(error))
 
             return False
@@ -127,7 +127,7 @@ class CommandRouter:
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
             OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.admin_menu(context.telegram_id),
             NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
-            MenuMessagesV2.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents
             DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
             DocumentsMenuButtons.BANK_CONFIRMATION: lambda context: self.document_handler.bank_confirmation(context.telegram_id),

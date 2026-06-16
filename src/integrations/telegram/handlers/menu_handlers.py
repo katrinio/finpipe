@@ -1,4 +1,5 @@
 from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.messages import MenuMessages
 from src.integrations.telegram.ui.buttons import (
     DocumentsMenuButtons,
     IntegrationsButtons,
@@ -13,7 +14,7 @@ from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu,
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
-from src.integrations.telegram.ui.messages import CommonMessagesV2
+from src.integrations.telegram.ui.messages import CommonMessages
 from src.storage.orm import AllowedUser
 
 
@@ -28,18 +29,25 @@ class MenuHandler:
 
         self.telegram.send_message(
             telegram_id,
-            CommonMessagesV2.General.WELCOME,
+            CommonMessages.General.WELCOME,
             reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
-    def main_menu(self, telegram_id: int) -> None:
+    def main_menu(self, telegram_id: int, onboarding: bool = False) -> None:
         """Открывает главное меню."""
 
-        self.telegram.send_message(
-            telegram_id,
-            NavigationButtons.HOME,
-            reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
-        )
+        if not onboarding:
+            self.telegram.send_message(
+                telegram_id,
+                NavigationButtons.HOME,
+                reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+            )
+        else:
+            self.telegram.send_message(
+                telegram_id,
+                MenuMessages.System.ONBOARDING,
+                reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+            )
 
     def system_menu(self, telegram_id: int) -> None:
         """Открывает раздел системных команд."""

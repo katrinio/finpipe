@@ -1,7 +1,7 @@
 from src.integrations.telegram.messages.common import Msg
 
 
-class InvoiceMessagesV2:
+class InvoiceMessages:
     class Amount:
         SAVED = Msg.success("Сумма Salary Invoice сохранена: {0} EUR")
         INPUT = "💰 Введите сумму Salary Invoice:"
@@ -13,7 +13,3 @@ class InvoiceMessagesV2:
     class Validation:
         NOT_INT = Msg.error("Сумма должна содержать только цифры.\nПример: 1500")
         NO_INVOICE_AMOUNT = "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму»."
-
-
-class InvoiceMessages(InvoiceMessagesV2):
-    INVOICE_SENT = InvoiceMessagesV2.Generation.SENT

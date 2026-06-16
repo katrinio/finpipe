@@ -15,6 +15,15 @@ __all__ = [
     "send_email",
 ]
 
+from src.integrations.gmail.account_service import GmailAccountService, GmailAccountStatus
+from src.integrations.gmail.auth import get_gmail_service
+from src.integrations.gmail.gmail_models import BankEmail
+from src.integrations.gmail.gmail_oauth import GmailOAuth, GmailOAuthResult
+from src.integrations.gmail.gmail_sender import GmailSender, send_email
+from src.integrations.gmail.oauth_callback import GmailOAuthCallbackService, OAuthCallbackResult
+from src.integrations.gmail.search import find_bank_email
+from src.integrations.gmail.settings import GmailOAuthSettings
+
 
 def __getattr__(name: str) -> object:
     if name == "BankEmail":

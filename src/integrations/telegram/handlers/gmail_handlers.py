@@ -7,7 +7,7 @@ from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.ui.buttons import GmailButtons, NavigationButtons
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu
-from src.integrations.telegram.ui.messages import GmailMessagesV2
+from src.integrations.telegram.ui.messages import GmailMessages
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class GmailHandlers:
             LOGGER.warning("Gmail connect requested while callback flow is disabled for Telegram user %s", telegram_id)
             self.telegram.send_message(
                 telegram_id,
-                GmailMessagesV2.Validation.OAUTH_TEMPORARILY_UNAVAILABLE,
+                GmailMessages.Validation.OAUTH_TEMPORARILY_UNAVAILABLE,
                 reply_markup=build_gmail_menu(),
             )
             return
@@ -34,12 +34,12 @@ class GmailHandlers:
             authorization_url, _session = GmailOAuth.build_authorization_url(telegram_id, username, callback_url)
         except GmailOAuthError:
             LOGGER.exception("Gmail connect failed for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, GmailMessagesV2.Connect.FAILED, reply_markup=build_gmail_menu())
+            self.telegram.send_message(telegram_id, GmailMessages.Connect.FAILED, reply_markup=build_gmail_menu())
             return
         LOGGER.info("OAuth started for Telegram user %s", telegram_id)
         self.telegram.send_message(
             telegram_id,
-            GmailMessagesV2.Connect.CONNECT_PROMPT,
+            GmailMessages.Connect.CONNECT_PROMPT,
             reply_markup={
                 "inline_keyboard": [
                     [
@@ -62,11 +62,11 @@ class GmailHandlers:
         status = GmailAccountService.status(telegram_id)
         if not status.is_connected:
             LOGGER.info("Gmail status checked: disconnected for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, GmailMessagesV2.Status.NOT_CONNECTED, reply_markup=build_gmail_menu())
+            self.telegram.send_message(telegram_id, GmailMessages.Status.NOT_CONNECTED, reply_markup=build_gmail_menu())
             return
         LOGGER.info("Gmail status checked: connected for Telegram user %s", telegram_id)
         self.telegram.send_message(
-            telegram_id, f"{GmailMessagesV2.Status.CONNECTED}\n{status.gmail_email or 'unknown'}", reply_markup=build_gmail_menu()
+            telegram_id, f"{GmailMessages.Status.CONNECTED}\n{status.gmail_email or 'unknown'}", reply_markup=build_gmail_menu()
         )
 
     def gmail_disconnect(self, telegram_id: int) -> None:
@@ -74,4 +74,4 @@ class GmailHandlers:
 
         GmailAccountService.disconnect(telegram_id)
         LOGGER.info("Gmail disconnected for Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, GmailMessagesV2.Connect.DISCONNECTED, reply_markup=build_gmail_menu())
+        self.telegram.send_message(telegram_id, GmailMessages.Connect.DISCONNECTED, reply_markup=build_gmail_menu())
