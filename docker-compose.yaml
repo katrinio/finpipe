@@ -19,8 +19,9 @@ services:
       timeout: 5s
       retries: 5
 
-  finpipe:
+  finpipe-bot:
     build: .
+    command: python -m src.integrations.telegram.bot
 
     env_file:
       - .env
@@ -31,6 +32,26 @@ services:
     volumes:
       - ~/finpipe-secrets/credentials.json:/app/credentials.json:ro
       - ~/finpipe-secrets/token.json:/app/token.json:ro
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  finpipe-web:
+    build: .
+    command: uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
+
+    volumes:
+      - ~/finpipe-secrets/credentials.json:/app/credentials.json:ro
+      - ~/finpipe-secrets/token.json:/app/token.json:ro
+
+    ports:
+      - "8000:8000"
 
     depends_on:
       postgres:
