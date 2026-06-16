@@ -10,7 +10,7 @@ from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
 from src.integrations.telegram.handlers.system_handlers import SystemHandlers
-from src.integrations.telegram.messages.menu import MenuMessages
+from src.integrations.telegram.messages.menu_messages import MenuMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
     ConversionOrderButtons,
