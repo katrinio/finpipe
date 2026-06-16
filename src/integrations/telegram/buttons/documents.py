@@ -5,7 +5,7 @@ class DocumentsMenuButtons:
 
 
 class ConversionOrderButtons:
-    SET_AMOUNT = "💰 Указать сумму"
-    GET_AMOUNT = "💶 Текущая сумма"
+    SET_AMOUNT = "💰 Указать сумму конвертации"
+    GET_AMOUNT = "💶 Текущая сумма конвертации"
     USE_BANK_AMOUNT = "🏦 Использовать сумму из банка"
-    GENERATE = "📄 Сгенерировать"
+    GENERATE = "📄 Сгенерировать Conversion Order"
