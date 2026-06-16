@@ -11,7 +11,7 @@ from src.services.profile_template.profile_template import ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
-from src.utils import Utils
+from src.utils.utils import Utils
 
 LOGGER = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date
 
-from src.utils import Utils
+from src.utils.utils import Utils
 
 
 @dataclass(frozen=True)
