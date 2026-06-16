@@ -53,12 +53,6 @@ class Utils:
         return fake.iban() if fake is not None else "RS35123456789012345678"
 
     @staticmethod
-    def now() -> datetime.datetime:
-        """Возвращает текущее время в UTC."""
-
-        return datetime.datetime.now(datetime.UTC)
-
-    @staticmethod
     def format_status(value: str) -> str:
         """Преобразует внутренний статус в текст для отчёта."""
 
