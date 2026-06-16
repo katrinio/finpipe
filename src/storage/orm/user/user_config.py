@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Float, Integer, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.orm.base import BaseModel
 
@@ -12,7 +12,7 @@ class UserConfig(BaseModel):
 
     __tablename__ = "user_config"
 
-    telegram_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
     invoice_amount_eur: Mapped[int | None] = mapped_column(Integer, nullable=True)
     received_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
     bank_received_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)

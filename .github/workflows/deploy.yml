@@ -20,9 +20,13 @@ jobs:
           script: |
             cd ~/projects/finpipe
 
-            git pull
+            git fetch origin
+            git reset --hard origin/main
 
             sudo docker compose build finpipe
             sudo docker compose up -d
 
             sudo docker compose ps
+            sudo docker compose logs --tail=30 finpipe
+            
+            sudo docker image prune -f

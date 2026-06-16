@@ -5,7 +5,7 @@ from enum import StrEnum
 
 from sqlalchemy import Integer, String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.orm.base import BaseModel
 
@@ -26,7 +26,7 @@ class AuditLog(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
-    telegram_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    telegram_id: Mapped[int] = mapped_column(BIGINT, nullable=False, index=True)
     user_name: Mapped[str] = mapped_column(String, nullable=False)
     command: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False)

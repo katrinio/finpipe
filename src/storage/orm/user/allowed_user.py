@@ -3,9 +3,9 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Integer, String, delete, func, select
+from sqlalchemy import String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.orm.base import BaseModel
 
@@ -21,7 +21,7 @@ class AllowedUser(BaseModel):
 
     __tablename__ = "allowed_users"
 
-    telegram_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    telegram_id: Mapped[int] = mapped_column(BIGINT, primary_key=True, index=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     role: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())

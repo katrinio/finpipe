@@ -6,7 +6,7 @@ from pathlib import Path
 
 from sqlalchemy import Boolean, Integer, String, delete, func, select, text
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.infrastructure.security.exceptions import SignatureDecryptionError
 from src.infrastructure.security.signature_cipher import SignatureCipher
@@ -21,20 +21,13 @@ class Signature(BaseModel):
     __tablename__ = "signatures"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    owner_telegram_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, index=True)
+    owner_telegram_id: Mapped[int] = mapped_column(BIGINT, nullable=False, unique=True, index=True)
     signature_path: Mapped[str] = mapped_column(String, nullable=False)
     signature_hash: Mapped[str] = mapped_column(String, nullable=False)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=text("1"))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(),
-        nullable=False,
-        server_default=func.current_timestamp(),
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(),
-        nullable=False,
-        server_default=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
+        DateTime(), nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp()
     )
 
     @classmethod

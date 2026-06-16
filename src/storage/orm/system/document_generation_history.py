@@ -3,9 +3,9 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Integer, String, Text, func, select, text
+from sqlalchemy import Integer, String, Text, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.orm.base import BaseModel
 
@@ -32,19 +32,12 @@ class DocumentGenerationHistory(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     document_type: Mapped[str] = mapped_column(
-        String,
-        nullable=False,
-        default=DocumentType.SALARY_INVOICE,
-        server_default=text(f"'{DocumentType.SALARY_INVOICE.value}'"),
-        index=True,
+        String, nullable=False, default=DocumentType.SALARY_INVOICE, server_default=DocumentType.SALARY_INVOICE.value, index=True
     )
     document_number: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
-    telegram_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    telegram_id: Mapped[int | None] = mapped_column(BIGINT, nullable=True, index=True)
     status: Mapped[str] = mapped_column(
-        String,
-        nullable=False,
-        default=DocumentGenerationStatus.SUCCESS,
-        server_default=text(f"'{DocumentGenerationStatus.SUCCESS.value}'"),
+        String, nullable=False, default=DocumentGenerationStatus.SUCCESS, server_default=DocumentGenerationStatus.SUCCESS
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())

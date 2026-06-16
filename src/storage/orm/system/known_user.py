@@ -2,9 +2,9 @@
 
 from datetime import datetime
 
-from sqlalchemy import Integer, String, func, select
+from sqlalchemy import String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.orm.base import BaseModel, current_utc_timestamp
 
@@ -14,7 +14,7 @@ class KnownUser(BaseModel):
 
     __tablename__ = "known_users"
 
-    telegram_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    telegram_id: Mapped[int] = mapped_column(BIGINT, primary_key=True, index=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())

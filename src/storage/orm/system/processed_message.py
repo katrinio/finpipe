@@ -17,11 +17,7 @@ class ProcessedMessage(BaseModel):
     __pk_column_name__ = "message_id"
 
     message_id: Mapped[str] = mapped_column(String, primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(),
-        nullable=False,
-        server_default=func.current_timestamp(),
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
 
     @classmethod
     def list_message_ids(cls) -> list[str]:

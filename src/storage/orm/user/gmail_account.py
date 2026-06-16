@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import Integer, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.orm.base import BaseModel, current_utc_timestamp
 
@@ -14,14 +14,7 @@ class GmailAccount(BaseModel):
 
     __tablename__ = "gmail_account"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-
-    owner_telegram_id: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        unique=True,
-        index=True,
-    )
-
+    owner_telegram_id: Mapped[int] = mapped_column(BIGINT, nullable=False, unique=True, index=True)
     gmail_email: Mapped[str | None] = mapped_column(String, nullable=True)
     gmail_refresh_token: Mapped[str | None] = mapped_column(String, nullable=True)
     gmail_connected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
