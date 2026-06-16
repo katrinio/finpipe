@@ -26,6 +26,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
         sa.Column("event_type", sa.String(), nullable=True),
+        sa.Column("severity", sa.String(), nullable=True),
         sa.Column("details", sa.String(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )

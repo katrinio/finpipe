@@ -18,7 +18,9 @@ from src.logging_config import configure_logging
 from src.services.conversion_order.generate import generate_conversion_order
 from src.services.conversion_order.models import ConversionOrderData
 from src.services.invoice.context import build_invoice_period
+from src.services.monitoring.event_logger import EventLogger
 from src.services.signing.context import SignaturePositions
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
@@ -95,6 +97,15 @@ def generate_conversion_order_pdf(
             status=DocumentGenerationStatus.FAILED,
             error_message=str(error),
         )
+        EventLogger.log(
+            EventType.DOCUMENT_GENERATION_FAILED,
+            EventSeverity.WARNING,
+            {
+                "telegram_id": telegram_id,
+                "document_type": DocumentType.CONVERSION_ORDER.value,
+                "error_type": type(error).__name__,
+            },
+        )
         LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
         raise
     finally:
@@ -109,6 +120,14 @@ def generate_conversion_order_pdf(
             telegram_id=telegram_id,
             status=DocumentGenerationStatus.SUCCESS,
             error_message=None,
+        )
+        EventLogger.log(
+            EventType.DOCUMENT_GENERATED,
+            EventSeverity.INFO,
+            {
+                "telegram_id": telegram_id,
+                "document_type": DocumentType.CONVERSION_ORDER.value,
+            },
         )
         LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.CONVERSION_ORDER, document_number, telegram_id)
         return output_pdf_path

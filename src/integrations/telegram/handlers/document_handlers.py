@@ -10,7 +10,9 @@ from src.integrations.telegram.ui.messages import BankMessagesV2, ConversionOrde
 from src.services.bank.exceptions import BankPdfError
 from src.services.conversion_order.exceptions import TransferRequestError
 from src.services.invoice.exceptions import InvoiceError
+from src.services.monitoring.event_logger import EventLogger
 from src.storage.orm import UserConfig
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.utils.files import delete_file
 from src.workflows.run_invoice_delivery import generate_and_send_invoice
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
@@ -36,6 +38,11 @@ class DocumentHandlers:
 
         amount = int(text)
         UserConfig.upsert(telegram_id=telegram_id, invoice_amount_eur=amount)
+        EventLogger.log(
+            EventType.SETTINGS_UPDATED,
+            EventSeverity.INFO,
+            {"telegram_id": telegram_id, "section": "user_config"},
+        )
         UserStateService.clear_state(telegram_id)
         self.telegram.send_message(telegram_id, InvoiceMessagesV2.Amount.SAVED.format(amount), reply_markup=build_invoice_menu())
 
@@ -111,6 +118,11 @@ class DocumentHandlers:
             return
 
         UserConfig.upsert(telegram_id=telegram_id, conversion_amount_eur=amount)
+        EventLogger.log(
+            EventType.SETTINGS_UPDATED,
+            EventSeverity.INFO,
+            {"telegram_id": telegram_id, "section": "user_config"},
+        )
         UserStateService.clear_state(telegram_id)
         self.telegram.send_message(telegram_id, ConversionOrderMessagesV2.Amount.SAVED.format(amount), reply_markup=build_conversion_order_menu())
 
@@ -121,6 +133,11 @@ class DocumentHandlers:
             return
 
         UserConfig.upsert(telegram_id=telegram_id, conversion_amount_eur=config.bank_received_amount_eur)
+        EventLogger.log(
+            EventType.SETTINGS_UPDATED,
+            EventSeverity.INFO,
+            {"telegram_id": telegram_id, "section": "user_config"},
+        )
         self.telegram.send_message(
             telegram_id,
             ConversionOrderMessagesV2.Amount.FROM_BANK_SAVED.format(config.bank_received_amount_eur),

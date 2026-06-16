@@ -26,7 +26,9 @@ from src.integrations.telegram.ui.buttons import (
     SystemButtons,
 )
 from src.integrations.telegram.ui.messages import CommonMessagesV2
+from src.services.monitoring.event_logger import EventLogger
 from src.services.signing.signature_service import SignatureService as _SignatureService
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.system.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER
 
@@ -93,6 +95,17 @@ class CommandRouter:
                 context.telegram_id,
                 self._summarize_command(text),
             )
+            EventLogger.log(
+                EventType.ERROR,
+                EventSeverity.ERROR,
+                {
+                    "telegram_id": context.telegram_id,
+                    "category": "telegram",
+                    "command": self._summarize_command(text),
+                    "error_type": type(error).__name__,
+                    "error_message": str(error),
+                },
+            )
             self.telegram.send_message(context.telegram_id, CommonMessagesV2.Errors.SYSTEM_ERROR)
             self._audit(context, AuditStatus.FAILED, str(error))
 
@@ -150,6 +163,8 @@ class CommandRouter:
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
+            OwnerButtons.STATISTICS: lambda context: self.system_handler.statistics(context.telegram_id),
+            OwnerButtons.ERRORS: lambda context: self.system_handler.recent_errors(context.telegram_id),
             OwnerButtons.ADD_USER: lambda context: (
                 self.owner_handler.start_add_user_input(context.telegram_id)
                 if context.command == OwnerButtons.ADD_USER
