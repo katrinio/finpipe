@@ -17,11 +17,13 @@ from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, b
 from src.integrations.telegram.ui.messages import CommonMessagesV2
 from src.logging_config import configure_logging
 from src.services.known_user_service import KnownUserService
+from src.services.monitoring.event_logger import EventLogger
 from src.storage.dependencies import (
     StorageDependencies,
     build_storage_dependencies,
 )
 from src.storage.orm import AllowedUser
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.system.telegram_update import TelegramUpdate
 from src.utils.credentials import LOGGER
 
@@ -92,6 +94,7 @@ class TelegramBot:
         updates = self.telegram.get_updates(offset=offset)
 
         result = updates.get("result", [])
+
         if result:
             LOGGER.info("Telegram poll returned %s updates", len(result))
 
@@ -101,10 +104,22 @@ class TelegramBot:
         if last_processed_update_id is None:
             return self.mark_initial_updates_as_processed(result)
 
-        for update in result:
-            self.process_update(update)
+        processed_count = 0
 
-        return len(result)
+        for update in result:
+            try:
+                self.process_update(update)
+            except Exception:
+                update_id = update.get("update_id")
+                LOGGER.exception("Failed to process Telegram update %s", update_id)
+
+                EventLogger.log(
+                    EventType.ERROR,
+                    EventSeverity.ERROR,
+                    {"category": "telegram", "update_id": update_id},
+                )
+
+        return processed_count
 
     # update extraction
     def extract_message_data(self, update: dict) -> tuple[str | None, int, str | None] | None:

@@ -26,7 +26,9 @@ from src.integrations.telegram.ui.buttons import (
     SystemButtons,
 )
 from src.integrations.telegram.ui.messages import CommonMessagesV2
+from src.services.monitoring.event_logger import EventLogger
 from src.services.signing.signature_service import SignatureService as _SignatureService
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.system.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER
 
@@ -92,6 +94,17 @@ class CommandRouter:
                 "Command failed for telegram user %s: %s",
                 context.telegram_id,
                 self._summarize_command(text),
+            )
+            EventLogger.log(
+                EventType.ERROR,
+                EventSeverity.ERROR,
+                {
+                    "telegram_id": context.telegram_id,
+                    "category": "telegram",
+                    "command": self._summarize_command(text),
+                    "error_type": type(error).__name__,
+                    "error_message": str(error),
+                },
             )
             self.telegram.send_message(context.telegram_id, CommonMessagesV2.Errors.SYSTEM_ERROR)
             self._audit(context, AuditStatus.FAILED, str(error))

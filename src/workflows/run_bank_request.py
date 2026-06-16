@@ -7,8 +7,10 @@ from src.constants import Message
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
+from src.services.monitoring.event_logger import EventLogger
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser, UserConfig
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.utils.credentials import EnvVar
 from src.utils.files import delete_file
 from src.workflows.tasks.fetch_bank_email import fetch_bank_email_workflow
@@ -47,6 +49,11 @@ def main() -> int:
         UserConfig.upsert(
             telegram_id=owner.telegram_id,
             bank_received_amount_eur=received_amount_eur,
+        )
+        EventLogger.log(
+            EventType.SETTINGS_UPDATED,
+            EventSeverity.INFO,
+            {"telegram_id": owner.telegram_id, "section": "user_config"},
         )
         user_config = UserConfig.get_by_owner(owner.telegram_id)
         exchange_amount_eur = (

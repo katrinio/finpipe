@@ -9,13 +9,23 @@ from src.storage.orm.base import BaseModel
 
 
 class EventType(StrEnum):
+    # lifecycle
     BOT_STARTED = "bot_started"
     BOT_STOPPED = "bot_stopped"
 
+    # auth
+    USER_AUTHORIZED = "user_authorized"
     USER_ADDED = "user_added"
     USER_REMOVED = "user_removed"
-    USER_AUTHORIZED = "user_authorized"
 
+    # documents
+    DOCUMENT_GENERATED = "document_generated"
+    DOCUMENT_GENERATION_FAILED = "document_generation_failed"
+
+    # settings
+    SETTINGS_UPDATED = "settings_updated"
+
+    # system
     ERROR = "error"
 
 

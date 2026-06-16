@@ -40,17 +40,19 @@ class EventLogger:
     def log_exception(
         exc: Exception,
         details: str | dict[str, Any] | None = None,
+        category: str | None = None,
     ) -> None:
-        message = f"{type(exc).__name__}: {exc}"
-        if details:
-            prefix = EventLogger._serialize_details(details)
-            message = f"{prefix}. {message}" if prefix else message
+        payload: dict[str, Any] = {
+            "error_type": type(exc).__name__,
+            "error_message": str(exc),
+        }
+        if category:
+            payload["category"] = category
 
-        EventLogger.log(
-            EventType.ERROR,
-            EventSeverity.ERROR,
-            message,
-        )
+        if details is not None:
+            payload["details"] = details
+
+        EventLogger.log(EventType.ERROR, EventSeverity.ERROR, payload)
 
     @staticmethod
     def _serialize_details(details: str | dict[str, Any] | None) -> str | None:
