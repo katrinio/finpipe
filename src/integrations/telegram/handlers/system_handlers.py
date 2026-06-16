@@ -1,8 +1,10 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import format_last_action, format_whoami
+from src.integrations.telegram.commands import format_last_action, format_recent_errors, format_stats, format_whoami
+from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.integrations.telegram.ui.messages import AuditLogMessagesV2, CommonMessagesV2
+from src.services.monitoring.event_analytics import EventAnalytics
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm import AllowedUser
 from src.storage.orm.system.audit_log import AuditLog
@@ -83,3 +85,29 @@ class SystemHandlers:
         )
 
         self.telegram.send_message(telegram_id, message, reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)))
+
+    def statistics(self, telegram_id: int) -> None:
+        """Показывает компактную аналитику по продуктовым событиям."""
+
+        analytics = EventAnalytics()
+        self.telegram.send_message(
+            telegram_id,
+            format_stats(
+                total_events=analytics.get_total_events(),
+                event_counts=analytics.get_event_counts(),
+                document_stats=analytics.get_document_generation_stats(),
+                error_count=analytics.get_error_counts(),
+                recent_error_count=len(analytics.get_recent_errors(limit=3)),
+            ),
+            reply_markup=build_admin_menu(),
+        )
+
+    def recent_errors(self, telegram_id: int) -> None:
+        """Показывает краткую сводку последних ошибок."""
+
+        analytics = EventAnalytics()
+        self.telegram.send_message(
+            telegram_id,
+            format_recent_errors(analytics.get_recent_errors(limit=10)),
+            reply_markup=build_admin_menu(),
+        )
