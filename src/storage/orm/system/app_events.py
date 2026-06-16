@@ -16,6 +16,8 @@ class EventType(StrEnum):
     USER_REMOVED = "user_removed"
     USER_AUTHORIZED = "user_authorized"
 
+    ERROR = "error"
+
 
 class EventSeverity(StrEnum):
     INFO = "info"
@@ -26,17 +28,33 @@ class EventSeverity(StrEnum):
 class AppEvent(BaseModel):
     __tablename__ = "app_events"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp(), index=True)
-    event_type: Mapped[str] = mapped_column(String(64), nullable=True)
-    severity: Mapped[str] = mapped_column(String(16), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(),
+        nullable=False,
+        server_default=func.current_timestamp(),
+        index=True,
+    )
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
     details: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     @classmethod
-    def create(cls, event_type: EventType, severity: EventSeverity, details: str | None = None) -> "AppEvent":
-        return cls(
+    def create(
+        cls,
+        event_type: EventType,
+        severity: EventSeverity,
+        details: str | None = None,
+    ) -> "AppEvent":
+        event = cls(
             event_type=event_type.value,
             severity=severity.value,
             details=details,
         )
+
+        with cls.session() as session:
+            session.add(event)
+            session.commit()
+
+        return event
