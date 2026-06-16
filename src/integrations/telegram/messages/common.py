@@ -30,7 +30,7 @@ class Msg:
         return f"⚠️ {text}"
 
 
-class CommonMessagesV2:
+class CommonMessages:
     class General:
         WELCOME = "👋 Добро пожаловать в Finpipe!\nЛичный сервис для автоматизации документооборота.\n\n"
 
@@ -63,7 +63,3 @@ class CommonMessagesV2:
     class Actions:
         USE_CONFIRMATION_BTN = "Используйте кнопки подтверждения ниже."
         OPERATION_CANCELLED = "Текущая операция отменена."
-
-
-class CommonMessages(CommonMessagesV2):
-    pass

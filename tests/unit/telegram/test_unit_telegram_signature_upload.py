@@ -9,7 +9,7 @@ from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import SignatureButtons
-from src.integrations.telegram.ui.messages import SignatureMessagesV2
+from src.integrations.telegram.ui.messages import SignatureMessages
 from src.services.signing.exceptions import InvalidSignatureFormatError
 from src.storage.dependencies import StorageDependencies
 from src.storage.orm import AllowedUser
@@ -37,9 +37,9 @@ def test_upload_signature_sets_waiting_state(
     assert tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice") is True
     assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
     assert telegram_client.sent_messages == [
-        SignatureMessagesV2.Upload.REQUIREMENTS,
+        SignatureMessages.Upload.REQUIREMENTS,
     ]
-    assert telegram_client.sent_messages_with_chat_ids == [(123, SignatureMessagesV2.Upload.REQUIREMENTS)]
+    assert telegram_client.sent_messages_with_chat_ids == [(123, SignatureMessages.Upload.REQUIREMENTS)]
 
 
 def test_successful_signature_upload_clears_state(
@@ -81,12 +81,12 @@ def test_successful_signature_upload_clears_state(
 
     assert tg_bot.handlers.state_service.get_state(123) is None
     assert telegram_client.sent_messages == [
-        SignatureMessagesV2.Upload.REQUIREMENTS,
-        SignatureMessagesV2.Upload.UPDATED,
+        SignatureMessages.Upload.REQUIREMENTS,
+        SignatureMessages.Upload.UPDATED,
     ]
     assert telegram_client.sent_messages_with_chat_ids == [
-        (123, SignatureMessagesV2.Upload.REQUIREMENTS),
-        (123, SignatureMessagesV2.Upload.UPDATED),
+        (123, SignatureMessages.Upload.REQUIREMENTS),
+        (123, SignatureMessages.Upload.UPDATED),
     ]
     assert fake_update_storage.processed == [42]
 
@@ -132,6 +132,6 @@ def test_invalid_file_keeps_state(
     )
 
     assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
-    assert telegram_client.sent_messages[0] == SignatureMessagesV2.Upload.REQUIREMENTS
-    assert telegram_client.sent_messages_with_chat_ids[0] == (123, SignatureMessagesV2.Upload.REQUIREMENTS)
+    assert telegram_client.sent_messages[0] == SignatureMessages.Upload.REQUIREMENTS
+    assert telegram_client.sent_messages_with_chat_ids[0] == (123, SignatureMessages.Upload.REQUIREMENTS)
     assert fake_update_storage.processed == [43]

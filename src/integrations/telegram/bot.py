@@ -14,7 +14,7 @@ from src.integrations.telegram.ui.menu.document_menu import build_invoice_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
-from src.integrations.telegram.ui.messages import CommonMessagesV2
+from src.integrations.telegram.ui.messages import CommonMessages
 from src.logging_config import configure_logging
 from src.services.known_user_service import KnownUserService
 from src.services.monitoring.event_logger import EventLogger
@@ -213,7 +213,7 @@ class TelegramBot:
                     UserStateService.clear_state(telegram_id)
                     self.telegram.send_message(
                         telegram_id,
-                        CommonMessagesV2.Actions.OPERATION_CANCELLED,
+                        CommonMessages.Actions.OPERATION_CANCELLED,
                         reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
                     )
 
@@ -230,7 +230,7 @@ class TelegramBot:
                 UserStateService.clear_state(telegram_id)
                 self.telegram.send_message(
                     telegram_id,
-                    CommonMessagesV2.Actions.OPERATION_CANCELLED,
+                    CommonMessages.Actions.OPERATION_CANCELLED,
                     reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
                 )
 
@@ -297,7 +297,7 @@ class TelegramBot:
 
         if not self.is_authorized(telegram_id, text):
             LOGGER.warning("Access denied for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, CommonMessagesV2.Errors.ACCESS_DENIED, reply_markup=build_guest_menu())
+            self.telegram.send_message(telegram_id, CommonMessages.Errors.ACCESS_DENIED, reply_markup=build_guest_menu())
             self.update_storage.mark_processed(update["update_id"])
             return
 

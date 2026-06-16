@@ -1,9 +1,9 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_last_action, format_recent_errors, format_stats, format_whoami
+from src.integrations.telegram.messages import AuditLogMessages, CommonMessages
 from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
-from src.integrations.telegram.ui.messages import AuditLogMessagesV2, CommonMessagesV2
 from src.services.monitoring.event_analytics import EventAnalytics
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm import AllowedUser
@@ -23,7 +23,7 @@ class SystemHandlers:
         self.telegram.healthcheck()
         self.telegram.send_message(
             telegram_id,
-            CommonMessagesV2.Status.TELEGRAM_API_OK,
+            CommonMessages.Status.TELEGRAM_API_OK,
             reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
@@ -32,7 +32,7 @@ class SystemHandlers:
 
         self.telegram.send_message(
             telegram_id,
-            CommonMessagesV2.General.ABOUT,
+            CommonMessages.General.ABOUT,
             reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 
@@ -51,7 +51,7 @@ class SystemHandlers:
         if not actions:
             self.telegram.send_message(
                 telegram_id,
-                AuditLogMessagesV2.Status.IS_EMPTY,
+                AuditLogMessages.Status.IS_EMPTY,
                 reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
             )
             return

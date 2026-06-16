@@ -1,7 +1,7 @@
 from src.integrations.telegram.messages.common import Msg
 
 
-class SignatureMessagesV2:
+class SignatureMessages:
     class Status:
         FOUND = Msg.success("Подпись загружена.")
         NOT_FOUND = Msg.warning("Подпись не найдена.")
@@ -17,7 +17,3 @@ class SignatureMessagesV2:
 
     class Delete:
         DELETED = "🗑️ Подпись удалена."
-
-
-class SignatureMessages(SignatureMessagesV2):
-    pass

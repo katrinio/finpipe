@@ -1,5 +1,5 @@
 class MainMenuButtons:
     DOCUMENTS = "📄 Документы"
     INTEGRATIONS = "📧 Интеграции"
-    PROFILE = "⚙️ Профиль"
+    PROFILE = "👤 Мой профиль"
     SYSTEM = "ℹ️ Система"

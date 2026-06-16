@@ -1,7 +1,7 @@
 from src.integrations.telegram.messages.common import Msg
 
 
-class OwnerMessagesV2:
+class OwnerMessages:
     class Access:
         INPUT_USER_ID = "Введите Telegram ID пользователя, который уже открыл бота."
         INPUT_USER_ID_TO_REVOKE = "Введите Telegram ID пользователя, у которого нужно отозвать доступ."
@@ -25,7 +25,3 @@ class OwnerMessagesV2:
         USER_ID_NOT_INT = "Введите корректный Telegram ID, состоящий только из цифр."
         USER_ID_NOT_KNOWN = Msg.error("Пользователь ещё не взаимодействовал с ботом.\nПопросите пользователя открыть бота и нажать /start.")
         NO_SUCH_USER = Msg.error("У пользователя нет доступа или он не найден в списке.")
-
-
-class OwnerMessages(OwnerMessagesV2):
-    pass
