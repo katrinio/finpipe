@@ -1,4 +1,4 @@
-from src.integrations.telegram.messages.common import Msg
+from src.integrations.telegram.messages.common_messages import Msg
 
 
 class InvoiceMessages:

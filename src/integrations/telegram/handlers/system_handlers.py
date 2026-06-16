@@ -1,6 +1,6 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_last_action, format_recent_errors, format_stats, format_whoami
-from src.integrations.telegram.messages import AuditLogMessages, CommonMessages
+from src.integrations.telegram.messages import AuditLogMessages, CommonMessages, MenuMessages
 from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
@@ -33,6 +33,15 @@ class SystemHandlers:
         self.telegram.send_message(
             telegram_id,
             CommonMessages.General.ABOUT,
+            reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+        )
+
+    def easy_start(self, telegram_id: int) -> None:
+        """Показывает справочную информацию о боте."""
+
+        self.telegram.send_message(
+            telegram_id,
+            MenuMessages.System.ONBOARDING,
             reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )
 

@@ -13,6 +13,7 @@ class UserConfig(BaseModel):
     __tablename__ = "user_config"
 
     telegram_id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
+    onboarding_shown: Mapped[bool] = mapped_column(default=False, nullable=False)
     invoice_amount_eur: Mapped[int | None] = mapped_column(Integer, nullable=True)
     received_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
     bank_received_amount_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -46,6 +47,22 @@ class UserConfig(BaseModel):
                 session.commit()
 
             return config
+
+    @classmethod
+    def mark_onboarding_shown(cls, telegram_id: int) -> None:
+        """Помечает, что onboarding уже был показан пользователю."""
+
+        with cls.session() as session:
+            statement = select(cls).where(cls.telegram_id == telegram_id).limit(1)
+            config = session.scalar(statement)
+
+            if config is None:
+                config = cls(telegram_id=telegram_id, onboarding_shown=True)
+                session.add(config)
+            else:
+                config.onboarding_shown = True
+
+            session.commit()
 
     @classmethod
     def upsert(

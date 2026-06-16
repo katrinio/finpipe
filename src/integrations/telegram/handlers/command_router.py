@@ -10,7 +10,7 @@ from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
 from src.integrations.telegram.handlers.system_handlers import SystemHandlers
-from src.integrations.telegram.messages.menu import MenuMessages
+from src.integrations.telegram.messages.menu_messages import MenuMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
     ConversionOrderButtons,
@@ -161,6 +161,7 @@ class CommandRouter:
             SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(context.telegram_id),
             SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
+            SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
             OwnerButtons.STATISTICS: lambda context: self.system_handler.statistics(context.telegram_id),

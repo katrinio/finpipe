@@ -14,8 +14,8 @@ from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu,
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
-from src.integrations.telegram.ui.messages import CommonMessages
 from src.storage.orm import AllowedUser
+from src.storage.orm.user.user_config import UserConfig
 
 
 class MenuHandler:
@@ -27,11 +27,16 @@ class MenuHandler:
     def main_start(self, telegram_id: int) -> None:
         """Показывает стартовый экран бота."""
 
-        self.telegram.send_message(
-            telegram_id,
-            CommonMessages.General.WELCOME,
-            reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
-        )
+        config = UserConfig.get_or_create(telegram_id)
+        if not config.onboarding_shown:
+            self.telegram.send_message(
+                telegram_id,
+                MenuMessages.System.ONBOARDING,
+                reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+            )
+            UserConfig.mark_onboarding_shown(telegram_id)
+
+        self.main_menu(telegram_id)
 
     def main_menu(self, telegram_id: int, onboarding: bool = False) -> None:
         """Открывает главное меню."""
