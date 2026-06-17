@@ -8,7 +8,6 @@ def build_system_menu(is_owner: bool = False) -> dict:
             {"text": SystemButtons.EASY_START},
         ],
         [
-            {"text": SystemButtons.STATUS},
             {"text": SystemButtons.WHOAMI},
         ],
         [
@@ -17,7 +16,7 @@ def build_system_menu(is_owner: bool = False) -> dict:
     ]
 
     if is_owner:
-        keyboard.append([{"text": OwnerButtons.ADMIN_PANEL}, {"text": SystemButtons.HEALTHCHECK}])
+        keyboard.append([{"text": OwnerButtons.ADMIN_PANEL}])
 
     return {
         "keyboard": keyboard,

@@ -6,6 +6,7 @@ from src.integrations.telegram.commands import Cmd, build_help_message
 from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.handlers.menu_handlers import MenuHandler
+from src.integrations.telegram.handlers.monitoring_handler import MonitoringHandler
 from src.integrations.telegram.handlers.owner_handler import OwnerHandlers
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
@@ -28,7 +29,6 @@ from src.integrations.telegram.ui.buttons import (
 from src.integrations.telegram.ui.messages import CommonMessages
 from src.services.monitoring.event_logger import EventLogger
 from src.services.signing.signature_service import SignatureService as _SignatureService
-from src.storage.orm import AllowedUser
 from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.system.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER
@@ -55,6 +55,7 @@ class CommandRouter:
         self.system_handler = SystemHandlers(self.telegram, audit_log)
         self.gmail_handler = GmailHandlers(self.telegram)
         self.document_handler = DocumentHandlers(self.telegram)
+        self.monitoring_handler = MonitoringHandler(self.telegram)
         self.owner_handler = OwnerHandlers(self.telegram)
         self.signature_handler = SignatureHandlers(self.telegram, self.state_service)
         self.profile_handler = ProfileHandlers(self.telegram, self.state_service)
@@ -73,11 +74,6 @@ class CommandRouter:
         )
 
         try:
-            if text == SystemButtons.CHATID and not AllowedUser.is_owner(context.telegram_id):
-                self.telegram.send_message(context.telegram_id, CommonMessages.Errors.NO_SUCH_COMMAND)
-                self._audit(context, AuditStatus.FAILED, CommonMessages.Errors.NO_SUCH_COMMAND)
-                return False
-
             handler = self._command_handlers.get(text)
             if handler is None and text.startswith(f"{Cmd.ADD_USER} "):
                 handler = self._command_handlers.get(OwnerButtons.ADD_USER)
@@ -152,7 +148,6 @@ class CommandRouter:
             ProfileButtons.MY_PROFILE: lambda context: self.profile_handler.show_profile(context.telegram_id),
             ProfileButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(context.telegram_id),
             # signature
-            SystemButtons.STATUS: lambda context: self.system_handler.status(context.telegram_id),
             SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_STATUS: lambda context: self.signature_handler.signature_status(context.telegram_id),
@@ -164,15 +159,12 @@ class CommandRouter:
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
             # system
             SystemButtons.ABOUT: lambda context: self.system_handler.about(context.telegram_id),
-            SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(context.telegram_id),
             SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
-            SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
             SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
             OwnerButtons.STATISTICS: lambda context: self.system_handler.statistics(context.telegram_id),
-            OwnerButtons.ERRORS: lambda context: self.system_handler.recent_errors(context.telegram_id),
             OwnerButtons.ADD_USER: lambda context: (
                 self.owner_handler.start_add_user_input(context.telegram_id)
                 if context.command == OwnerButtons.ADD_USER
