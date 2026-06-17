@@ -76,6 +76,29 @@ Secrets для GitHub Actions:
 
 ---
 
+## backup_database
+
+Резервное копирование production PostgreSQL.
+
+Workflow:
+
+1. Читает настройки проекта, папку для бэкапов, срок хранения и Telegram settings.
+2. Создаёт папку `backups`, если её нет.
+3. Запускает `pg_dump` внутри postgres-контейнера.
+4. Сжимает дамп в gzip.
+5. Проверяет, что архив создан и не пустой.
+6. Удаляет старые бэкапы.
+7. Отправляет статус в monitoring chat.
+
+Ключевые env:
+
+- `DATABASE_URL`
+- `BACKUP_DIR`
+- `BACKUP_RETENTION_DAYS`
+- `BACKUP_POSTGRES_SERVICE`
+- `MONITORING_CHAT_ID`
+- `BOT_OWNER_TELEGRAM_ID` fallback через существующий monitoring flow
+
 # Tasks
 
 Tasks — низкоуровневые операции, которые могут использоваться как внутри workflows, так и отдельно во время разработки, тестирования или отладки.
