@@ -71,10 +71,7 @@ def _resolve_integration_database_url() -> str | None:
     try:
         database_url = DatabaseConfig.get_test_database_url()
     except RuntimeError:
-        try:
-            database_url = DatabaseConfig.get_database_url()
-        except RuntimeError:
-            return None
+        return None
     if make_url(database_url).get_backend_name() != "postgresql":
         return None
     if not _can_connect(database_url):

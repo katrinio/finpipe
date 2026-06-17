@@ -24,12 +24,13 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+          cache: "poetry"
+
+      - name: Install Poetry
+        run: pipx install poetry
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
+        run: poetry install
 
       - name: Run Ruff
         run: poetry run ruff check .
@@ -37,10 +38,25 @@ jobs:
       - name: Run MyPy
         run: poetry run mypy src
 
-  unit-tests:
-    name: 🧪 Unit Tests
+  tests:
+    name: 🧪 Tests
     needs: code-style
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: finpipe
+          POSTGRES_PASSWORD: finpipe
+          POSTGRES_DB: finpipe_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U finpipe -d finpipe_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
 
     steps:
       - uses: actions/checkout@v5
@@ -48,104 +64,39 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+          cache: "poetry"
+
+      - name: Install Poetry
+        run: pipx install poetry
 
       - name: Install dependencies
+        run: poetry install
+
+      - name: Install LibreOffice
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-writer
 
       - name: Run Unit Tests
+        if: github.event_name == 'pull_request'
         run: |
           poetry run pytest tests/unit \
             -q \
             -ra \
+            --durations=10 \
             -o log_cli=false
 
-  integration-tests:
-    name: 🔗 Integration Tests
-    needs: code-style
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: finpipe
-          POSTGRES_PASSWORD: finpipe
-          POSTGRES_DB: finpipe_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U finpipe -d finpipe_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
-
-      - name: Install LibreOffice
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer
-
       - name: Run Integration Tests
+        if: github.event_name == 'pull_request'
         run: |
           poetry run pytest tests/integration \
             -q \
             -ra \
+            --durations=10 \
             -o log_cli=false
 
-  coverage-all-tests:
-    name: 📊 All Tests Coverage
-    needs: code-style
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: finpipe
-          POSTGRES_PASSWORD: finpipe
-          POSTGRES_DB: finpipe_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U finpipe -d finpipe_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
-
-      - name: Install LibreOffice
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer
-
       - name: Run All Tests + Coverage
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           poetry run pytest tests \
             --cov=src \
@@ -154,4 +105,5 @@ jobs:
             --cov-fail-under=70 \
             -q \
             -ra \
+            --durations=10 \
             -o log_cli=false
