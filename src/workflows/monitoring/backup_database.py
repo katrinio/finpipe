@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import gzip
-import shlex
 import shutil
 import subprocess
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from urllib.parse import urlparse
 
 from src.integrations.telegram.client import TelegramClient
 from src.services.monitoring.notifications import get_monitoring_chat_id
@@ -21,11 +19,7 @@ class BackupConfig:
     project_dir: Path
     backup_dir: Path
     retention_days: int
-    compose_service: str
-    db_host: str
-    db_port: int
-    db_name: str
-    db_user: str
+    database_url: str
 
 
 def load_backup_config() -> BackupConfig:
@@ -36,18 +30,13 @@ def load_backup_config() -> BackupConfig:
         backup_dir = project_dir / backup_dir
 
     retention_days = int(EnvVar.get_optional_env("BACKUP_RETENTION_DAYS", "7"))
-    compose_service = EnvVar.get_optional_env("BACKUP_POSTGRES_SERVICE", "postgres").strip() or "postgres"
-    db_host, db_port, db_name, db_user = _load_database_target()
+    database_url = _build_pg_dump_database_url(EnvVar.get_required_env("DATABASE_URL"))
 
     return BackupConfig(
         project_dir=project_dir,
         backup_dir=backup_dir,
         retention_days=retention_days,
-        compose_service=compose_service,
-        db_host=db_host,
-        db_port=db_port,
-        db_name=db_name,
-        db_user=db_user,
+        database_url=database_url,
     )
 
 
@@ -87,19 +76,12 @@ def main() -> int:
     return 0
 
 
-def _load_database_target() -> tuple[str, int, str, str]:
-    database_url = EnvVar.get_required_env("DATABASE_URL")
-    parsed = urlparse(database_url)
-    if parsed.scheme and "+" in parsed.scheme:
-        # postgresql+psycopg://...
-        pass
-    db_host = parsed.hostname or "postgres"
-    db_port = parsed.port or 5432
-    db_name = parsed.path.lstrip("/")
-    db_user = parsed.username or "finpipe"
-    if not db_name:
-        raise RuntimeError("DATABASE_URL does not include database name")
-    return db_host, db_port, db_name, db_user
+def _build_pg_dump_database_url(database_url: str) -> str:
+    if database_url.startswith("postgresql+psycopg://"):
+        return "postgresql://" + database_url.removeprefix("postgresql+psycopg://")
+    if database_url.startswith("postgresql://"):
+        return database_url
+    raise RuntimeError("DATABASE_URL must use postgresql or postgresql+psycopg scheme")
 
 
 def _build_backup_filename(now: datetime) -> str:
@@ -107,22 +89,8 @@ def _build_backup_filename(now: datetime) -> str:
 
 
 def _run_pg_dump(config: BackupConfig, output_path: Path) -> None:
-    command = [
-        "docker",
-        "compose",
-        "exec",
-        "-T",
-        config.compose_service,
-        "pg_dump",
-        "-h",
-        config.db_host,
-        "-p",
-        str(config.db_port),
-        "-U",
-        config.db_user,
-        config.db_name,
-    ]
-    LOGGER.info("Running pg_dump: %s", shlex.join(command))
+    command = ["pg_dump", f"--dbname={config.database_url}"]
+    LOGGER.info("Running pg_dump for %s", config.database_url)
     with output_path.open("wb") as handle:
         completed = subprocess.run(command, stdout=handle, stderr=subprocess.PIPE, check=False)
     if completed.returncode != 0:
