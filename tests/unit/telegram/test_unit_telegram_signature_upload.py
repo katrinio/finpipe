@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import pytest
 
@@ -13,7 +13,6 @@ from src.integrations.telegram.ui.messages import SignatureMessages
 from src.services.signing.exceptions import InvalidSignatureFormatError
 from src.storage.dependencies import StorageDependencies
 from src.storage.orm import AllowedUser
-from src.storage.orm.system.telegram_update import TelegramUpdate
 from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 
@@ -32,7 +31,7 @@ def test_upload_signature_sets_waiting_state(
 
     telegram_client = FakeTelegramClient()
     tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
-    tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
+    tg_bot.update_storage = cast(Any, fake_update_storage)
 
     assert tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice") is True
     assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
@@ -60,7 +59,7 @@ def test_successful_signature_upload_clears_state(
         }
     )
     tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
-    tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
+    tg_bot.update_storage = cast(Any, fake_update_storage)
 
     monkeypatch.setattr(telegram_handlers.SignatureService, "upload", lambda **kwargs: None)
 
@@ -109,7 +108,7 @@ def test_invalid_file_keeps_state(
         }
     )
     tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
-    tg_bot.update_storage = cast(type[TelegramUpdate], fake_update_storage)
+    tg_bot.update_storage = cast(Any, fake_update_storage)
 
     def raise_invalid(**kwargs: object) -> None:
         raise InvalidSignatureFormatError("invalid signature")
