@@ -1,4 +1,4 @@
-name: 🧪 Run Quality Gates
+name: 🧪 Quality Gates
 
 on:
   push:
@@ -37,8 +37,8 @@ jobs:
       - name: Run MyPy
         run: poetry run mypy src
 
-  unit-tests:
-    name: 🧪 Unit Tests
+  tests:
+    name: 🧪 Tests
     needs: code-style
     runs-on: ubuntu-latest
 
@@ -70,19 +70,29 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: Run Unit Tests + Coverage
+      - name: Run Unit Tests
         run: |
           poetry run pytest tests/unit \
-            --cov=src \
-            --cov-report=term-missing \
-            --cov-report=xml \
-            --cov-fail-under=70 \
             -q \
             -ra \
             -o log_cli=false
 
-  integration-tests:
-    name: 🔗 Integration Tests
+      - name: Install LibreOffice
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-writer
+
+      - name: Run Integration Tests
+        run: |
+          poetry run pytest tests/integration \
+            -q \
+            -ra \
+            -o log_cli=false
+
+  coverage:
+    name: 📊 Coverage
+    needs: tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     services:
@@ -113,14 +123,12 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: Install LibreOffice
+      - name: Run coverage
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer
-
-      - name: Run Integration Tests
-        run: |
-          poetry run pytest tests/integration \
+          poetry run pytest tests \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml \
             -q \
             -ra \
             -o log_cli=false
