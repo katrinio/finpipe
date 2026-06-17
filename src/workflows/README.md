@@ -51,7 +51,7 @@ Workflow:
 1. GitHub Actions срабатывает по расписанию и выступает только как таймер.
 2. По SSH подключается к VPS.
 3. На VPS переходит в `~/projects/finpipe`.
-4. Запускает `docker compose exec -T finpipe-bot python -m src.workflows.monitoring.daily_report`.
+4. Запускает `docker compose exec -T -w /app finpipe-bot poetry run python -m src.workflows.monitoring.daily_report`.
 5. Скрипт читает `app_events` из production PostgreSQL за последние 24 часа.
 6. Формирует короткий Telegram-отчёт и отправляет его в monitoring chat.
 

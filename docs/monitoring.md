@@ -147,7 +147,7 @@ Monitoring ориентирован на эксплуатацию одного �
 
 1. GitHub Actions запускает scheduled workflow как таймер.
 2. Workflow по SSH подключается к VPS.
-3. На VPS запускается `docker compose exec -T finpipe-bot python -m src.workflows.monitoring.daily_report`.
+3. На VPS запускается `docker compose exec -T -w /app finpipe-bot poetry run python -m src.workflows.monitoring.daily_report`.
 4. Скрипт читает `app_events` из production PostgreSQL за последние 24 часа.
 5. Отчёт отправляется в monitoring chat.
 

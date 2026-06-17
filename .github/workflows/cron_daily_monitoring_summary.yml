@@ -21,4 +21,4 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh -p "$VPS_PORT" -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" 'cd ~/projects/finpipe && docker compose exec -T finpipe-bot python -m src.workflows.monitoring.daily_report'
+          ssh -p "$VPS_PORT" -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" 'cd ~/projects/finpipe && docker compose exec -T -w /app finpipe-bot poetry run python -m src.workflows.monitoring.daily_report'
