@@ -52,7 +52,7 @@ class GmailOAuthCallbackService:
         try:
             session = cls.load_session(state)
             LOGGER.info("OAuth session validated for telegram_id=%s", session.telegram_id)
-            result = GmailOAuth.exchange_code(code, callback_url)
+            result = GmailOAuth.exchange_code(code, callback_url, session)
             cls.persist_connection(session, result)
             GmailOAuth.consume_state(state)
             LOGGER.info("OAuth flow completed for telegram_id=%s", session.telegram_id)

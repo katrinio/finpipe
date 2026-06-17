@@ -73,10 +73,10 @@ class GmailOAuth:
         return authorization_url, session
 
     @classmethod
-    def exchange_code(cls, code: str, callback_url: str) -> GmailOAuthResult:
+    def exchange_code(cls, code: str, callback_url: str, oauth_session: OAuthSession) -> GmailOAuthResult:
         """Обменивает OAuth code на refresh token и метаданные аккаунта."""
 
-        credentials = cls._exchange_code_for_credentials(code, callback_url)
+        credentials = cls._exchange_code_for_credentials(code, callback_url, oauth_session)
         refresh_token = cls.extract_refresh_token(credentials)
         email = cls.extract_email(credentials)
         scopes_list = getattr(credentials, "scopes", None)
@@ -142,9 +142,10 @@ class GmailOAuth:
         return secrets.token_urlsafe(32)
 
     @classmethod
-    def _exchange_code_for_credentials(cls, code: str, callback_url: str) -> object:
+    def _exchange_code_for_credentials(cls, code: str, callback_url: str, oauth_session: OAuthSession) -> object:
         try:
             flow = cls._build_flow(callback_url)
+            flow.code_verifier = oauth_session.code_verifier
             flow.fetch_token(code=code)
             return flow.credentials
         except GmailOAuthError:
