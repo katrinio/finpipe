@@ -5,7 +5,9 @@ import time
 from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.handlers.command_router import CommandRouter
+from src.integrations.telegram.handlers.monitoring_handler import MonitoringHandler
 from src.integrations.telegram.handlers.state_handlers import StateHandler
+from src.integrations.telegram.settings import TelegramSettings
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import PUBLIC_COMMANDS
@@ -44,6 +46,7 @@ class TelegramBot:
             telegram=self._telegram,
             audit_log=self.dependencies.audit_log,
         )
+        self.monitoring_handler = MonitoringHandler(self._telegram)
 
         self._state_handlers: dict[UserState, StateHandler] = {
             UserState.WAITING_SIGNATURE_UPLOAD: StateHandler(
@@ -138,6 +141,26 @@ class TelegramBot:
             return None
 
         return text, telegram_id, user.get("username")
+
+    def extract_chat_id(self, update: dict) -> int | None:
+        """Извлекает chat_id, если update пришёл из чата."""
+
+        message = update.get("message")
+        if message is not None:
+            chat = message.get("chat", {})
+            chat_id = chat.get("id")
+            if chat_id is not None:
+                return chat_id
+
+        callback_query = update.get("callback_query")
+        if callback_query is not None:
+            message = callback_query.get("message", {})
+            chat = message.get("chat", {})
+            chat_id = chat.get("id")
+            if chat_id is not None:
+                return chat_id
+
+        return None
 
     def extract_callback_data(self, update: dict) -> tuple[str | None, int, str | None] | None:
         """Извлекает callback-кнопку Telegram."""
@@ -289,6 +312,11 @@ class TelegramBot:
     def process_update(self, update: dict) -> None:
         """Обрабатывает один Telegram update."""
 
+        chat_id = self.extract_chat_id(update)
+        if self._process_monitoring_update(update=update, chat_id=chat_id):
+            self.update_storage.mark_processed(update["update_id"])
+            return
+
         self._register_known_user(update)
         data = self.extract_message_data(update) or self.extract_callback_data(update)
         if data is None:
@@ -365,6 +393,35 @@ class TelegramBot:
         if len(command) > 64:
             command = command[:64]
         return f"{command!r} (len={len(text)})"
+
+    @staticmethod
+    def _get_monitoring_chat_id() -> int | None:
+        return TelegramSettings.get_monitoring_chat_id()
+
+    def _process_monitoring_update(self, update: dict, chat_id: int | None) -> bool:
+        if chat_id is None:
+            return False
+
+        monitoring_chat_id = self._get_monitoring_chat_id()
+        if monitoring_chat_id is None or chat_id != monitoring_chat_id:
+            return False
+
+        message = update.get("message")
+        if message is None:
+            LOGGER.info("Ignoring non-message update from monitoring chat %s", chat_id)
+            return True
+
+        text = message.get("text")
+        user = message.get("from", {})
+        telegram_id = user.get("id")
+        username = user.get("username")
+
+        if text is None:
+            LOGGER.info("Ignoring empty monitoring message in chat %s", chat_id)
+            return True
+
+        self.monitoring_handler.handle_message(text=text, chat_id=chat_id, telegram_id=telegram_id, username=username)
+        return True
 
 
 def main() -> None:

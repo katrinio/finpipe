@@ -12,7 +12,6 @@ def build_admin_menu() -> dict:
             ],
             [
                 {"text": OwnerButtons.STATISTICS},
-                {"text": OwnerButtons.ERRORS},
             ],
             [
                 {"text": NavigationButtons.HOME},
