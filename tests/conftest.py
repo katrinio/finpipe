@@ -83,18 +83,7 @@ def _resolve_integration_database_url() -> str | None:
 
 
 def _is_integration_test(request: pytest.FixtureRequest) -> bool:
-    return "tests/integration/" in str(request.node.path)
-
-
-def _can_connect(database_url: str) -> bool:
-    engine = create_engine(database_url, future=True)
-    try:
-        with engine.connect():
-            return True
-    except OperationalError:
-        return False
-    finally:
-        engine.dispose()
+    return "integration" in request.node.path.parts
 
 
 def _can_connect(database_url: str) -> bool:
