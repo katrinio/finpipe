@@ -6,6 +6,7 @@ class SystemButtons:
     HEALTHCHECK = "❤️ Healthcheck"
     ABOUT = "ℹ️ О проекте"
     WHOAMI = "👤 Кто я"
+    CHATID = "/chatid"
     STATUS = "📊 Статус профиля"
     EASY_START = "🚀 Начало работы"
 

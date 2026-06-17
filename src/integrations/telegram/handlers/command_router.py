@@ -28,6 +28,7 @@ from src.integrations.telegram.ui.buttons import (
 from src.integrations.telegram.ui.messages import CommonMessages
 from src.services.monitoring.event_logger import EventLogger
 from src.services.signing.signature_service import SignatureService as _SignatureService
+from src.storage.orm import AllowedUser
 from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.system.audit_log import AuditLog, AuditStatus
 from src.utils.credentials import LOGGER
@@ -72,6 +73,11 @@ class CommandRouter:
         )
 
         try:
+            if text == SystemButtons.CHATID and not AllowedUser.is_owner(context.telegram_id):
+                self.telegram.send_message(context.telegram_id, CommonMessages.Errors.NO_SUCH_COMMAND)
+                self._audit(context, AuditStatus.FAILED, CommonMessages.Errors.NO_SUCH_COMMAND)
+                return False
+
             handler = self._command_handlers.get(text)
             if handler is None and text.startswith(f"{Cmd.ADD_USER} "):
                 handler = self._command_handlers.get(OwnerButtons.ADD_USER)
@@ -161,6 +167,7 @@ class CommandRouter:
             SystemButtons.HEALTHCHECK: lambda context: self.system_handler.health(context.telegram_id),
             SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
+            SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
             SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),

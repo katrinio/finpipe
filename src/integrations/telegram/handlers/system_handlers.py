@@ -1,5 +1,5 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import format_last_action, format_recent_errors, format_stats, format_whoami
+from src.integrations.telegram.commands import format_chatid, format_last_action, format_recent_errors, format_stats, format_whoami
 from src.integrations.telegram.messages import AuditLogMessages, CommonMessages, MenuMessages
 from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
@@ -52,6 +52,16 @@ class SystemHandlers:
             return
         reply_markup = build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)) if AllowedUser.exists(telegram_id) else build_guest_menu()
         self.telegram.send_message(telegram_id, format_whoami(telegram_id, username), reply_markup=reply_markup)
+
+    def chatid(self, telegram_id: int | None) -> None:
+        """Возвращает идентификатор чата владельцу бота."""
+
+        if telegram_id is None:
+            return
+
+        self.telegram.send_message(
+            telegram_id, format_chatid(telegram_id), reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id))
+        )
 
     def last_action(self, telegram_id: int) -> None:
         """Показывает последнюю запись в журнале команд."""
