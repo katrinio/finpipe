@@ -76,9 +76,7 @@ class GmailOAuthCallbackService:
                 cls.mark_failed(session, str(exc))
             raise
         except Exception as exc:
-            LOGGER.error("Callback processing failed for telegram_id=%s: %s", session.telegram_id if session is not None else None, exc)
-            if session is not None:
-                cls.mark_failed(session, f"Callback processing failed: {exc}")
+            LOGGER.exception("Callback processing failed for telegram_id=%s", session.telegram_id if session is not None else None)
             raise GmailOAuthError(f"Callback processing failed: {exc}") from exc
 
     @classmethod
