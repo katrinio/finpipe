@@ -16,10 +16,6 @@ def get_monitoring_chat_id() -> int:
     if monitoring_chat_id:
         return int(monitoring_chat_id)
 
-    owner_chat_id = EnvVar.get_optional_env("OWNER_TELEGRAM_ID", "")
-    if owner_chat_id:
-        return int(owner_chat_id)
-
     return int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID"))
 
 
