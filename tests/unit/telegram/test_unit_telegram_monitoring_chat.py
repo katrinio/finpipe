@@ -57,10 +57,10 @@ def test_monitoring_chat_status_command_stays_in_monitoring_flow(monkeypatch) ->
     assert bot.update_storage.processed == [32]
 
 
-def test_user_chat_continues_to_use_user_router(monkeypatch) -> None:
+def test_user_chat_continues_to_use_user_router(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
 
-    database = Database(build_test_database_url())
+    database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     AllowedUser.create(123, "alice", UserRole.USER)
 

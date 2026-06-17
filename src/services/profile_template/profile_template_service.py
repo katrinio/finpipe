@@ -143,9 +143,6 @@ class ProfileTemplateService:
                     payment_number=profile.payment_number,
                     payment_code=profile.payment_code,
                     payment_description=profile.payment_description,
-                    bank_confirmation_email_sender=profile.bank_confirmation_email.sender,
-                    bank_confirmation_email_recipient=profile.bank_confirmation_email.recipient,
-                    bank_confirmation_email_subject_contains=profile.bank_confirmation_email.subject_contains,
                 )
                 session.add(company_profile)
             else:

@@ -1,7 +1,7 @@
 """add bank confirmation email settings to bank account
 
 Revision ID: 5f0b5ef6d2e1
-Revises: 63b9793230cc
+Revises: 3f6b4a87baee
 Create Date: 2026-06-17 13:10:00.000000
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "5f0b5ef6d2e1"
-down_revision: str | Sequence[str] | None = "63b9793230cc"
+down_revision: str | Sequence[str] | None = "3f6b4a87baee"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

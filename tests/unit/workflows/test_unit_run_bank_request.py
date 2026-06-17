@@ -21,6 +21,7 @@ def test_run_bank_request_returns_error_when_bank_email_settings_missing(monkeyp
 
     assert run_bank_request.main() == 1
     assert telegram_client.sent_messages == [
+        "⚡ Magic is starting 🤞",
         "⚠️ Bank email search settings are missing.\n"
-        "Fill bank_confirmation_email.sender, bank_confirmation_email.recipient and bank_confirmation_email.subject_contains in the profile."
+        "Fill bank_confirmation_email.sender, bank_confirmation_email.recipient and bank_confirmation_email.subject_contains in the profile.",
     ]
