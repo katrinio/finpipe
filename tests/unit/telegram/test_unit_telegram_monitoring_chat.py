@@ -3,8 +3,11 @@ from typing import cast
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.storage.dependencies import StorageDependencies
+from src.storage.orm import AllowedUser, UserRole
+from src.storage.orm.database import Database
 from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 def test_monitoring_chat_message_is_ignored(monkeypatch) -> None:
@@ -58,6 +61,10 @@ def test_monitoring_chat_status_command_stays_in_monitoring_flow(monkeypatch, ca
 
 def test_user_chat_continues_to_use_user_router(monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
+
+    database = Database(build_test_database_url())
+    initialize_test_database(database)
+    AllowedUser.create(123, "alice", UserRole.USER)
 
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(cast(StorageDependencies, FakeStorage({123})), telegram=cast(TelegramClient, telegram_client))

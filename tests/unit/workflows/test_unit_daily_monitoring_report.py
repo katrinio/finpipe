@@ -161,6 +161,11 @@ def test_daily_monitoring_summary_does_not_depend_on_telegram_update(monkeypatch
             severity_counts={},
             event_type_counts={},
             recent_errors=[],
+            infrastructure=daily_report.InfrastructureSummary(
+                database_status="OK",
+                disk_usage_percent=83,
+                certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown"),
+            ),
         ),
     )
     monkeypatch.setattr(daily_report, "send_daily_monitoring_summary", lambda telegram_client, summary: telegram_client.send_message(1, "ok"))
