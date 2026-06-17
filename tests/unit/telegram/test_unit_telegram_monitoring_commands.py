@@ -82,14 +82,14 @@ def test_user_router_does_not_expose_monitoring_commands(monkeypatch, tmp_path) 
     telegram = FakeTelegramClient()
     router = CommandRouter(telegram=cast(TelegramClient, telegram), audit_log=AuditLog)
 
-    assert router.handle_message("/status", telegram_id=777, username="owner") is False
+    assert router.handle_message("/status", telegram_id=777, username="owner") is True
     assert telegram.sent_messages[-1] == "🫥 Неизвестная команда."
 
 
 def test_menu_builders_do_not_show_monitoring_controls() -> None:
     assert build_system_menu(is_owner=True) == {
         "keyboard": [
-            [{"text": "ℹ️ О боте"}, {"text": "📘 Быстрый старт"}],
+            [{"text": "ℹ️ О боте"}, {"text": "🚀 Быстрый старт"}],
             [{"text": "👤 Кто я"}],
             [{"text": "🏠 Главное меню"}],
             [{"text": "👤 Админ-панель"}],
