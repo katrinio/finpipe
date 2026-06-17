@@ -148,7 +148,7 @@ class GmailOAuth:
         except GmailOAuthError:
             raise
         except Exception as error:
-            raise GmailOAuthTokenExchangeError("Failed to exchange OAuth code for Gmail credentials") from error
+            raise GmailOAuthTokenExchangeError(f"Failed to exchange OAuth code for Gmail credentials: {error!r}") from error
 
     @classmethod
     def _build_flow(cls, callback_url: str) -> Any:
