@@ -55,6 +55,8 @@ class GmailOAuth:
             expires_at=expires_at,
         )
         flow = cls._build_flow(callback_url)
+        LOGGER.info("code_verifier=%s", getattr(flow, "code_verifier", None))
+        OAuthSession.update_code_verifier(state=state, code_verifier=flow.code_verifier)
         authorization_url, _ = flow.authorization_url(
             access_type="offline",
             prompt="consent",
