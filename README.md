@@ -47,6 +47,27 @@ DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
 - Gmail integration
 - статус профиля и системы
 
+## Docker
+
+Базовый файл `docker-compose.yml` содержит общую конфигурацию сервисов и используется в проде.
+`docker-compose.local.yml` добавляет проброс портов для локальной разработки.
+
+**Локально:**
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+```
+
+Доступные порты:
+- PostgreSQL: `localhost:5433`
+- Web (FastAPI): `localhost:8000`
+
+**На сервере (прод):**
+
+```bash
+docker compose up -d
+```
+
 ## Quick Start
 
 1. Установить зависимости:

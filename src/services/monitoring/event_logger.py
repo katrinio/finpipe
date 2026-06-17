@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 from collections.abc import Callable
 from typing import Any, ClassVar
 
 from src.storage.orm.system.app_events import AppEvent, EventSeverity, EventType
 
 logger = logging.getLogger(__name__)
+
+_notifying = threading.local()
 
 
 class EventLogger:
@@ -76,8 +79,14 @@ class EventLogger:
         severity: EventSeverity,
         details: str | None,
     ) -> None:
-        for handler in cls._handlers:
-            try:
-                handler(event_type, severity, details)
-            except Exception:
-                logger.exception("EventLogger handler failed")
+        if getattr(_notifying, "active", False):
+            return
+        _notifying.active = True
+        try:
+            for handler in cls._handlers:
+                try:
+                    handler(event_type, severity, details)
+                except Exception:
+                    logger.exception("EventLogger handler failed")
+        finally:
+            _notifying.active = False

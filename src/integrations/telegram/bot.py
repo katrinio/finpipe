@@ -18,6 +18,7 @@ from src.integrations.telegram.ui.messages import CommonMessages
 from src.logging_config import configure_logging
 from src.services.known_user_service import KnownUserService
 from src.services.monitoring.event_logger import EventLogger
+from src.services.monitoring.notifications import register_monitoring_notifications
 from src.storage.dependencies import (
     StorageDependencies,
     build_storage_dependencies,
@@ -373,6 +374,8 @@ def main() -> None:
     storage = build_storage_dependencies()
     bootstrap_primary_admin()
     bot = TelegramBot(storage)
+    register_monitoring_notifications(bot.telegram)
+    EventLogger.log(EventType.BOT_STARTED, EventSeverity.INFO, {"component": "telegram_bot"})
 
     LOGGER.info("Starting Telegram listener loop")
     while True:

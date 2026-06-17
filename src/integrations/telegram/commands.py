@@ -40,6 +40,12 @@ def format_whoami(telegram_id: int | None, username: str | None) -> str:
     return f"{CommonMessages.General.WHOAMI_PREFIX}\nTelegram ID: {telegram_id}\nUsername: {username_line}"
 
 
+def format_chatid(telegram_id: int | None) -> str:
+    """Форматирует идентификатор текущего чата."""
+
+    return f"Chat ID: {telegram_id}"
+
+
 def format_last_action(action: AuditLog) -> str:
     """Форматирует последнюю запись аудитлога."""
 

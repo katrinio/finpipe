@@ -31,7 +31,7 @@ def test_successful_callback_connects_gmail_and_marks_session_used(
     session = OAuthSession.create(telegram_id=123, telegram_username="alice", state="state-1", expires_at=expires_at)
     monkeypatch.setattr(
         "src.integrations.gmail.oauth_callback.GmailOAuth.exchange_code",
-        lambda code, callback_url: GmailOAuthResult(
+        lambda code, callback_url, oauth_session: GmailOAuthResult(
             email="user@example.com",
             refresh_token="refresh-token",
             scopes="scope-a scope-b",
@@ -84,7 +84,7 @@ def test_callback_service_wraps_unexpected_failure(
     session = OAuthSession.create(telegram_id=123, telegram_username="alice", state="state-1", expires_at=expires_at)
     monkeypatch.setattr(
         "src.integrations.gmail.oauth_callback.GmailOAuth.exchange_code",
-        lambda code, callback_url: (_ for _ in ()).throw(RuntimeError("boom")),
+        lambda code, callback_url, oauth_session: (_ for _ in ()).throw(RuntimeError("boom")),
     )
 
     with pytest.raises(GmailOAuthError, match="Callback processing failed"):
@@ -121,7 +121,9 @@ def test_token_exchange_failure_marks_session_failed(
     session = OAuthSession.create(telegram_id=123, telegram_username="alice", state="state-1", expires_at=expires_at)
     monkeypatch.setattr(
         "src.integrations.gmail.oauth_callback.GmailOAuth.exchange_code",
-        lambda code, callback_url: (_ for _ in ()).throw(GmailOAuthTokenExchangeError("Failed to exchange OAuth code for Gmail credentials")),
+        lambda code, callback_url, oauth_session: (_ for _ in ()).throw(
+            GmailOAuthTokenExchangeError("Failed to exchange OAuth code for Gmail credentials")
+        ),
     )
 
     with pytest.raises(GmailOAuthTokenExchangeError, match="Failed to exchange OAuth code for Gmail credentials"):
