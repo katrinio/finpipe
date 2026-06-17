@@ -1,7 +1,10 @@
 import pytest
 
 from src.integrations.gmail import search
+from src.storage.orm.database import Database
+from src.storage.orm.user.bank_details import BankDetails
 from src.utils.credentials import ENV_PATH_OVERRIDE, EnvVar
+from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
 class FakeMessagesApi:
@@ -33,34 +36,85 @@ class FakeGmailService:
         return FakeUsersApi(self.messages_api)
 
 
-def test_build_bank_email_query_uses_required_filters(monkeypatch) -> None:
-    monkeypatch.setenv("BANK_EMAIL_SUBJECT", 'KATRIN "TORSUNOVA" PR')
-    monkeypatch.setenv("BANK_EMAIL_FROM", 'bank"sender@example.com')
+def test_load_bank_email_search_config_prefers_profile_over_env(tmp_path, monkeypatch) -> None:
+    database = Database(build_test_database_url(tmp_path / "test.db"))
+    initialize_test_database(database)
+    BankDetails.upsert(
+        owner_telegram_id=123,
+        account_holder="Test User",
+        bank_name="Test Bank",
+        account_number="123",
+        iban="RS123",
+        bic="TESTRSBG",
+        bank_confirmation_email_sender="bank@profile.rs",
+        bank_confirmation_email_recipient="company@profile.rs",
+        bank_confirmation_email_subject_contains="profile subject",
+    )
+
+    monkeypatch.setenv("BANK_EMAIL_FROM", "bank@env.rs")
+    monkeypatch.setenv("BANK_EMAIL_TO", "company@env.rs")
+    monkeypatch.setenv("BANK_EMAIL_SUBJECT", "env subject")
     EnvVar.reset_dotenv_cache()
 
-    query = search.build_bank_email_query()
+    config = search.load_bank_email_search_config(123)
 
-    assert query == ('subject:"KATRIN \\"TORSUNOVA\\" PR" from:"bank\\"sender@example.com" newer_than:30d has:attachment')
+    assert config.source == "profile"
+    assert config.sender == "bank@profile.rs"
+    assert config.recipient == "company@profile.rs"
+    assert config.subject_contains == "profile subject"
 
 
-def test_build_bank_email_query_requires_subject(tmp_path, monkeypatch) -> None:
-    monkeypatch.setenv(ENV_PATH_OVERRIDE, str(tmp_path / "missing.env"))
-    monkeypatch.delenv("BANK_EMAIL_SUBJECT", raising=False)
-    monkeypatch.setenv("BANK_EMAIL_FROM", "bank@example.com")
+def test_load_bank_email_search_config_uses_env_fallback_when_profile_is_empty(tmp_path, monkeypatch) -> None:
+    database = Database(build_test_database_url(tmp_path / "test.db"))
+    initialize_test_database(database)
+    BankDetails.upsert(
+        owner_telegram_id=123,
+        account_holder="Test User",
+        bank_name="Test Bank",
+        account_number="123",
+        iban="RS123",
+        bic="TESTRSBG",
+    )
+
+    monkeypatch.setenv("BANK_EMAIL_FROM", "bank@env.rs")
+    monkeypatch.setenv("BANK_EMAIL_TO", "company@env.rs")
+    monkeypatch.setenv("BANK_EMAIL_SUBJECT", "env subject")
     EnvVar.reset_dotenv_cache()
 
-    with pytest.raises(RuntimeError, match="BANK_EMAIL_SUBJECT"):
-        search.build_bank_email_query()
+    config = search.load_bank_email_search_config(None)
+
+    assert config.source == "env"
+    assert config.sender == "bank@env.rs"
+    assert config.recipient == "company@env.rs"
+    assert config.subject_contains == "env subject"
 
 
-def test_build_bank_email_query_requires_sender(tmp_path, monkeypatch) -> None:
+def test_load_bank_email_search_config_requires_settings(tmp_path, monkeypatch) -> None:
+    database = Database(build_test_database_url(tmp_path / "test.db"))
+    initialize_test_database(database)
     monkeypatch.setenv(ENV_PATH_OVERRIDE, str(tmp_path / "missing.env"))
-    monkeypatch.setenv("BANK_EMAIL_SUBJECT", "KATRIN TORSUNOVA PR")
     monkeypatch.delenv("BANK_EMAIL_FROM", raising=False)
+    monkeypatch.delenv("BANK_EMAIL_TO", raising=False)
+    monkeypatch.delenv("BANK_EMAIL_SUBJECT", raising=False)
     EnvVar.reset_dotenv_cache()
 
-    with pytest.raises(RuntimeError, match="BANK_EMAIL_FROM"):
-        search.build_bank_email_query()
+    with pytest.raises(RuntimeError, match="bank_confirmation_email"):
+        search.load_bank_email_search_config(None)
+
+
+def test_build_bank_email_query_uses_filters() -> None:
+    config = search.BankEmailSearchConfig(
+        sender='bank"sender@example.com',
+        recipient='company"recipient@example.com',
+        subject_contains='KATRIN "TORSUNOVA" PR',
+        source="profile",
+    )
+
+    query = search.build_bank_email_query(config)
+
+    assert query == (
+        'subject:"KATRIN \\"TORSUNOVA\\" PR" from:"bank\\"sender@example.com" to:"company\\"recipient@example.com" newer_than:30d has:attachment'
+    )
 
 
 def test_build_bank_email_result_maps_headers() -> None:
@@ -86,19 +140,37 @@ def test_build_bank_email_result_maps_headers() -> None:
 
 
 def test_find_bank_email_returns_none_when_no_messages(monkeypatch) -> None:
-    monkeypatch.setattr(search, "build_bank_email_query", lambda: "query")
+    monkeypatch.setattr(
+        search,
+        "load_bank_email_search_config",
+        lambda _owner_telegram_id=None: search.BankEmailSearchConfig(
+            sender="bank@example.com",
+            recipient="company@example.com",
+            subject_contains="payment",
+            source="profile",
+        ),
+    )
     service = FakeGmailService({"messages": []})
 
     assert search.find_bank_email(service) is None
     assert service.messages_api.list_kwargs == {
         "userId": "me",
-        "q": "query",
+        "q": 'subject:"payment" from:"bank@example.com" to:"company@example.com" newer_than:30d has:attachment',
         "maxResults": 10,
     }
 
 
 def test_find_bank_email_selects_newest_message(monkeypatch) -> None:
-    monkeypatch.setattr(search, "build_bank_email_query", lambda: "query")
+    monkeypatch.setattr(
+        search,
+        "load_bank_email_search_config",
+        lambda _owner_telegram_id=None: search.BankEmailSearchConfig(
+            sender="bank@example.com",
+            recipient="company@example.com",
+            subject_contains="payment",
+            source="profile",
+        ),
+    )
 
     metadata_by_id = {
         "old": {

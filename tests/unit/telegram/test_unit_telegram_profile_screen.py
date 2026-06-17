@@ -36,6 +36,9 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         account_number="123456789",
         iban="RS35123456789012345678",
         bic="EXAMPLERSBG",
+        bank_confirmation_email_sender="bank@example.com",
+        bank_confirmation_email_recipient="company@example.com",
+        bank_confirmation_email_subject_contains="payment confirmation",
     )
     UserConfig.upsert(telegram_id=123, invoice_amount_eur=566)
     source = tmp_path / "signature.png"
@@ -78,6 +81,9 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         "• Счёт: 123456789\n"
         "• IBAN: RS35123456789012345678\n"
         "• BIC: EXAMPLERSBG\n"
+        "• Bank email sender: bank@example.com\n"
+        "• Bank email recipient: company@example.com\n"
+        "• Bank email subject contains: payment confirmation\n"
         "\n"
         "💳 Платёж\n"
         "• Номер платежа: 97\n"
