@@ -89,10 +89,10 @@ def test_user_router_does_not_expose_monitoring_commands(monkeypatch, tmp_path) 
 def test_menu_builders_do_not_show_monitoring_controls() -> None:
     assert build_system_menu(is_owner=True) == {
         "keyboard": [
-            [{"text": "ℹ️ О боте"}, {"text": "🚀 Быстрый старт"}],
+            [{"text": "ℹ️ О проекте"}, {"text": "🚀 Начало работы"}],
             [{"text": "👤 Кто я"}],
-            [{"text": "🏠 Главное меню"}],
-            [{"text": "👤 Админ-панель"}],
+            [{"text": "🏠 Домой"}],
+            [{"text": "🛠️ Админка"}],
         ],
         "resize_keyboard": True,
     }
