@@ -136,3 +136,36 @@ Monitoring ориентирован на эксплуатацию одного �
 * автоматическая агрегация и дедупликация ошибок.
 
 При необходимости эти возможности могут быть добавлены поверх существующей системы событий.
+
+⸻
+
+📊 Ежедневная monitoring summary
+
+Отдельно от live-уведомлений работает ежедневная сводка monitoring summary.
+
+Как устроено:
+
+1. GitHub Actions запускает scheduled workflow как таймер.
+2. Workflow по SSH подключается к VPS.
+3. На VPS запускается `docker compose exec -T finpipe-bot python -m src.workflows.monitoring.daily_report`.
+4. Скрипт читает `app_events` из production PostgreSQL за последние 24 часа.
+5. Отчёт отправляется в monitoring chat.
+
+Секреты GitHub Actions:
+
+* `VPS_HOST`
+* `VPS_USER`
+* `VPS_PORT`
+* `VPS_SSH_KEY`
+
+Расписание:
+
+* GitHub cron работает в UTC.
+* Для 07:00 по Белграду используется `05:00 UTC` как MVP.
+* При смене DST cron нужно пересмотреть.
+
+Почему не CI:
+
+* в CI нет настоящей prod БД;
+* отчёт должен строиться по реальным данным за сутки;
+* рядом с приложением на VPS уже доступны docker compose, prod env и PostgreSQL.

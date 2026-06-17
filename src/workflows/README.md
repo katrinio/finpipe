@@ -42,18 +42,37 @@ Workflow:
 
 ---
 
-## send_daily_healthcheck
+## daily_monitoring_summary
 
-Ежедневная проверка состояния системы.
+Ежедневная сводка мониторинга по реальным данным production.
 
 Workflow:
 
-1. Выполняет системные проверки.
-2. Собирает результаты healthcheck.
-3. Формирует краткий отчёт.
-4. Отправляет статус в Telegram.
+1. GitHub Actions срабатывает по расписанию и выступает только как таймер.
+2. По SSH подключается к VPS.
+3. На VPS переходит в `~/projects/finpipe`.
+4. Запускает `docker compose exec -T finpipe-bot python -m src.workflows.monitoring.daily_report`.
+5. Скрипт читает `app_events` из production PostgreSQL за последние 24 часа.
+6. Формирует короткий Telegram-отчёт и отправляет его в monitoring chat.
 
-Предназначен для запуска по расписанию.
+Причина запуска на VPS:
+
+- отчёт должен строиться по реальным production-данным;
+- в CI нет доступа к prod PostgreSQL;
+- рядом с приложением уже доступны prod env, docker compose и нужные секреты.
+
+Secrets для GitHub Actions:
+
+- `VPS_HOST`
+- `VPS_USER`
+- `VPS_PORT`
+- `VPS_SSH_KEY`
+
+Расписание:
+
+- `cron` в GitHub Actions работает в UTC;
+- для 07:00 по Белграду используется фиксированное значение `05:00 UTC` как MVP;
+- при смене DST cron нужно пересматривать.
 
 ---
 
