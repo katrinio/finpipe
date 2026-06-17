@@ -76,7 +76,7 @@ def test_format_daily_monitoring_summary_without_events() -> None:
         infrastructure=daily_report.InfrastructureSummary(
             database_status="OK",
             disk_usage_percent=83,
-            certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown"),
+            certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error=None),
         ),
     )
 
@@ -114,6 +114,7 @@ def test_format_daily_monitoring_summary_with_errors() -> None:
                 expires_at=datetime(2026, 8, 23, 7, 0, tzinfo=UTC),
                 days_remaining=67,
                 status_emoji="✅",
+                error=None,
             ),
         ),
     )
@@ -138,7 +139,7 @@ def test_daily_monitoring_summary_sends_to_monitoring_chat(monkeypatch) -> None:
         infrastructure=daily_report.InfrastructureSummary(
             database_status="OK",
             disk_usage_percent=83,
-            certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown"),
+            certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error=None),
         ),
     )
     monkeypatch.setattr(daily_report, "get_monitoring_chat_id", lambda: 555)
@@ -165,7 +166,7 @@ def test_daily_monitoring_summary_does_not_depend_on_telegram_update(monkeypatch
             infrastructure=daily_report.InfrastructureSummary(
                 database_status="OK",
                 disk_usage_percent=83,
-                certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown"),
+                certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error=None),
             ),
         ),
     )
@@ -195,6 +196,17 @@ def test_certificate_days_remaining_calculation(monkeypatch) -> None:
 
     assert certificate.days_remaining == 67
     assert certificate.status_emoji == "✅"
+    assert certificate.error is None
+
+
+def test_monitoring_domain_can_be_loaded_from_public_url(monkeypatch) -> None:
+    monkeypatch.delenv("FINPIPE_DOMAIN", raising=False)
+    monkeypatch.delenv("APP_DOMAIN", raising=False)
+    monkeypatch.delenv("DOMAIN", raising=False)
+    monkeypatch.delenv("PUBLIC_DOMAIN", raising=False)
+    monkeypatch.setenv("PUBLIC_URL", "https://finpipe.example")
+
+    assert daily_report._get_monitoring_domain() == "finpipe.example"
 
 
 def test_infrastructure_block_handles_certificate_and_db_failures(monkeypatch) -> None:
@@ -207,3 +219,4 @@ def test_infrastructure_block_handles_certificate_and_db_failures(monkeypatch) -
     assert infrastructure.database_status == "ERROR"
     assert infrastructure.certificate.days_remaining is None
     assert infrastructure.certificate.status_emoji == "unknown"
+    assert infrastructure.certificate.error == "tls error"

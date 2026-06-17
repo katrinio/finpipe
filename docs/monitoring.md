@@ -158,6 +158,8 @@ Monitoring ориентирован на эксплуатацию одного �
 * `VPS_PORT`
 * `VPS_SSH_KEY`
 
+Для SSL-проверки report использует домен из `FINPIPE_DOMAIN`, `APP_DOMAIN`, `DOMAIN`, `PUBLIC_DOMAIN`, `PUBLIC_URL` или `APP_URL` в этом порядке.
+
 Расписание:
 
 * GitHub cron работает в UTC.

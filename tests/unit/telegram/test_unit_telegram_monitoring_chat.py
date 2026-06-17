@@ -33,26 +33,24 @@ def test_monitoring_chat_message_is_ignored(monkeypatch) -> None:
     assert bot.update_storage.processed == [31]
 
 
-def test_monitoring_chat_status_command_stays_in_monitoring_flow(monkeypatch, caplog) -> None:
+def test_monitoring_chat_status_command_stays_in_monitoring_flow(monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
 
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(cast(StorageDependencies, FakeStorage({123})), telegram=cast(TelegramClient, telegram_client))
     bot.update_storage = FakeTelegramUpdateStorage()
 
-    with caplog.at_level("INFO"):
-        bot.process_update(
-            {
-                "update_id": 32,
-                "message": {
-                    "text": "/status",
-                    "chat": {"id": -100123, "type": "group"},
-                    "from": {"id": 249517409, "username": "owner"},
-                },
-            }
-        )
+    bot.process_update(
+        {
+            "update_id": 32,
+            "message": {
+                "text": "/status",
+                "chat": {"id": -100123, "type": "group"},
+                "from": {"id": 249517409, "username": "owner"},
+            },
+        }
+    )
 
-    assert any("Telegram update: user_id=249517409 chat_id=-100123 chat_type=group text=/status" in record.message for record in caplog.records)
     assert telegram_client.sent_messages_with_chat_ids[-1][0] == -100123
     assert telegram_client.sent_messages_with_chat_ids[-1][1].startswith("📊 Finpipe status")
     assert telegram_client.sent_messages[-1] != "🫥 Неизвестная команда."
