@@ -1,9 +1,7 @@
 services:
   postgres:
     image: postgres:17
-
-    ports:
-      - "5433:5432"
+    restart: unless-stopped
 
     environment:
       POSTGRES_DB: finpipe
@@ -21,6 +19,8 @@ services:
 
   finpipe-bot:
     build: .
+    restart: unless-stopped
+
     command: python -m src.integrations.telegram.bot
 
     env_file:
@@ -39,7 +39,10 @@ services:
 
   finpipe-web:
     build: .
+    restart: unless-stopped
+
     command: uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
+
     env_file:
       - .env
 
@@ -51,7 +54,7 @@ services:
       - ~/finpipe-secrets/token.json:/app/token.json:ro
 
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
 
     depends_on:
       postgres:
