@@ -19,6 +19,7 @@ def build_test_database_url(*_args: object, **_kwargs: object) -> str:
     if _args:
         first_arg = _args[0]
         if isinstance(first_arg, Path):
+            first_arg.parent.mkdir(parents=True, exist_ok=True)
             return f"sqlite:///{first_arg}"
 
     try:
@@ -29,6 +30,7 @@ def build_test_database_url(*_args: object, **_kwargs: object) -> str:
         pass
 
     sqlite_path = Path(tempfile.gettempdir()) / "finpipe_test.db"
+    sqlite_path.parent.mkdir(parents=True, exist_ok=True)
     return f"sqlite:///{sqlite_path}"
 
 

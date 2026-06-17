@@ -17,16 +17,27 @@ load_dotenv()
 
 
 @pytest.fixture(autouse=True)
-def _test_database_url(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
-    """Uses PostgreSQL test database when available, otherwise falls back to SQLite."""
+def _test_database_url(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path_factory: pytest.TempPathFactory,
+) -> None:
+    """Configures the test database per test type."""
 
-    database_url = _resolve_test_database_url(tmp_path_factory)
+    if _is_integration_test(request):
+        database_url = _resolve_integration_database_url()
+        if database_url is None:
+            pytest.skip("PostgreSQL test database is unavailable")
+        _ensure_database_initialized(database_url)
+    else:
+        database_url = _resolve_test_database_url(tmp_path_factory)
+        if make_url(database_url).get_backend_name() == "sqlite":
+            BaseModel.metadata.create_all(create_engine(database_url, future=True))
+        _ensure_database_initialized(database_url)
+
     monkeypatch.setenv("DATABASE_URL", database_url)
 
     Database(database_url).bind_models()
-    if make_url(database_url).get_backend_name() == "sqlite":
-        BaseModel.metadata.create_all(create_engine(database_url, future=True))
-    _ensure_database_initialized(database_url)
 
     engine = create_engine(database_url, future=True)
     try:
@@ -54,6 +65,36 @@ def _resolve_test_database_url(tmp_path_factory: pytest.TempPathFactory) -> str:
 
     sqlite_path = tmp_path_factory.mktemp("db") / "test.db"
     return f"sqlite:///{sqlite_path}"
+
+
+def _resolve_integration_database_url() -> str | None:
+    try:
+        database_url = DatabaseConfig.get_test_database_url()
+    except RuntimeError:
+        try:
+            database_url = DatabaseConfig.get_database_url()
+        except RuntimeError:
+            return None
+    if make_url(database_url).get_backend_name() != "postgresql":
+        return None
+    if not _can_connect(database_url):
+        return None
+    return database_url
+
+
+def _is_integration_test(request: pytest.FixtureRequest) -> bool:
+    return "tests/integration/" in str(request.node.path)
+
+
+def _can_connect(database_url: str) -> bool:
+    engine = create_engine(database_url, future=True)
+    try:
+        with engine.connect():
+            return True
+    except OperationalError:
+        return False
+    finally:
+        engine.dispose()
 
 
 def _can_connect(database_url: str) -> bool:
