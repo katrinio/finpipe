@@ -19,6 +19,12 @@ def build_test_database_url(*_args: object, **_kwargs: object) -> str:
     if _args:
         first_arg = _args[0]
         if isinstance(first_arg, Path):
+            try:
+                database_url = DatabaseConfig.get_test_database_url()
+                if make_url(database_url).get_backend_name() == "postgresql" and _can_connect(database_url):
+                    return database_url
+            except RuntimeError:
+                pass
             first_arg.parent.mkdir(parents=True, exist_ok=True)
             return f"sqlite:///{first_arg}"
 
@@ -49,7 +55,8 @@ def initialize_test_database(database: Database) -> None:
     """Binds ORM models and creates tables for a test database."""
 
     database.bind_models()
-    BaseModel.metadata.create_all(database.engine)
+    if make_url(database.database_url).get_backend_name() == "sqlite":
+        BaseModel.metadata.create_all(database.engine)
 
 
 def initialize_test_database_from_url(database_url: str) -> Database:
