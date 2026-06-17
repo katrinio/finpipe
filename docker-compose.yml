@@ -53,9 +53,6 @@ services:
       - ~/finpipe-secrets/credentials.json:/app/credentials.json:ro
       - ~/finpipe-secrets/token.json:/app/token.json:ro
 
-    ports:
-      - "127.0.0.1:8000:8000"
-
     depends_on:
       postgres:
         condition: service_healthy
