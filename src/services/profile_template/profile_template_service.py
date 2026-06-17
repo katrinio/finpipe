@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from src.services.monitoring.event_logger import EventLogger
 from src.services.profile_template.exceptions import InvalidProfileTemplateError
-from src.services.profile_template.profile_template import ProfileTemplate
+from src.services.profile_template.profile_template import BankConfirmationEmailTemplate, ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
 from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.user.bank_details import BankDetails
@@ -73,11 +73,13 @@ class ProfileTemplateService:
             "payment_code": None,
             "payment_description": None,
         }
+        bank_confirmation_email = BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None)
         if isinstance(data, dict):
             for key in profile_data:
                 profile_data[key] = cls._normalize_profile_value(data.get(key), key)
+            bank_confirmation_email = cls._parse_bank_confirmation_email(data.get("bank_confirmation_email"))
 
-        return ProfileTemplate(**profile_data)
+        return ProfileTemplate(**profile_data, bank_confirmation_email=bank_confirmation_email)
 
     @classmethod
     def validate_required_fields(cls, profile: ProfileTemplate) -> None:
@@ -108,6 +110,18 @@ class ProfileTemplateService:
 
         return value if isinstance(value, str) else str(value)
 
+    @staticmethod
+    def _parse_bank_confirmation_email(value: object) -> BankConfirmationEmailTemplate:
+        if not isinstance(value, dict):
+            return BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None)
+
+        return BankConfirmationEmailTemplate(
+            sender=ProfileTemplateService._normalize_profile_value(value.get("sender"), "sender"),
+            recipient=ProfileTemplateService._normalize_profile_value(value.get("recipient"), "recipient"),
+            # Тема письма может содержать дату, номер или сумму, поэтому используем contains-match.
+            subject_contains=ProfileTemplateService._normalize_profile_value(value.get("subject_contains"), "subject_contains"),
+        )
+
     @classmethod
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
         """Сохраняет профиль компании и банковские реквизиты пользователя."""
@@ -129,6 +143,9 @@ class ProfileTemplateService:
                     payment_number=profile.payment_number,
                     payment_code=profile.payment_code,
                     payment_description=profile.payment_description,
+                    bank_confirmation_email_sender=profile.bank_confirmation_email.sender,
+                    bank_confirmation_email_recipient=profile.bank_confirmation_email.recipient,
+                    bank_confirmation_email_subject_contains=profile.bank_confirmation_email.subject_contains,
                 )
                 session.add(company_profile)
             else:
@@ -153,6 +170,9 @@ class ProfileTemplateService:
                     account_number=cls._require_text(profile.account_number),
                     iban=cls._require_text(profile.iban),
                     bic=cls._require_text(profile.bic),
+                    bank_confirmation_email_sender=profile.bank_confirmation_email.sender,
+                    bank_confirmation_email_recipient=profile.bank_confirmation_email.recipient,
+                    bank_confirmation_email_subject_contains=profile.bank_confirmation_email.subject_contains,
                 )
                 session.add(bank_details)
             else:
@@ -164,6 +184,9 @@ class ProfileTemplateService:
                 bank_details.account_number = cls._require_text(profile.account_number)
                 bank_details.iban = cls._require_text(profile.iban)
                 bank_details.bic = cls._require_text(profile.bic)
+                bank_details.bank_confirmation_email_sender = profile.bank_confirmation_email.sender
+                bank_details.bank_confirmation_email_recipient = profile.bank_confirmation_email.recipient
+                bank_details.bank_confirmation_email_subject_contains = profile.bank_confirmation_email.subject_contains
 
             session.commit()
         EventLogger.log(

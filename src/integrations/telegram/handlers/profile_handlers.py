@@ -97,6 +97,9 @@ class ProfileHandlers:
             "iban": bank_details.iban if bank_details is not None else None,
             "bic": bank_details.bic if bank_details is not None else None,
             "bank_name": bank_details.bank_name if bank_details is not None else None,
+            "bank_confirmation_email_sender": bank_details.bank_confirmation_email_sender if bank_details is not None else None,
+            "bank_confirmation_email_recipient": bank_details.bank_confirmation_email_recipient if bank_details is not None else None,
+            "bank_confirmation_email_subject_contains": bank_details.bank_confirmation_email_subject_contains if bank_details is not None else None,
         }
         payment_fields = {
             "payment_number": company_profile.payment_number if company_profile is not None else None,
@@ -148,6 +151,9 @@ class ProfileHandlers:
                 f"• Счёт: {self.format_field(bank_fields['account_number'])}",
                 f"• IBAN: {self.format_field(bank_fields['iban'])}",
                 f"• BIC: {self.format_field(bank_fields['bic'])}",
+                f"• Bank email sender: {self.format_field(bank_fields['bank_confirmation_email_sender'])}",
+                f"• Bank email recipient: {self.format_field(bank_fields['bank_confirmation_email_recipient'])}",
+                f"• Bank email subject contains: {self.format_field(bank_fields['bank_confirmation_email_subject_contains'])}",
                 "",
                 "💳 Платёж",
                 f"• Номер платежа: {self.format_field(payment_fields['payment_number'])}",

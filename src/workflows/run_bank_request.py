@@ -33,7 +33,12 @@ def main() -> int:
         raise RuntimeError("Owner is not bootstrapped in storage")
     telegram_client.send_message(owner.telegram_id, Message.START)
 
-    bank_template_path = fetch_bank_email_workflow()
+    try:
+        bank_template_path = fetch_bank_email_workflow(owner_telegram_id=owner.telegram_id)
+    except RuntimeError as error:
+        LOGGER.warning("Bank email workflow stopped: %s", error)
+        telegram_client.send_message(owner.telegram_id, Message.BANK_EMAIL_SEARCH_NOT_CONFIGURED)
+        return 1
     if bank_template_path is None:
         # Без нового письма workflow ничего не генерирует и завершаетcя штатно.
         telegram_client.send_message(owner.telegram_id, Message.NO_NEW_BANK_EMAIL)
