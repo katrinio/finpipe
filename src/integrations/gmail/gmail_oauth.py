@@ -62,7 +62,6 @@ class GmailOAuth:
             state=state,
         )
         OAuthSession.update_code_verifier(state=state, code_verifier=flow.code_verifier)
-        LOGGER.info("OAuth code_verifier=%s", getattr(flow, "code_verifier", None))
         LOGGER.info(
             "Gmail OAuth authorization URL built: redirect_uri=%s scopes=%s access_type=%s prompt=%s",
             callback_url,

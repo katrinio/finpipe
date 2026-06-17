@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import cast
+from urllib.parse import urlparse
 
 from sqlalchemy import func, select
 
@@ -44,6 +45,7 @@ class CertificateStatus:
     expires_at: datetime | None
     days_remaining: int | None
     status_emoji: str
+    error: str | None
 
 
 @dataclass(frozen=True)
@@ -144,7 +146,10 @@ def format_daily_monitoring_summary(summary: DailyMonitoringSummary) -> str:
     )
     cert = summary.infrastructure.certificate
     if cert.days_remaining is None:
-        lines.append("SSL certificate: unknown")
+        if cert.error:
+            lines.append(f"SSL certificate: unavailable ({cert.error})")
+        else:
+            lines.append("SSL certificate: unknown")
     else:
         lines.append(f"SSL certificate: {cert.days_remaining} days remaining {cert.status_emoji}")
 
@@ -201,18 +206,19 @@ def load_infrastructure_summary() -> InfrastructureSummary:
 def load_certificate_status() -> CertificateStatus:
     domain = _get_monitoring_domain()
     if not domain:
-        return CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown")
+        return CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error="domain is not configured")
 
     try:
         expires_at = _get_certificate_expiry(domain)
-    except Exception:
-        return CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown")
+    except Exception as exc:
+        return CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error=str(exc))
 
     days_remaining = max(0, (expires_at.date() - datetime.now(UTC).date()).days)
     return CertificateStatus(
         expires_at=expires_at,
         days_remaining=days_remaining,
         status_emoji=_certificate_status_emoji(days_remaining),
+        error=None,
     )
 
 
@@ -237,6 +243,12 @@ def _get_monitoring_domain() -> str | None:
         value = EnvVar.get_optional_env(env_name, "").strip()
         if value:
             return value
+    for env_name in ("PUBLIC_URL", "APP_URL"):
+        value = EnvVar.get_optional_env(env_name, "").strip()
+        if value:
+            parsed = urlparse(value if "://" in value else f"https://{value}")
+            if parsed.hostname:
+                return parsed.hostname
     return None
 
 

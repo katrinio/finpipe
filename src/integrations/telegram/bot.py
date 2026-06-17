@@ -313,18 +313,6 @@ class TelegramBot:
         """Обрабатывает один Telegram update."""
 
         chat_id = self.extract_chat_id(update)
-        message = update.get("message") or update.get("callback_query", {}).get("message", {})
-        user = (update.get("message") or update.get("callback_query", {})).get("from", {})
-        text = (update.get("message") or update.get("callback_query", {})).get("text") or (
-            update.get("message") or update.get("callback_query", {})
-        ).get("data")
-        LOGGER.info(
-            "Telegram update: user_id=%s chat_id=%s chat_type=%s text=%s",
-            user.get("id"),
-            chat_id,
-            (message.get("chat") or {}).get("type"),
-            text,
-        )
         if self._process_monitoring_update(update=update, chat_id=chat_id):
             self.update_storage.mark_processed(update["update_id"])
             return
@@ -420,7 +408,6 @@ class TelegramBot:
 
         message = update.get("message")
         if message is None:
-            LOGGER.info("Ignoring non-message update from monitoring chat %s", chat_id)
             return True
 
         text = message.get("text")
@@ -429,7 +416,6 @@ class TelegramBot:
         username = user.get("username")
 
         if text is None:
-            LOGGER.info("Ignoring empty monitoring message in chat %s", chat_id)
             return True
 
         self.monitoring_handler.handle_message(text=text, chat_id=chat_id, telegram_id=telegram_id, username=username)
