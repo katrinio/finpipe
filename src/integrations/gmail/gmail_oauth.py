@@ -55,14 +55,13 @@ class GmailOAuth:
             expires_at=expires_at,
         )
         flow = cls._build_flow(callback_url)
-        LOGGER.info("code_verifier=%s", getattr(flow, "code_verifier", None))
-        OAuthSession.update_code_verifier(state=state, code_verifier=flow.code_verifier)
         authorization_url, _ = flow.authorization_url(
             access_type="offline",
             prompt="consent",
             include_granted_scopes="true",
             state=state,
         )
+        OAuthSession.update_code_verifier(state=state, code_verifier=flow.code_verifier)
         LOGGER.info("OAuth code_verifier=%s", getattr(flow, "code_verifier", None))
         LOGGER.info(
             "Gmail OAuth authorization URL built: redirect_uri=%s scopes=%s access_type=%s prompt=%s",
