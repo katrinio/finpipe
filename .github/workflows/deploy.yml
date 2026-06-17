@@ -19,14 +19,16 @@ jobs:
 
           script: |
             cd ~/projects/finpipe
-
+          
             git fetch origin
             git reset --hard origin/main
-
-            docker compose build finpipe
+          
+            docker compose down
+            docker compose build
             docker compose up -d
-
+          
             docker compose ps
-            docker compose logs --tail=30 finpipe
-            
+            docker compose logs --tail=30 finpipe-bot
+            docker compose logs --tail=30 finpipe-web
+          
             docker image prune -f
