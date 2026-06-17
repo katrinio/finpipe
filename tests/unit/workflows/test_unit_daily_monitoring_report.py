@@ -150,6 +150,7 @@ def test_daily_monitoring_summary_sends_to_monitoring_chat(monkeypatch) -> None:
 
 def test_daily_monitoring_summary_does_not_depend_on_telegram_update(monkeypatch) -> None:
     telegram = FakeTelegramClient()
+    monkeypatch.setattr(daily_report, "build_storage_dependencies", lambda: None)
     monkeypatch.setattr(
         daily_report,
         "load_daily_monitoring_summary",

@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 
 from src.integrations.telegram.client import TelegramClient
 from src.services.monitoring.notifications import get_monitoring_chat_id
+from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm.system.app_events import AppEvent
 from src.utils.credentials import LOGGER, EnvVar
 
@@ -164,6 +165,7 @@ def send_daily_monitoring_summary(telegram: TelegramClient, summary: DailyMonito
 def main() -> int:
     EnvVar.load_dotenv()
     try:
+        build_storage_dependencies()
         summary = load_daily_monitoring_summary()
         send_daily_monitoring_summary(TelegramClient(), summary)
     except Exception:
