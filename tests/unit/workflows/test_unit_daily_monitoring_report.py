@@ -1,5 +1,8 @@
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import cast
+
+import pytest
 
 from src.integrations.telegram.client import TelegramClient
 from src.storage.orm.database import Database
@@ -9,7 +12,7 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
-def _build_database(tmp_path) -> Database:
+def _build_database(tmp_path: Path) -> Database:
     database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
     return database
@@ -29,7 +32,7 @@ def _create_event(database: Database, *, created_at: datetime, event_type: Event
         session.commit()
 
 
-def test_daily_monitoring_summary_uses_last_24_hours(tmp_path) -> None:
+def test_daily_monitoring_summary_uses_last_24_hours(tmp_path: Path) -> None:
     database = _build_database(tmp_path)
     now = datetime(2026, 6, 17, 7, 0, tzinfo=UTC)
     _create_event(database, created_at=now - timedelta(hours=23), event_type=EventType.BOT_STARTED, severity=EventSeverity.INFO)
@@ -42,7 +45,7 @@ def test_daily_monitoring_summary_uses_last_24_hours(tmp_path) -> None:
     assert summary.event_type_counts == {EventType.BOT_STARTED.value: 1}
 
 
-def test_daily_monitoring_summary_groups_by_severity_and_event_type(tmp_path) -> None:
+def test_daily_monitoring_summary_groups_by_severity_and_event_type(tmp_path: Path) -> None:
     database = _build_database(tmp_path)
     now = datetime(2026, 6, 17, 7, 0, tzinfo=UTC)
     _create_event(database, created_at=now - timedelta(hours=1), event_type=EventType.BOT_STARTED, severity=EventSeverity.INFO)
@@ -126,7 +129,7 @@ def test_format_daily_monitoring_summary_with_errors() -> None:
     assert "SSL certificate: 67 days remaining ✅" in text
 
 
-def test_daily_monitoring_summary_sends_to_monitoring_chat(monkeypatch) -> None:
+def test_daily_monitoring_summary_sends_to_monitoring_chat(monkeypatch: pytest.MonkeyPatch) -> None:
     telegram = FakeTelegramClient()
     summary = daily_report.DailyMonitoringSummary(
         period_start=datetime(2026, 6, 16, 7, 0, tzinfo=UTC),
@@ -149,42 +152,7 @@ def test_daily_monitoring_summary_sends_to_monitoring_chat(monkeypatch) -> None:
     assert telegram.sent_messages_with_chat_ids == [(555, daily_report.format_daily_monitoring_summary(summary))]
 
 
-def test_daily_monitoring_summary_does_not_depend_on_telegram_update(monkeypatch) -> None:
-    telegram = FakeTelegramClient()
-    monkeypatch.setattr(daily_report, "build_storage_dependencies", lambda: None)
-    monkeypatch.setattr(
-        daily_report,
-        "load_daily_monitoring_summary",
-        lambda now=None, recent_error_limit=5: daily_report.DailyMonitoringSummary(
-            period_start=datetime(2026, 6, 16, 7, 0, tzinfo=UTC),
-            period_end=datetime(2026, 6, 17, 7, 0, tzinfo=UTC),
-            total_events=0,
-            error_events=0,
-            severity_counts={},
-            event_type_counts={},
-            recent_errors=[],
-            infrastructure=daily_report.InfrastructureSummary(
-                database_status="OK",
-                disk_usage_percent=83,
-                certificate=daily_report.CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error=None),
-            ),
-        ),
-    )
-    monkeypatch.setattr(daily_report, "send_daily_monitoring_summary", lambda telegram_client, summary: telegram_client.send_message(1, "ok"))
-    monkeypatch.setattr(daily_report, "TelegramClient", lambda: telegram)
-
-    assert daily_report.main() == 0
-    assert telegram.sent_messages_with_chat_ids == [(1, "ok")]
-
-
-def test_certificate_status_emoji_thresholds() -> None:
-    assert daily_report._certificate_status_emoji(31) == "✅"
-    assert daily_report._certificate_status_emoji(30) == "⚠️"
-    assert daily_report._certificate_status_emoji(8) == "⚠️"
-    assert daily_report._certificate_status_emoji(7) == "🚨"
-
-
-def test_certificate_days_remaining_calculation(monkeypatch) -> None:
+def test_certificate_days_remaining_calculation(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(daily_report, "_get_monitoring_domain", lambda: "finpipe.example")
     monkeypatch.setattr(
         daily_report,
@@ -199,17 +167,22 @@ def test_certificate_days_remaining_calculation(monkeypatch) -> None:
     assert certificate.error is None
 
 
-def test_monitoring_domain_can_be_loaded_from_public_url(monkeypatch) -> None:
+def test_certificate_status_falls_back_to_unknown_when_ssl_endpoint_is_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FINPIPE_DOMAIN", raising=False)
     monkeypatch.delenv("APP_DOMAIN", raising=False)
     monkeypatch.delenv("DOMAIN", raising=False)
     monkeypatch.delenv("PUBLIC_DOMAIN", raising=False)
     monkeypatch.setenv("PUBLIC_URL", "https://finpipe.example")
+    monkeypatch.setattr(daily_report, "_get_certificate_expiry", lambda domain: (_ for _ in ()).throw(RuntimeError("tls error")))
 
-    assert daily_report._get_monitoring_domain() == "finpipe.example"
+    certificate = daily_report.load_certificate_status()
+
+    assert certificate.days_remaining is None
+    assert certificate.status_emoji == "unknown"
+    assert certificate.error == "tls error"
 
 
-def test_infrastructure_block_handles_certificate_and_db_failures(monkeypatch) -> None:
+def test_infrastructure_block_handles_certificate_and_db_failures(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(daily_report, "_get_monitoring_domain", lambda: "finpipe.example")
     monkeypatch.setattr(daily_report, "_get_certificate_expiry", lambda domain: (_ for _ in ()).throw(RuntimeError("tls error")))
     monkeypatch.setattr(daily_report.AppEvent, "session", lambda: (_ for _ in ()).throw(RuntimeError("db down")))

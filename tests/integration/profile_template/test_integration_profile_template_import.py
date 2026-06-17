@@ -22,6 +22,18 @@ bank_confirmation_email:
   subject_contains: payment confirmation
 """
 
+LEGACY_PROFILE_YAML = b"""
+company_name: Legacy Company
+company_address: Belgrade
+account_holder: Legacy User
+account_holder_email: legacy@example.com
+account_holder_address: Serbia
+bank_name: Legacy Bank
+account_number: "321"
+iban: RS321
+bic: LEGACYSBG
+"""
+
 
 def test_profile_import_happy_path_creates_company_profile_and_bank_details(tmp_path: Path) -> None:
     database = Database(build_test_database_url(tmp_path / "test.db"))
@@ -82,6 +94,7 @@ bank_confirmation_email:
     assert company_profile is not None
     assert company_profile.company_name == "Updated Company"
     assert company_profile.company_address == "Novi Sad"
+    assert bank_details is not None
     assert bank_details.bank_confirmation_email_sender == "bank2@example.com"
     assert bank_details.bank_confirmation_email_recipient == "company2@example.com"
     assert bank_details.bank_confirmation_email_subject_contains == "updated confirmation"
@@ -94,3 +107,18 @@ bank_confirmation_email:
     assert bank_details.account_number == "999"
     assert bank_details.iban == "RS999"
     assert bank_details.bic == "UPDTRSBG"
+
+
+def test_legacy_profile_without_bank_confirmation_email_still_imports(tmp_path: Path) -> None:
+    database = Database(build_test_database_url(tmp_path / "test.db"))
+    initialize_test_database(database)
+
+    profile = ProfileTemplateService.parse(LEGACY_PROFILE_YAML)
+    ProfileTemplateService.import_profile(telegram_id=123, profile=profile)
+
+    bank_details = BankDetails.get_by_owner(123)
+
+    assert bank_details is not None
+    assert bank_details.bank_confirmation_email_sender is None
+    assert bank_details.bank_confirmation_email_recipient is None
+    assert bank_details.bank_confirmation_email_subject_contains is None
