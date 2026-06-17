@@ -1,5 +1,5 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.messages import MenuMessages
+from src.integrations.telegram.messages import BankMessages, MenuMessages
 from src.integrations.telegram.ui.buttons import (
     DocumentsMenuButtons,
     IntegrationsButtons,
@@ -9,7 +9,12 @@ from src.integrations.telegram.ui.buttons import (
     ProfileButtons,
 )
 from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu, build_users_menu
-from src.integrations.telegram.ui.menu.document_menu import build_conversion_order_menu, build_document_menu, build_invoice_menu
+from src.integrations.telegram.ui.menu.document_menu import (
+    build_bank_confirmation_menu,
+    build_conversion_order_menu,
+    build_document_menu,
+    build_invoice_menu,
+)
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu, build_integration_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
@@ -97,6 +102,15 @@ class MenuHandler:
             telegram_id,
             MainMenuButtons.DOCUMENTS,
             reply_markup=build_document_menu(),
+        )
+
+    def bank_confirmation_menu(self, telegram_id: int) -> None:
+        """Открывает подменю работы с подтверждением для банка."""
+
+        self.telegram.send_message(
+            telegram_id,
+            BankMessages.Menu.TITLE,
+            reply_markup=build_bank_confirmation_menu(),
         )
 
     def invoice_menu(self, telegram_id: int) -> None:
