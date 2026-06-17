@@ -61,6 +61,8 @@ class GmailOAuth:
             include_granted_scopes="true",
             state=state,
         )
+        OAuthSession.update_code_verifier(state=state, code_verifier=flow.code_verifier)
+        LOGGER.info("OAuth code_verifier=%s", getattr(flow, "code_verifier", None))
         LOGGER.info(
             "Gmail OAuth authorization URL built: redirect_uri=%s scopes=%s access_type=%s prompt=%s",
             callback_url,
@@ -71,10 +73,10 @@ class GmailOAuth:
         return authorization_url, session
 
     @classmethod
-    def exchange_code(cls, code: str, callback_url: str) -> GmailOAuthResult:
+    def exchange_code(cls, code: str, callback_url: str, oauth_session: OAuthSession) -> GmailOAuthResult:
         """Обменивает OAuth code на refresh token и метаданные аккаунта."""
 
-        credentials = cls._exchange_code_for_credentials(code, callback_url)
+        credentials = cls._exchange_code_for_credentials(code, callback_url, oauth_session)
         refresh_token = cls.extract_refresh_token(credentials)
         email = cls.extract_email(credentials)
         scopes_list = getattr(credentials, "scopes", None)
@@ -140,15 +142,16 @@ class GmailOAuth:
         return secrets.token_urlsafe(32)
 
     @classmethod
-    def _exchange_code_for_credentials(cls, code: str, callback_url: str) -> object:
+    def _exchange_code_for_credentials(cls, code: str, callback_url: str, oauth_session: OAuthSession) -> object:
         try:
             flow = cls._build_flow(callback_url)
+            flow.code_verifier = oauth_session.code_verifier
             flow.fetch_token(code=code)
             return flow.credentials
         except GmailOAuthError:
             raise
         except Exception as error:
-            raise GmailOAuthTokenExchangeError("Failed to exchange OAuth code for Gmail credentials") from error
+            raise GmailOAuthTokenExchangeError(f"Failed to exchange OAuth code for Gmail credentials: {error!r}") from error
 
     @classmethod
     def _build_flow(cls, callback_url: str) -> Any:

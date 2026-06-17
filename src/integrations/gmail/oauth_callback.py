@@ -52,7 +52,7 @@ class GmailOAuthCallbackService:
         try:
             session = cls.load_session(state)
             LOGGER.info("OAuth session validated for telegram_id=%s", session.telegram_id)
-            result = GmailOAuth.exchange_code(code, callback_url)
+            result = GmailOAuth.exchange_code(code, callback_url, session)
             cls.persist_connection(session, result)
             GmailOAuth.consume_state(state)
             LOGGER.info("OAuth flow completed for telegram_id=%s", session.telegram_id)
@@ -76,9 +76,7 @@ class GmailOAuthCallbackService:
                 cls.mark_failed(session, str(exc))
             raise
         except Exception as exc:
-            LOGGER.error("Callback processing failed for telegram_id=%s: %s", session.telegram_id if session is not None else None, exc)
-            if session is not None:
-                cls.mark_failed(session, f"Callback processing failed: {exc}")
+            LOGGER.exception("Callback processing failed for telegram_id=%s", session.telegram_id if session is not None else None)
             raise GmailOAuthError(f"Callback processing failed: {exc}") from exc
 
     @classmethod

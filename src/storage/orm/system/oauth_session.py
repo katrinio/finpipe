@@ -17,6 +17,7 @@ class OAuthSession(BaseModel):
     telegram_username: Mapped[str | None] = mapped_column(String, nullable=True)
     purpose: Mapped[str] = mapped_column(String, nullable=False, default="gmail_connect")
     status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
+    code_verifier: Mapped[str | None] = mapped_column(String, nullable=True)
     error_message: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
@@ -83,3 +84,9 @@ class OAuthSession(BaseModel):
                 oauth_session.status = "expired"
             session.commit()
             return len(expired_sessions)
+
+    @classmethod
+    def update_code_verifier(cls, state: str, code_verifier: str) -> None:
+        with cls.session() as session:
+            session.execute(update(cls).where(cls.state == state).values(code_verifier=code_verifier))
+            session.commit()
