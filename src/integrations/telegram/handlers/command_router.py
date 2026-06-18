@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import Cmd, build_help_message
+from src.integrations.telegram.commands import Cmd
 from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.handlers.menu_handlers import MenuHandler
@@ -163,8 +163,6 @@ class CommandRouter:
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
             # system
-            SystemButtons.ABOUT: lambda context: self.system_handler.about(context.telegram_id),
-            SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
             SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
             SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
@@ -198,9 +196,6 @@ class CommandRouter:
             status,
             details or None,
         )
-
-    def _help(self, telegram_id: int) -> None:
-        self.telegram.send_message(telegram_id, build_help_message())
 
     @staticmethod
     def _summarize_command(text: str) -> str:
