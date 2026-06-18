@@ -5,6 +5,19 @@ from src.integrations.telegram.ui.buttons import (
 )
 
 
+def build_invoice_send_prompt_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": InvoiceMenuButtons.SEND_TO_COMPANY},
+                {"text": InvoiceMenuButtons.SKIP_SEND},
+            ],
+        ],
+        "resize_keyboard": True,
+        "one_time_keyboard": True,
+    }
+
+
 def build_document_menu() -> dict:
     return {
         "keyboard": [

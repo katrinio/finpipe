@@ -9,6 +9,7 @@ from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.document_menu import (
     build_document_menu,
     build_invoice_menu,
+    build_invoice_send_prompt_menu,
 )
 from src.integrations.telegram.ui.messages import BankMessages, InvoiceMessages
 from src.services.bank.bank_confirmation import generate_bank_confirmation_pdf
@@ -68,6 +69,14 @@ class DocumentHandlers:
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_invoice_menu())
             return
         LOGGER.info("Salary invoice generated for Telegram user %s", telegram_id)
+        # Предложить отправить компании — пользователь видит PDF и принимает решение
+        self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SEND_PROMPT, reply_markup=build_invoice_send_prompt_menu())
+
+    def invoice_send_to_company(self, telegram_id: int) -> None:
+        LOGGER.info("Invoice send to company requested by Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SEND_TO_COMPANY_SOON, reply_markup=build_invoice_menu())
+
+    def invoice_skip_send(self, telegram_id: int) -> None:
         self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SENT, reply_markup=build_invoice_menu())
 
     def get_invoice_amount(self, telegram_id: int) -> None:

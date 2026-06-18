@@ -142,6 +142,8 @@ class CommandRouter:
             InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
             InvoiceMenuButtons.GET_INVOICE_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
             InvoiceMenuButtons.GENERATE_INVOICE: lambda context: self.document_handler.invoice(context.telegram_id),
+            InvoiceMenuButtons.SEND_TO_COMPANY: lambda context: self.document_handler.invoice_send_to_company(context.telegram_id),
+            InvoiceMenuButtons.SKIP_SEND: lambda context: self.document_handler.invoice_skip_send(context.telegram_id),
             # profile
             ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
             ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
