@@ -18,8 +18,15 @@ def main() -> int:
 
     configure_logging()
 
+    from src.storage.orm import AllowedUser
+
+    owner = AllowedUser.get_owner()
+    if owner is None:
+        LOGGER.error("Owner not found in storage")
+        return 1
+
     try:
-        attachment_path = fetch_bank_email_workflow()
+        attachment_path = fetch_bank_email_workflow(telegram_id=owner.telegram_id)
         if attachment_path is not None:
             LOGGER.info("Downloaded bank email attachment")
     except Exception:
@@ -30,18 +37,18 @@ def main() -> int:
 
 
 def fetch_bank_email_workflow(
+    telegram_id: int,
     bank_email: BankEmail | None = None,
-    owner_telegram_id: int | None = None,
 ) -> Path | None:
     """
     Находит новое письмо банка, скачивает PDF
     и возвращает путь к вложению или `None`.
     """
 
-    service = get_gmail_service()
+    service = get_gmail_service(telegram_id)
 
     if bank_email is None:
-        bank_email = find_bank_email(service, owner_telegram_id=owner_telegram_id)
+        bank_email = find_bank_email(service, owner_telegram_id=telegram_id)
 
     if bank_email is None:
         # Если новых писем банка нет, дальнейшая обработка не требуется.

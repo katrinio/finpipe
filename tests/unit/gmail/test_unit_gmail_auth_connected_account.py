@@ -29,7 +29,7 @@ def test_load_connected_account_credentials_refreshes_gmail_account_token(tmp_pa
 
     monkeypatch.setattr(Credentials, "refresh", fake_refresh)
 
-    credentials = auth.load_connected_account_credentials()
+    credentials = auth.load_connected_account_credentials(123)
 
     assert credentials is not None
     assert credentials.refresh_token == "refresh-token"
@@ -64,7 +64,7 @@ def test_get_gmail_service_prefers_connected_account_credentials(tmp_path, monke
     monkeypatch.setattr(Credentials, "refresh", fake_refresh)
     monkeypatch.setattr(auth, "build", fake_build)
 
-    service = auth.get_gmail_service()
+    service = auth.get_gmail_service(123)
 
     assert service == {"service": "gmail", "version": "v1", "cache_discovery": False}
     assert len(built_credentials) == 1

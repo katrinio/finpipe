@@ -22,9 +22,11 @@ class GmailSender:
 
     def __init__(
         self,
+        telegram_id: int,
         email_builder: EmailBuilder | None = None,
         service: Any | None = None,
     ) -> None:
+        self._telegram_id = telegram_id
         self._email_builder = email_builder or EmailBuilder()
         self._service = service
 
@@ -79,7 +81,7 @@ class GmailSender:
     def _service_or_default(self) -> Any:
         """Возвращает заранее переданный сервис или создаёт Gmail client."""
 
-        return self._service or get_gmail_service()
+        return self._service or get_gmail_service(self._telegram_id)
 
     def _extract_message_id(self, response: dict[str, Any]) -> str:
         """Извлекает Gmail message id из ответа API."""
@@ -92,6 +94,7 @@ class GmailSender:
 
 
 def send_email(
+    telegram_id: int,
     to_email: str,
     subject: str,
     body: str,
@@ -99,7 +102,7 @@ def send_email(
 ) -> str:
     """Отправляет новое письмо через стандартный GmailSender."""
 
-    return GmailSender().send_email(
+    return GmailSender(telegram_id=telegram_id).send_email(
         to_email=to_email,
         subject=subject,
         body=body,

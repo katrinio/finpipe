@@ -21,10 +21,10 @@ from src.utils.credentials import EnvVar
 LOGGER = logging.getLogger(__name__)
 
 
-def get_gmail_service() -> Any:
+def get_gmail_service(telegram_id: int) -> Any:
     """Возвращает готовый Gmail API service с валидным OAuth-токеном."""
 
-    credentials = load_connected_account_credentials()
+    credentials = load_connected_account_credentials(telegram_id)
     if credentials is None:
         msg = "Gmail is not connected. Connect Gmail via the bot before using this workflow."
         raise GmailOAuthError(msg)
@@ -33,14 +33,9 @@ def get_gmail_service() -> Any:
     return build("gmail", "v1", credentials=credentials, cache_discovery=False)
 
 
-def load_connected_account_credentials() -> Credentials | None:
+def load_connected_account_credentials(telegram_id: int) -> Credentials | None:
     """Создаёт OAuth credentials из refresh token подключённого GmailAccount."""
 
-    owner_telegram_id = EnvVar.get_optional_env("BOT_OWNER_TELEGRAM_ID", "").strip()
-    if not owner_telegram_id:
-        return None
-
-    telegram_id = int(owner_telegram_id)
     gmail_account = GmailAccount.get_by_owner(telegram_id)
     if gmail_account is None or not gmail_account.gmail_refresh_token:
         return None

@@ -47,14 +47,14 @@ def test_send_email_successful_send(monkeypatch, tmp_path) -> None:
     service = _FakeService({"id": "gmail-message-1"})
     build_calls: list[dict] = []
 
-    monkeypatch.setattr("src.integrations.gmail.gmail_sender.get_gmail_service", lambda: service)
+    monkeypatch.setattr("src.integrations.gmail.gmail_sender.get_gmail_service", lambda _tid: service)
     monkeypatch.setattr("src.integrations.gmail.gmail_sender.EnvVar.get_optional_env", lambda name, default: default)
     monkeypatch.setattr(
         "src.integrations.gmail.gmail_sender.EmailBuilder.build_email",
         lambda self, **kwargs: build_calls.append(kwargs) or b"mime-bytes",
     )
 
-    message_id = GmailSender().send_email("recipient@example.com", "Invoice", "Body", [attachment])
+    message_id = GmailSender(telegram_id=123).send_email("recipient@example.com", "Invoice", "Body", [attachment])
 
     assert message_id == "gmail-message-1"
     assert build_calls == [
@@ -79,10 +79,10 @@ def test_send_email_dry_run(monkeypatch, tmp_path) -> None:
             return "dry-run@example.com"
         return default
 
-    monkeypatch.setattr("src.integrations.gmail.gmail_sender.get_gmail_service", lambda: pytest.fail("service should not be created in dry run"))
+    monkeypatch.setattr("src.integrations.gmail.gmail_sender.get_gmail_service", lambda _tid: pytest.fail("service should not be created in dry run"))
     monkeypatch.setattr("src.integrations.gmail.gmail_sender.EnvVar.get_optional_env", fake_get_optional_env)
 
-    message_id = GmailSender().send_email("recipient@example.com", "Invoice", "Body", [attachment])
+    message_id = GmailSender(telegram_id=123).send_email("recipient@example.com", "Invoice", "Body", [attachment])
 
     assert message_id == DRY_RUN_FAKE_MESSAGE_ID
 
@@ -92,9 +92,9 @@ def test_send_email_wraps_api_failure(monkeypatch, tmp_path) -> None:
     attachment.write_bytes(b"pdf-bytes")
     service = _FakeService(RuntimeError("boom"))
 
-    monkeypatch.setattr("src.integrations.gmail.gmail_sender.get_gmail_service", lambda: service)
+    monkeypatch.setattr("src.integrations.gmail.gmail_sender.get_gmail_service", lambda _tid: service)
     monkeypatch.setattr("src.integrations.gmail.gmail_sender.EnvVar.get_optional_env", lambda name, default: default)
     monkeypatch.setattr("src.integrations.gmail.gmail_sender.EmailBuilder.build_email", lambda self, **kwargs: b"mime-bytes")
 
     with pytest.raises(GmailSendError, match="Failed to send email via Gmail API"):
-        GmailSender().send_email("recipient@example.com", "Invoice", "Body", [attachment])
+        GmailSender(telegram_id=123).send_email("recipient@example.com", "Invoice", "Body", [attachment])

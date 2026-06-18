@@ -34,7 +34,7 @@ def main() -> int:
     telegram_client.send_message(owner.telegram_id, Message.START)
 
     try:
-        bank_template_path = fetch_bank_email_workflow(owner_telegram_id=owner.telegram_id)
+        bank_template_path = fetch_bank_email_workflow(telegram_id=owner.telegram_id)
     except RuntimeError as error:
         LOGGER.warning("Bank email workflow stopped: %s", error)
         telegram_client.send_message(owner.telegram_id, Message.BANK_EMAIL_SEARCH_NOT_CONFIGURED)
