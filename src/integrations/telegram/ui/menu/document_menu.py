@@ -16,6 +16,9 @@ def build_document_menu() -> dict:
             ],
             [
                 {"text": DocumentsMenuButtons.CONVERSION_ORDER},
+                {"text": DocumentsMenuButtons.BANK_DAY},
+            ],
+            [
                 {"text": NavigationButtons.HOME},
             ],
         ],

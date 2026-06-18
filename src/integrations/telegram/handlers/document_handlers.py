@@ -204,6 +204,70 @@ class DocumentHandlers:
         UserStateService.clear_state(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.Generation.ORIGINAL_AND_FILLED, reply_markup=build_bank_confirmation_menu())
 
+    def bank_day(self, telegram_id: int) -> None:
+        """Банковский день: письмо банка → подтверждение + запрос на конвертацию → все три документа."""
+
+        LOGGER.info("Bank day workflow started for Telegram user %s", telegram_id)
+
+        readiness_error = self._bank_confirmation_readiness_error(telegram_id)
+        if readiness_error is not None:
+            self.telegram.send_message(telegram_id, readiness_error, reply_markup=build_document_menu())
+            return
+
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.IN_PROGRESS)
+
+        # Шаг 1: получить оригинальный PDF из письма банка
+        try:
+            bank_pdf_path = fetch_bank_email_workflow(owner_telegram_id=telegram_id)
+        except RuntimeError as error:
+            LOGGER.warning("Bank day: Gmail not configured for Telegram user %s: %s", telegram_id, error)
+            self.telegram.send_message(telegram_id, BankMessages.Validation.BANK_EMAIL_NOT_CONFIGURED, reply_markup=build_document_menu())
+            return
+
+        if bank_pdf_path is None:
+            self.telegram.send_message(telegram_id, BankMessages.Search.NOT_FOUND, reply_markup=build_document_menu())
+            return
+
+        bank_confirmation_path: Path | None = None
+        conversion_order_path: Path | None = None
+
+        try:
+            # Шаг 2: извлечь сумму и сохранить в конфиге пользователя
+            amount = extract_amount(bank_pdf_path)
+            UserConfig.upsert(telegram_id=telegram_id, bank_received_amount_eur=amount)
+            LOGGER.info("Bank day: extracted amount %.2f EUR for Telegram user %s", amount, telegram_id)
+
+            # Шаг 3: заполнить Bank Confirmation
+            bank_confirmation_path = self._fill_bank_confirmation_pdf(telegram_id, bank_pdf_path, amount)
+
+            # Шаг 4: сгенерировать Conversion Order на ту же сумму
+            conversion_order_path = generate_conversion_order_pdf(
+                telegram_id=telegram_id,
+                invoice_amount_eur=None,
+                bank_received_amount_eur=amount,
+                conversion_amount_eur=amount,
+            )
+
+            # Шаг 5: отправить все три документа
+            self.telegram.send_document(telegram_id, bank_pdf_path)
+            self.telegram.send_document(telegram_id, bank_confirmation_path)
+            self.telegram.send_document(telegram_id, conversion_order_path)
+
+        except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError) as error:
+            LOGGER.warning("Bank day workflow failed for Telegram user %s: %s", telegram_id, error)
+            self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
+            return
+        finally:
+            delete_file(bank_pdf_path, LOGGER)
+            if bank_confirmation_path is not None:
+                delete_file(bank_confirmation_path, LOGGER)
+            if conversion_order_path is not None:
+                delete_file(conversion_order_path, LOGGER)
+                delete_file(conversion_order_path.with_suffix(".docx"), LOGGER)
+
+        LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE, reply_markup=build_document_menu())
+
     def conversion_order_menu(self, telegram_id: int) -> None:
         config = UserConfig.get_by_owner(telegram_id)
         amount = config.conversion_amount_eur if config is not None else None
