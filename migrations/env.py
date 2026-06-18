@@ -23,13 +23,13 @@ if config.config_file_name is not None and not config.attributes.get("skip_loggi
 target_metadata = BaseModel.metadata
 
 
-def _resolve_database_url() -> str:
+def get_database_url() -> str:
     """Return database URL for Alembic migrations."""
 
-    resolved_url = config.attributes.get("database_url") or os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
-    if not resolved_url:
+    database_url = config.attributes.get("database_url") or os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
+    if not database_url:
         raise RuntimeError("Database URL is required. Set TEST_DATABASE_URL or DATABASE_URL.")
-    return resolved_url
+    return database_url
 
 
 def run_migrations_offline() -> None:
@@ -44,7 +44,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = _resolve_database_url()
+    url = get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -63,7 +63,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    resolved_url = _resolve_database_url()
+    resolved_url = get_database_url()
     configuration = config.get_section(config.config_ini_section, {})
     configuration["sqlalchemy.url"] = resolved_url
     connectable = engine_from_config(
