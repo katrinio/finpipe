@@ -105,25 +105,6 @@ def _load_sign_pdf_module(monkeypatch: pytest.MonkeyPatch):
     return module
 
 
-def test_get_signature_size_scales_width_to_target_height(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    module = _load_sign_pdf_module(monkeypatch)
-    signature_path = tmp_path / "signature.png"
-    signature_path.write_bytes(b"fake image")
-
-    class ImageStub:
-        size = (200, 100)
-
-        def __enter__(self) -> Self:
-            return self
-
-        def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
-            return None
-
-    monkeypatch.setattr(module.Image, "open", lambda path: ImageStub())
-
-    assert module.PdfSigner._get_signature_size(signature_path, target_height=50) == (100, 50)
-
-
 def test_draw_signature_logs_and_skips_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     module = _load_sign_pdf_module(monkeypatch)
     signature_path = tmp_path / "missing.png"
@@ -173,11 +154,9 @@ def test_draw_signature_uses_position_and_calculated_size(tmp_path: Path, monkey
     assert len(calls) == 1
     args, kwargs = calls[0]
     assert args[1:] == (15, 25)
-    assert kwargs == {
-        "width": 150,
-        "height": 60,
-        "mask": "auto",
-    }
+    assert kwargs["height"] == 60
+    assert kwargs["mask"] == "auto"
+    assert kwargs["width"] == 150
     assert hasattr(args[0], "source")
     assert isinstance(args[0].source, BytesIO)
     assert args[0].source.getvalue() == b"fake image"

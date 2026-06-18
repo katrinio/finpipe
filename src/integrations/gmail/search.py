@@ -1,8 +1,10 @@
 """Поиск последнего подходящего письма банка в Gmail."""
 
 import logging
+from dataclasses import dataclass
 from typing import Any
 
+from src.storage.orm.user.bank_details import BankDetails
 from src.utils.credentials import EnvVar
 
 from .gmail_models import BankEmail
@@ -13,15 +15,32 @@ LOOKBACK_WINDOW = "30d"
 METADATA_HEADERS = ("Subject", "From", "Date")
 
 
-def find_bank_email(service: Any) -> BankEmail | None:
+@dataclass(frozen=True)
+class BankEmailSearchConfig:
+    """Настройки поиска письма банка."""
+
+    sender: str
+    recipient: str
+    subject_contains: str
+    source: str
+
+
+def find_bank_email(service: Any, owner_telegram_id: int | None = None) -> BankEmail | None:
     """Находит самое новое письмо банка в пределах окна поиска."""
 
+    config = load_bank_email_search_config(owner_telegram_id)
     LOGGER.info("Searching Gmail for bank email from the last %s", LOOKBACK_WINDOW)
+    LOGGER.info(
+        "Searching bank confirmation email: sender=%s recipient=%s subject_contains=%s",
+        mask_email(config.sender),
+        mask_email(config.recipient),
+        mask_text(config.subject_contains),
+    )
 
-    response = service.users().messages().list(userId=USER_ID, q=build_bank_email_query(), maxResults=10).execute()
+    response = service.users().messages().list(userId=USER_ID, q=build_bank_email_query(config), maxResults=10).execute()
     messages = response.get("messages", [])
     if not messages:
-        LOGGER.info("No Gmail messages matched the configured bank email subject")
+        LOGGER.info("No Gmail messages matched the configured bank email filters")
         return None
 
     LOGGER.info("Found %s matching Gmail messages", len(messages))
@@ -39,15 +58,61 @@ def find_bank_email(service: Any) -> BankEmail | None:
     return bank_email
 
 
-def build_bank_email_query() -> str:
-    """Собирает Gmail query из обязательных параметров окружения."""
+def load_bank_email_search_config(owner_telegram_id: int | None = None) -> BankEmailSearchConfig:
+    """Загружает настройки поиска из профиля, а при отсутствии - из env fallback.
 
-    subject = EnvVar.get_required_env("BANK_EMAIL_SUBJECT")
-    from_user = EnvVar.get_required_env("BANK_EMAIL_FROM")
+    Legacy/dev fallback нужен только для локального режима и старых установок.
+    """
 
-    subject = subject.replace('"', r"\"")
-    from_user = from_user.replace('"', r"\"")
-    return f'subject:"{subject}" from:"{from_user}" newer_than:{LOOKBACK_WINDOW} has:attachment'
+    if owner_telegram_id is not None:
+        bank_details = BankDetails.get_by_owner(owner_telegram_id)
+        if bank_details is not None:
+            sender = bank_details.bank_confirmation_email_sender
+            recipient = bank_details.bank_confirmation_email_recipient
+            subject_contains = bank_details.bank_confirmation_email_subject_contains
+            if sender and recipient and subject_contains:
+                LOGGER.info("Bank confirmation email search config loaded from profile")
+                return BankEmailSearchConfig(sender=sender, recipient=recipient, subject_contains=subject_contains, source="profile")
+
+    sender = EnvVar.get_optional_env("BANK_EMAIL_FROM", "")
+    recipient = EnvVar.get_optional_env("BANK_EMAIL_TO", "")
+    subject_contains = EnvVar.get_optional_env("BANK_EMAIL_SUBJECT", "")
+    if sender and recipient and subject_contains:
+        LOGGER.warning("Bank confirmation email search config loaded from env fallback")
+        return BankEmailSearchConfig(sender=sender, recipient=recipient, subject_contains=subject_contains, source="env")
+
+    raise RuntimeError(
+        "Bank confirmation email search settings are missing. Fill bank_confirmation_email.sender, "
+        "bank_confirmation_email.recipient and bank_confirmation_email.subject_contains in the profile, or set "
+        "BANK_EMAIL_FROM, BANK_EMAIL_TO and BANK_EMAIL_SUBJECT for local fallback."
+    )
+
+
+def build_bank_email_query(config: BankEmailSearchConfig) -> str:
+    """Собирает Gmail query из конфигурации поиска."""
+
+    subject = config.subject_contains.replace('"', r"\"")
+    sender = config.sender.replace('"', r"\"")
+    recipient = config.recipient.replace('"', r"\"")
+    return f'subject:"{subject}" from:"{sender}" to:"{recipient}" newer_than:{LOOKBACK_WINDOW} has:attachment'
+
+
+def mask_email(value: str) -> str:
+    """Маскирует email для логов."""
+
+    if "@" not in value:
+        return value
+    local, domain = value.split("@", 1)
+    masked_local = "*" if not local else local[0] + "***"
+    return f"{masked_local}@{domain}"
+
+
+def mask_text(value: str) -> str:
+    """Маскирует произвольный текст для логов."""
+
+    if not value:
+        return value
+    return "..."
 
 
 def fetch_message_metadata(service: Any, message_id: str) -> dict[str, Any]:

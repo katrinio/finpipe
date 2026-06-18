@@ -40,6 +40,9 @@ payment_description: Fee
     assert profile.payment_number == "1"
     assert profile.payment_code == "2"
     assert profile.payment_description == "Fee"
+    assert profile.bank_confirmation_email.sender is None
+    assert profile.bank_confirmation_email.recipient is None
+    assert profile.bank_confirmation_email.subject_contains is None
 
 
 def test_parse_turns_missing_values_into_none() -> None:
@@ -65,6 +68,26 @@ bank_name: Test Bank
     assert profile.payment_number is None
     assert profile.payment_code is None
     assert profile.payment_description is None
+    assert profile.bank_confirmation_email.sender is None
+    assert profile.bank_confirmation_email.recipient is None
+    assert profile.bank_confirmation_email.subject_contains is None
+
+
+def test_parse_reads_bank_confirmation_email_block() -> None:
+    profile = ProfileTemplateService.parse(
+        b"""
+company_name: Test Company
+bank_name: Test Bank
+bank_confirmation_email:
+  sender: bank@example.com
+  recipient: company@example.com
+  subject_contains: payment confirmation
+""",
+    )
+
+    assert profile.bank_confirmation_email.sender == "bank@example.com"
+    assert profile.bank_confirmation_email.recipient == "company@example.com"
+    assert profile.bank_confirmation_email.subject_contains == "payment confirmation"
 
 
 def test_validate_required_fields_accepts_complete_profile() -> None:

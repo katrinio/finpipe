@@ -51,6 +51,10 @@ class Message:
 
     START = "⚡ Magic is starting 🤞"
     NO_NEW_BANK_EMAIL = "ℹ️ No new bank email found."
+    BANK_EMAIL_SEARCH_NOT_CONFIGURED = (
+        "⚠️ Bank email search settings are missing.\n"
+        "Fill bank_confirmation_email.sender, bank_confirmation_email.recipient and bank_confirmation_email.subject_contains in the profile."
+    )
     EMAIL_FETCHING_COMPLETED = "✔️ Email fetching completed"
     BANK_CONFIRMATION_GENERATED = "✔️ Bank confirmation generated!"
     SALARY_INVOICE_GENERATED = "✔️ Salary invoice generated!"

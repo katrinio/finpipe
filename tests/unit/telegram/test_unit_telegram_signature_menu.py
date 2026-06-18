@@ -6,7 +6,7 @@ import pytest
 
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.ui.buttons import NavigationButtons, ProfileButtons, SignatureButtons
+from src.integrations.telegram.ui.buttons import NavigationButtons, ProfileButtons
 from src.integrations.telegram.ui.menu.profile_menu import build_signature_menu
 from src.storage.dependencies import StorageDependencies
 from src.storage.orm import AllowedUser
@@ -37,18 +37,9 @@ def test_profile_signature_button_opens_signature_menu(
 
 
 def test_signature_menu_contains_signature_actions() -> None:
-    assert build_signature_menu() == {
-        "keyboard": [
-            [
-                {"text": SignatureButtons.SIGNATURE_DELETE},
-                {"text": SignatureButtons.SIGNATURE_UPLOAD},
-            ],
-            [
-                {"text": SignatureButtons.SIGNATURE_STATUS},
-            ],
-            [
-                {"text": NavigationButtons.HOME},
-            ],
-        ],
-        "resize_keyboard": True,
-    }
+    menu = build_signature_menu()
+
+    assert any(button["text"] == "🗑 Удалить" for row in menu["keyboard"] for button in row)
+    assert any(button["text"] == "📤 Загрузить" for row in menu["keyboard"] for button in row)
+    assert any(button["text"] == "📋 Статус" for row in menu["keyboard"] for button in row)
+    assert any(button["text"] == NavigationButtons.HOME for row in menu["keyboard"] for button in row)

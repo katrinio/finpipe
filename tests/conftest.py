@@ -5,6 +5,9 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 
 from src.storage.config import DatabaseConfig
+from src.storage.orm import *  # noqa: F403
+from src.storage.orm.base import BaseModel
+from src.storage.orm.database import Database
 
 pytest_plugins = (
     "tests.fixtures.storage",
@@ -14,40 +17,93 @@ load_dotenv()
 
 
 @pytest.fixture(autouse=True)
-def _test_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Uses dedicated PostgreSQL test database and clears it per test."""
+def _test_database_url(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path_factory: pytest.TempPathFactory,
+) -> None:
+    """Configures the test database per test type."""
 
-    database_url = DatabaseConfig.get_test_database_url()
+    if _is_integration_test(request):
+        database_url = _resolve_integration_database_url()
+        if database_url is None:
+            pytest.skip("PostgreSQL test database is unavailable")
+        _ensure_database_initialized(database_url)
+    else:
+        database_url = _resolve_test_database_url(tmp_path_factory)
+        if make_url(database_url).get_backend_name() == "sqlite":
+            BaseModel.metadata.create_all(create_engine(database_url, future=True))
+        _ensure_database_initialized(database_url)
+
     monkeypatch.setenv("DATABASE_URL", database_url)
 
-    _ensure_database_exists(database_url)
+    Database(database_url).bind_models()
+
     engine = create_engine(database_url, future=True)
     try:
         with engine.begin() as connection:
             inspector = inspect(connection)
             table_names = [t for t in inspector.get_table_names() if t != "alembic_version"]
             if table_names:
-                quoted = ", ".join(f'"{t}"' for t in table_names)
-                connection.execute(text(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE"))
+                if make_url(database_url).get_backend_name() == "sqlite":
+                    for table_name in table_names:
+                        connection.execute(text(f'DELETE FROM "{table_name}"'))
+                else:
+                    quoted = ", ".join(f'"{t}"' for t in table_names)
+                    connection.execute(text(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE"))
     finally:
         engine.dispose()
 
 
-def _ensure_database_exists(database_url: str) -> None:
+def _resolve_test_database_url(tmp_path_factory: pytest.TempPathFactory) -> str:
+    try:
+        database_url = DatabaseConfig.get_test_database_url()
+        if _can_connect(database_url):
+            return database_url
+    except RuntimeError:
+        pass
+
+    sqlite_path = tmp_path_factory.mktemp("db") / "test.db"
+    return f"sqlite:///{sqlite_path}"
+
+
+def _resolve_integration_database_url() -> str | None:
+    try:
+        database_url = DatabaseConfig.get_test_database_url()
+    except RuntimeError:
+        return None
+    if make_url(database_url).get_backend_name() != "postgresql":
+        return None
+    if not _can_connect(database_url):
+        return None
+    return database_url
+
+
+def _is_integration_test(request: pytest.FixtureRequest) -> bool:
+    return "integration" in request.node.path.parts
+
+
+def _can_connect(database_url: str) -> bool:
     url = make_url(database_url)
     if url.get_backend_name() != "postgresql":
-        raise RuntimeError("Tests require PostgreSQL. Set TEST_DATABASE_URL to a PostgreSQL URL.")
+        return True
 
     engine = None
     try:
         engine = create_engine(database_url, future=True)
         with engine.connect():
-            return
+            return True
     except OperationalError:
-        pass
+        return False
     finally:
         if engine is not None:
             engine.dispose()
+
+
+def _ensure_database_initialized(database_url: str) -> None:
+    url = make_url(database_url)
+    if url.get_backend_name() != "postgresql":
+        return
 
     admin_url = url.set(database="postgres")
     admin_engine = create_engine(admin_url, future=True, isolation_level="AUTOCOMMIT")

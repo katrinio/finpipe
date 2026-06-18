@@ -26,8 +26,9 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     source.write_bytes(b"signature-bytes")
 
     db_path = tmp_path / "test.db"
-    monkeypatch.setenv("TEST_DATABASE_URL", build_test_database_url())
-    initialize_test_database(Database(build_test_database_url(db_path)))
+    test_database_url = build_test_database_url(db_path)
+    monkeypatch.setenv("TEST_DATABASE_URL", test_database_url)
+    initialize_test_database(Database(test_database_url))
     bootstrap_primary_admin()
 
     result = encrypt_signature_workflow(source, destination)
@@ -37,8 +38,6 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     assert result == destination
     assert destination.exists()
     assert SignatureCipher.decrypt_bytes(destination) == b"signature-bytes"
-    database = Database(build_test_database_url(tmp_path / "test.db"))
-    initialize_test_database(database)
     signature = Signature.get_active(777)
     assert signature is not None
     assert signature.signature_path == str(destination)

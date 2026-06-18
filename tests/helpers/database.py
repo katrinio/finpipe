@@ -1,22 +1,62 @@
-"""Alembic-backed database helpers for tests."""
+"""Database helpers for tests."""
 
-from src.storage.migrations import run_alembic_upgrade_head
+import tempfile
+from pathlib import Path
+
+from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import OperationalError
+
+from src.storage.config import DatabaseConfig
+from src.storage.orm import *  # noqa: F403
+from src.storage.orm.base import BaseModel
 from src.storage.orm.database import Database
 
 
 def build_test_database_url(*_args: object, **_kwargs: object) -> str:
     """Returns the active PostgreSQL test database URL."""
 
-    from src.storage.config import DatabaseConfig
+    if _args:
+        first_arg = _args[0]
+        if isinstance(first_arg, Path):
+            try:
+                database_url = DatabaseConfig.get_test_database_url()
+                if make_url(database_url).get_backend_name() == "postgresql" and _can_connect(database_url):
+                    return database_url
+            except RuntimeError:
+                pass
+            first_arg.parent.mkdir(parents=True, exist_ok=True)
+            return f"sqlite:///{first_arg}"
 
-    return DatabaseConfig.get_test_database_url()
+    try:
+        database_url = DatabaseConfig.get_test_database_url()
+        if make_url(database_url).get_backend_name() == "postgresql" and _can_connect(database_url):
+            return database_url
+    except RuntimeError:
+        pass
+
+    sqlite_path = Path(tempfile.gettempdir()) / "finpipe_test.db"
+    sqlite_path.parent.mkdir(parents=True, exist_ok=True)
+    return f"sqlite:///{sqlite_path}"
+
+
+def _can_connect(database_url: str) -> bool:
+    engine = create_engine(database_url, future=True)
+    try:
+        with engine.connect():
+            return True
+    except OperationalError:
+        return False
+    finally:
+        engine.dispose()
 
 
 def initialize_test_database(database: Database) -> None:
-    """Applies Alembic migrations and binds ORM models for a test database."""
+    """Binds ORM models and creates tables for a test database."""
 
-    run_alembic_upgrade_head()
     database.bind_models()
+    if make_url(database.database_url).get_backend_name() == "sqlite":
+        BaseModel.metadata.create_all(database.engine)
 
 
 def initialize_test_database_from_url(database_url: str) -> Database:

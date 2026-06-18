@@ -37,6 +37,18 @@ bank_name:
 # bank_name: Example Bank Serbia
 
 
+# данные письма банка для поиска подтверждения
+bank_confirmation_email:
+  sender: ""
+  recipient: ""
+  subject_contains: ""
+
+# пример
+# sender: bank@example.com
+# recipient: company@example.com
+# subject_contains: payment confirmation
+
+
 # данные платежа
 payment_number:
 payment_code:

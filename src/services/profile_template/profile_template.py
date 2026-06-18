@@ -2,6 +2,15 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class BankConfirmationEmailTemplate:
+    """Параметры поиска письма банка в профиле."""
+
+    sender: str | None
+    recipient: str | None
+    subject_contains: str | None
+
+
+@dataclass(frozen=True)
 class ProfileTemplate:
     """Нормализованные поля профиля из YAML-шаблона."""
 
@@ -20,3 +29,4 @@ class ProfileTemplate:
     payment_number: str | None
     payment_code: str | None
     payment_description: str | None
+    bank_confirmation_email: BankConfirmationEmailTemplate

@@ -31,6 +31,7 @@ def main() -> int:
 
 def fetch_bank_email_workflow(
     bank_email: BankEmail | None = None,
+    owner_telegram_id: int | None = None,
 ) -> Path | None:
     """
     Находит новое письмо банка, скачивает PDF
@@ -38,7 +39,7 @@ def fetch_bank_email_workflow(
     """
 
     if bank_email is None:
-        bank_email = find_bank_email(get_gmail_service())
+        bank_email = find_bank_email(get_gmail_service(), owner_telegram_id=owner_telegram_id)
 
     if bank_email is None:
         # Если новых писем банка нет, дальнейшая обработка не требуется.
