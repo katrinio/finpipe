@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy import Boolean, Integer, String, delete, func, select, text
+from sqlalchemy import Boolean, Integer, LargeBinary, String, delete, func, select, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
@@ -24,6 +24,7 @@ class Signature(BaseModel):
     owner_telegram_id: Mapped[int] = mapped_column(BIGINT, nullable=False, unique=True, index=True)
     signature_path: Mapped[str] = mapped_column(String, nullable=False)
     signature_hash: Mapped[str] = mapped_column(String, nullable=False)
+    signature_data: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=text("1"))
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(
@@ -37,6 +38,7 @@ class Signature(BaseModel):
         signature_path: Path | str,
         signature_hash: str | None = None,
         active: bool = True,
+        signature_data: bytes | None = None,
     ) -> None:
         """Создаёт или обновляет подпись владельца без дублей."""
 
@@ -52,6 +54,7 @@ class Signature(BaseModel):
                         owner_telegram_id=owner_telegram_id,
                         signature_path=resolved_signature_path,
                         signature_hash=resolved_signature_hash,
+                        signature_data=signature_data,
                         active=active,
                     )
                 )
@@ -60,6 +63,8 @@ class Signature(BaseModel):
                 signature.signature_path = resolved_signature_path
                 signature.signature_hash = resolved_signature_hash
                 signature.active = active
+                if signature_data is not None:
+                    signature.signature_data = signature_data
                 LOGGER.info("Updated signature for Telegram user %s", owner_telegram_id)
 
             session.commit()
@@ -114,6 +119,16 @@ class Signature(BaseModel):
             except FileNotFoundError, SignatureDecryptionError:
                 return None
             return current_path
+
+        # File missing after redeploy — restore from DB if available
+        if signature.signature_data is not None:
+            try:
+                current_path.parent.mkdir(parents=True, exist_ok=True)
+                current_path.write_bytes(signature.signature_data)
+                LOGGER.info("Restored signature file from DB for Telegram user %s", owner_telegram_id)
+                return current_path
+            except OSError:
+                LOGGER.warning("Failed to restore signature file for Telegram user %s", owner_telegram_id)
 
         fallback_path = current_path.parent / f"{owner_telegram_id}_sign.enc"
         if fallback_path.exists():
