@@ -53,6 +53,14 @@ def download_attachments(bank_email: BankEmail, service: Any) -> Path | None:
 
                 file_data = base64.urlsafe_b64decode(attachment_payload["data"].encode("UTF-8"))
 
+                if not file_data.startswith(b"%PDF"):
+                    LOGGER.warning(
+                        "Attachment '%s' in Gmail message %s has .pdf extension but is not a PDF — skipping",
+                        filename,
+                        bank_email.message_id,
+                    )
+                    continue
+
                 attachment_path = Dir.ATTACHMENTS / f"{attachment_stem}.pdf"
                 with attachment_path.open("wb") as file_handle:
                     file_handle.write(file_data)
