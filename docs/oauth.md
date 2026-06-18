@@ -1,106 +1,132 @@
-# Gmail OAuth
+# 📧 Gmail OAuth
 
-## Flow
+## 🔄 Сценарий подключения
 
-Рабочий сценарий подключения Gmail выглядит так:
+```
+Telegram                     Bot                        Google OAuth
+─────────                   ─────                       ────────────
+[📧 Gmail → 🔗 Подключить]
+                     ──► GmailHandlers.gmail_connect()
+                     ──► GmailOAuth.build_authorization_url()
+                     ──► OAuthSession сохраняется в БД
+                     ◄── inline-кнопка с Google URL
+[нажимает 🔗 Подключить Gmail]
+                                            ──► Google OAuth consent screen
+                                            ◄── redirect → /oauth/gmail/callback
+                     GmailOAuthCallbackService.handle_callback()
+                     ──► валидация state из OAuthSession
+                     ──► code → refresh_token (token exchange)
+                     ──► GmailAccount обновляется в БД
+                     ──► OAuthSession помечается использованной
+                     ──► AuditLog: gmail_oauth_callback SUCCESS
+[📊 Статус → ✅ Gmail подключён]
+```
 
-1. Пользователь в Telegram нажимает `📧 Gmail` -> `🔗 Подключить`.
-2. Бот отправляет сообщение с inline-кнопкой `🔗 Подключить Gmail`, которая открывает Google OAuth.
-3. `GmailHandlers.gmail_connect()` вызывает существующий `GmailOAuth.build_authorization_url(...)`.
-4. OAuth state сохраняется в `OAuthSession`.
-5. Google перенаправляет браузер на `GET /oauth/gmail/callback`.
-6. FastAPI route передаёт обработку в `GmailOAuthCallbackService`.
-7. Сервис валидирует `state`, обменивает `code` на токены, сохраняет refresh token и обновляет `GmailAccount`.
-8. `OAuthSession` помечается использованной.
-9. Статус Gmail в Telegram становится `Connected`.
+---
 
-## Callback Endpoint
+## 🌐 Callback endpoint
 
-FastAPI endpoint:
+| Параметр | Значение |
+|---|---|
+| Method | `GET` |
+| Path | `/oauth/gmail/callback` |
+| Query params | `code`, `state`, `error` |
 
-`GET /oauth/gmail/callback`
+Route не содержит бизнес-логики — только принимает параметры, делегирует `GmailOAuthCallbackService` и возвращает HTML-ответ.
 
-Параметры:
+| Результат | Ответ браузеру |
+|---|---|
+| ✅ Успех | `Gmail successfully connected. You may close this browser window.` |
+| ❌ Ошибка | `Gmail connection failed. <причина>` (HTTP 400) |
 
-- `code`
-- `state`
-- `error`
+Все исходы (успех и ошибка) записываются в `AuditLog` с командой `gmail_oauth_callback`.
 
-Route не содержит бизнес-логики. Он только:
+---
 
-- принимает query params;
-- вызывает `GmailOAuthCallbackService`;
-- возвращает пользователю понятный текстовый ответ.
+## ⚙️ Конфигурация
 
-Успех:
+### Callback URL
 
-`Gmail successfully connected.`
+| Переменная | Назначение |
+|---|---|
+| `GMAIL_OAUTH_CALLBACK_URL` | Единственный источник callback URL — используется при формировании authorization URL и при token exchange |
+| `GMAIL_OAUTH_CALLBACK_ENABLED` | `true` чтобы включить обработку callback |
 
-`You may close this browser window.`
+> ⚠️ Обновление `.env` не обновляет Google Cloud Console. При смене callback URL нужно добавить новый URI в `Authorized redirect URIs` у OAuth Web client.
 
-Ошибка:
+### OAuth client credentials
 
-`Gmail connection failed.`
+Берутся в порядке приоритета:
 
-с краткой причиной.
+| Источник | Условие |
+|---|---|
+| `GMAIL_CLIENT_ID` + `GMAIL_CLIENT_SECRET` | если оба заданы в env |
+| `GMAIL_CREDENTIALS_PATH` | fallback — файл `credentials.json` |
 
-## Configuration
+### Gmail scopes
 
-Единственный источник callback URL:
+```
+https://www.googleapis.com/auth/gmail.readonly
+https://www.googleapis.com/auth/gmail.send
+```
 
-`GMAIL_OAUTH_CALLBACK_URL`
+---
 
-TODO(vps): перенести OAuth callback на постоянный HTTPS-домен и зафиксировать его в Google OAuth Web client.
+## 🗄️ Хранение токенов
 
-Эта переменная используется:
+| Таблица | Что хранится |
+|---|---|
+| `oauth_session` | временная OAuth-сессия (state, expires_at, статус) |
+| `gmail_account` | refresh token (зашифрован), gmail_email, last_error |
 
-- при формировании Google OAuth authorization URL;
-- при обработке callback и token exchange.
+Refresh token шифруется через `TokenCipher` перед сохранением.
 
-Не нужно хардкодить Cloudflare Tunnel URL в коде.
+При каждом вызове `get_gmail_service()`:
+- токен обновляется через `credentials.refresh(Request())`
+- при `RefreshError` — ошибка пишется в `gmail_account.gmail_last_error`, возвращается `None`
+- при успехе — `gmail_last_error` очищается
 
-OAuth client config для Telegram callback flow берётся из:
+---
 
-- `GMAIL_CLIENT_ID` и `GMAIL_CLIENT_SECRET`, если они заданы;
-- иначе из файла `GMAIL_CREDENTIALS_PATH`.
+## 🛠️ Локальная разработка
 
-`GMAIL_TOKEN_PATH` относится к старому локальному Gmail quickstart-сценарию и не участвует в Telegram callback flow.
+Для отладки OAuth через Cloudflare Quick Tunnel:
 
-## Local Development
+**1.** Поднять FastAPI локально (обычно `http://127.0.0.1:8000`)
 
-Для локальной отладки Gmail OAuth через Cloudflare Quick Tunnel:
-
-TODO(vps): после деплоя на VPS оставить этот раздел только как инструкцию для локальной разработки.
-
-1. Поднимите FastAPI локально, обычно на `http://127.0.0.1:8000`.
-2. Запустите bootstrap-скрипт:
+**2.** Запустить туннель:
 
 ```bash
 ./scripts/start_oauth_tunnel.sh
-```
-
-3. Скрипт:
-   - запускает `cloudflared tunnel --url http://127.0.0.1:8000`;
-   - извлекает публичный `trycloudflare.com` URL;
-   - формирует callback:
-     `https://<tunnel-host>/oauth/gmail/callback`
-   - записывает его в корневой `.env` как `GMAIL_OAUTH_CALLBACK_URL=...`
-   - печатает `Tunnel URL` и `OAuth Redirect URI`.
-
-4. Возьмите напечатанный `OAuth Redirect URI` и добавьте его в Google OAuth client settings.
-5. Убедитесь, что `GMAIL_OAUTH_CALLBACK_ENABLED=true`.
-6. После этого можно запускать сценарий:
-   - Telegram -> `📧 Gmail` -> `🔗 Подключить`
-   - inline-кнопка `🔗 Подключить Gmail`
-   - Google OAuth
-   - callback в локальный FastAPI через tunnel
-
-Если FastAPI слушает другой порт, перед запуском скрипта задайте:
-
-```bash
+# или с другим портом:
 PORT=8080 ./scripts/start_oauth_tunnel.sh
 ```
 
-Если tunnel URL меняется, достаточно снова запустить скрипт и обновить redirect URI в Google Cloud.
+Скрипт автоматически:
+- запускает `cloudflared tunnel --url http://127.0.0.1:8000`
+- формирует `https://<tunnel-host>/oauth/gmail/callback`
+- записывает `GMAIL_OAUTH_CALLBACK_URL` в `.env`
 
-Важно: обновление `.env` или `credentials.json` не обновляет Google Cloud Console. Для каждого нового Quick Tunnel URL нужно добавить актуальный `OAuth Redirect URI` в `Authorized redirect URIs` у OAuth Web client.
+**3.** Скопировать напечатанный `OAuth Redirect URI` → добавить в Google Cloud Console → `Authorized redirect URIs`
+
+**4.** Убедиться что в `.env`:
+```
+GMAIL_OAUTH_CALLBACK_ENABLED=true
+GMAIL_OAUTH_CALLBACK_URL=https://<tunnel-host>/oauth/gmail/callback
+```
+
+**5.** Telegram → `📧 Gmail` → `🔗 Подключить` → `🔗 Подключить Gmail`
+
+> ⚠️ Quick Tunnel URL меняется при каждом перезапуске скрипта — нужно обновить redirect URI в Google Cloud Console.
+
+---
+
+## 🔍 Диагностика
+
+| Симптом | Что проверить |
+|---|---|
+| `📊 Статус` показывает `unknown` вместо email | `gmail_account.gmail_email` не заполнен — переподключить |
+| `📊 Статус` показывает ошибку | `gmail_account.gmail_last_error` — токен отозван, нужно переподключить |
+| Callback недоступен | `GMAIL_OAUTH_CALLBACK_ENABLED=true` в `.env` |
+| Ошибка `redirect_uri_mismatch` | callback URL в `.env` не совпадает с Google Cloud Console |
+| `AuditLog` показывает FAILED для `gmail_oauth_callback` | ошибка token exchange — проверить логи сервера |
