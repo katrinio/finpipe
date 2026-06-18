@@ -2,6 +2,7 @@
 
 import logging
 from dataclasses import dataclass
+from datetime import date
 from typing import Any
 
 from src.storage.orm.user.bank_details import BankDetails
@@ -11,8 +12,13 @@ from .gmail_models import BankEmail
 
 LOGGER = logging.getLogger(__name__)
 USER_ID = "me"
-LOOKBACK_WINDOW = "30d"
 METADATA_HEADERS = ("Subject", "From", "Date")
+
+
+def _current_month_start() -> str:
+    """Возвращает первый день текущего месяца в формате Gmail after:YYYY/MM/DD."""
+    today = date.today()
+    return f"{today.year}/{today.month:02d}/01"
 
 
 @dataclass(frozen=True)
@@ -29,7 +35,7 @@ def find_bank_email(service: Any, owner_telegram_id: int | None = None) -> BankE
     """Находит самое новое письмо банка в пределах окна поиска."""
 
     config = load_bank_email_search_config(owner_telegram_id)
-    LOGGER.info("Searching Gmail for bank email from the last %s", LOOKBACK_WINDOW)
+    LOGGER.info("Searching Gmail for bank email since %s", _current_month_start())
     LOGGER.info(
         "Searching bank confirmation email: sender=%s recipient=%s subject_contains=%s",
         mask_email(config.sender),
@@ -94,7 +100,7 @@ def build_bank_email_query(config: BankEmailSearchConfig) -> str:
     subject = config.subject_contains.replace('"', r"\"")
     sender = config.sender.replace('"', r"\"")
     recipient = config.recipient.replace('"', r"\"")
-    return f'subject:"{subject}" from:"{sender}" to:"{recipient}" newer_than:{LOOKBACK_WINDOW} has:attachment'
+    return f'subject:"{subject}" from:"{sender}" to:"{recipient}" after:{_current_month_start()} has:attachment'
 
 
 def mask_email(value: str) -> str:

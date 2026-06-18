@@ -75,11 +75,10 @@ def test_download_attachments_saves_pdf_attachment(tmp_path, monkeypatch) -> Non
     }
     service = FakeGmailService(message_response, attachment_response)
 
-    monkeypatch.setattr(downloader, "get_gmail_service", lambda: service)
     monkeypatch.setattr(downloader.Dir, "ATTACHMENTS", tmp_path)
     monkeypatch.setattr(downloader.Utils, "today", lambda: "2026-05-29")
 
-    attachment_path = downloader.download_attachments(build_bank_email())
+    attachment_path = downloader.download_attachments(build_bank_email(), service)
 
     assert attachment_path == tmp_path / "bank-form-2026-05-29.pdf"
     assert attachment_path.read_bytes() == b"pdf-bytes"
@@ -102,11 +101,10 @@ def test_download_attachments_logs_warning_when_pdf_is_missing(
     }
     service = FakeGmailService(message_response, {})
 
-    monkeypatch.setattr(downloader, "get_gmail_service", lambda: service)
     monkeypatch.setattr(downloader.Dir, "ATTACHMENTS", tmp_path)
 
     with caplog.at_level(logging.WARNING):
-        attachment_path = downloader.download_attachments(build_bank_email())
+        attachment_path = downloader.download_attachments(build_bank_email(), service)
 
     assert attachment_path is None
     assert list(tmp_path.iterdir()) == []

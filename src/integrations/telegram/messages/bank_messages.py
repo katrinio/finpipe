@@ -13,6 +13,7 @@ class BankMessages:
         PROFILE_REQUIRED = "🏢 Профиль заполнен не полностью.\nСначала загрузите профиль и банковские реквизиты."
         NOT_PDF = "📄 Пришлите PDF-файл."
         NO_AMOUNT = "❌ Не удалось определить сумму в PDF."
+        GMAIL_NOT_CONNECTED = "📧 Gmail не подключён.\nПодключите Gmail в разделе «Интеграции»."
         BANK_EMAIL_NOT_CONFIGURED = (
             "⚠️ Настройки поиска письма банка не заполнены.\n"
             "Заполните bank_confirmation_email.sender, bank_confirmation_email.recipient и bank_confirmation_email.subject_contains."

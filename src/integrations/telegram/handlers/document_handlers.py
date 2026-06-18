@@ -207,6 +207,8 @@ class DocumentHandlers:
 
     def _bank_confirmation_readiness_error(self, telegram_id: int) -> str | None:
         status = SystemStatusService.get_status(telegram_id)
+        if not status.gmail:
+            return BankMessages.Validation.GMAIL_NOT_CONNECTED
         if not status.company or not status.bank_details:
             return BankMessages.Validation.PROFILE_REQUIRED
         if not Signature.is_usable(telegram_id):

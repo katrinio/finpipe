@@ -17,7 +17,7 @@ class SystemStatusService:
         company = CompanyProfile.exists(telegram_id)
         bank_details = BankDetails.exists(telegram_id)
         signature = Signature.exists(telegram_id)
-        gmail = GmailAccount.exists(telegram_id)
+        gmail = GmailAccount.has_gmail_connection(telegram_id)
 
         return SystemStatus(
             company=company,

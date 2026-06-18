@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 
 from src.integrations.gmail import search
@@ -112,8 +114,12 @@ def test_build_bank_email_query_uses_filters() -> None:
 
     query = search.build_bank_email_query(config)
 
+    today = date.today()
+    month_start = f"{today.year}/{today.month:02d}/01"
     assert query == (
-        'subject:"KATRIN \\"TORSUNOVA\\" PR" from:"bank\\"sender@example.com" to:"company\\"recipient@example.com" newer_than:30d has:attachment'
+        f'subject:"KATRIN \\"TORSUNOVA\\" PR" '
+        f'from:"bank\\"sender@example.com" '
+        f'to:"company\\"recipient@example.com" after:{month_start} has:attachment'
     )
 
 
@@ -155,7 +161,11 @@ def test_find_bank_email_returns_none_when_no_messages(monkeypatch) -> None:
     assert search.find_bank_email(service) is None
     assert service.messages_api.list_kwargs == {
         "userId": "me",
-        "q": 'subject:"payment" from:"bank@example.com" to:"company@example.com" newer_than:30d has:attachment',
+        "q": f'subject:"payment" '
+        f'from:"bank@example.com" '
+        f'to:"company@example.com" '
+        f"after:{date.today().year}/{date.today().month:02d}/01 "
+        f"has:attachment",
         "maxResults": 10,
     }
 
