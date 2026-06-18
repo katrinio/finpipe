@@ -13,35 +13,6 @@ env:
   BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
   TEST_DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe_test
 
-x-checkout: &checkout
-  uses: actions/checkout@v5
-
-x-alembic-heads: &alembic_heads
-  name: Check Alembic heads
-  run: poetry run alembic heads
-
-x-alembic-debug: &alembic_debug
-  name: Debug Alembic environment
-  run: |
-    echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
-    grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
-
-x-alembic-upgrade: &alembic_upgrade
-  name: Apply migrations
-  run: poetry run alembic upgrade head
-
-x-postgres-service: &postgres_service
-  image: postgres:17
-  env:
-    POSTGRES_USER: finpipe
-    POSTGRES_PASSWORD: finpipe
-    POSTGRES_DB: finpipe_test
-  options: >-
-    --health-cmd "pg_isready -U finpipe -d finpipe_test"
-    --health-interval 5s
-    --health-timeout 5s
-    --health-retries 20
-
 jobs:
   code-style:
     name: 🎨 Code Style
@@ -51,7 +22,8 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     steps:
-      - *checkout
+      - &checkout
+        uses: actions/checkout@v5
 
       - name: Run Ruff
         run: poetry run ruff check .
@@ -68,16 +40,37 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     services:
-      postgres: *postgres_service
+      postgres:
+        &postgres_service
+        image: postgres:17
+        env:
+          POSTGRES_USER: finpipe
+          POSTGRES_PASSWORD: finpipe
+          POSTGRES_DB: finpipe_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U finpipe -d finpipe_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
 
     steps:
       - *checkout
 
-      - *alembic_heads
+      - &alembic_heads
+        name: Check Alembic heads
+        run: poetry run alembic heads
 
-      - *alembic_debug
+      - &alembic_debug
+        name: Debug Alembic environment
+        run: |
+          echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
+          grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
 
-      - *alembic_upgrade
+      - &alembic_upgrade
+        name: Apply migrations
+        run: poetry run alembic upgrade head
 
       - name: Run Unit Tests + Coverage
         run: |
@@ -94,10 +87,7 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     services:
-      postgres:
-        <<: *postgres_service
-        ports:
-          - 5432:5432
+      postgres: *postgres_service
 
     steps:
       - *checkout
