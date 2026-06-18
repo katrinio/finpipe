@@ -76,6 +76,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends libreoffice-writer
 
       - name: Apply migrations
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/finpipe_test
         run: poetry run alembic upgrade head
 
       - name: Run Unit Tests
