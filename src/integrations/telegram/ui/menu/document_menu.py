@@ -1,10 +1,35 @@
 from src.integrations.telegram.ui.buttons import (
-    BankConfirmationButtons,
-    ConversionOrderButtons,
+    BankDayButtons,
     DocumentsMenuButtons,
     InvoiceMenuButtons,
     NavigationButtons,
 )
+
+
+def build_invoice_send_prompt_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": InvoiceMenuButtons.SEND_TO_COMPANY},
+                {"text": InvoiceMenuButtons.SKIP_SEND},
+            ],
+        ],
+        "resize_keyboard": True,
+        "one_time_keyboard": True,
+    }
+
+
+def build_bank_day_reply_prompt_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": BankDayButtons.REPLY_TO_BANK},
+                {"text": BankDayButtons.SKIP_REPLY},
+            ],
+        ],
+        "resize_keyboard": True,
+        "one_time_keyboard": True,
+    }
 
 
 def build_document_menu() -> dict:
@@ -12,26 +37,7 @@ def build_document_menu() -> dict:
         "keyboard": [
             [
                 {"text": DocumentsMenuButtons.SALARY_INVOICE},
-                {"text": DocumentsMenuButtons.BANK_CONFIRMATION},
-            ],
-            [
-                {"text": DocumentsMenuButtons.CONVERSION_ORDER},
                 {"text": DocumentsMenuButtons.BANK_DAY},
-            ],
-            [
-                {"text": NavigationButtons.HOME},
-            ],
-        ],
-        "resize_keyboard": True,
-    }
-
-
-def build_bank_confirmation_menu() -> dict:
-    return {
-        "keyboard": [
-            [
-                {"text": BankConfirmationButtons.UPLOAD_FOR_FILLING},
-                {"text": BankConfirmationButtons.CHECK_BANK_EMAIL},
             ],
             [
                 {"text": NavigationButtons.HOME},
@@ -51,25 +57,6 @@ def build_invoice_menu() -> dict:
             [
                 {"text": NavigationButtons.HOME},
                 {"text": InvoiceMenuButtons.GENERATE_INVOICE},
-            ],
-        ],
-        "resize_keyboard": True,
-    }
-
-
-def build_conversion_order_menu() -> dict:
-    return {
-        "keyboard": [
-            [
-                {"text": ConversionOrderButtons.SET_AMOUNT},
-                {"text": ConversionOrderButtons.GET_AMOUNT},
-            ],
-            [
-                {"text": ConversionOrderButtons.USE_BANK_AMOUNT},
-                {"text": ConversionOrderButtons.GENERATE},
-            ],
-            [
-                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,

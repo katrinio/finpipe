@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import Cmd, build_help_message
+from src.integrations.telegram.commands import Cmd
 from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
 from src.integrations.telegram.handlers.gmail_handlers import GmailHandlers
 from src.integrations.telegram.handlers.menu_handlers import MenuHandler
@@ -14,8 +14,7 @@ from src.integrations.telegram.handlers.system_handlers import SystemHandlers
 from src.integrations.telegram.messages.menu_messages import MenuMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
-    BankConfirmationButtons,
-    ConversionOrderButtons,
+    BankDayButtons,
     DocumentsMenuButtons,
     GmailButtons,
     IntegrationsButtons,
@@ -139,28 +138,22 @@ class CommandRouter:
             MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents
             DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
-            DocumentsMenuButtons.BANK_CONFIRMATION: lambda context: self.menu_handler.bank_confirmation_menu(context.telegram_id),
-            BankConfirmationButtons.UPLOAD_FOR_FILLING: lambda context: self.document_handler.start_bank_confirmation_upload(context.telegram_id),
-            BankConfirmationButtons.CHECK_BANK_EMAIL: lambda context: self.document_handler.check_bank_email(context.telegram_id),
-            DocumentsMenuButtons.CONVERSION_ORDER: lambda context: self.menu_handler.conversion_order_menu(context.telegram_id),
             DocumentsMenuButtons.BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
-            ConversionOrderButtons.SET_AMOUNT: lambda context: self.document_handler.start_conversion_amount_input(context.telegram_id),
-            ConversionOrderButtons.GET_AMOUNT: lambda context: self.document_handler.conversion_order_menu(context.telegram_id),
-            ConversionOrderButtons.USE_BANK_AMOUNT: lambda context: self.document_handler.use_bank_amount(context.telegram_id),
-            ConversionOrderButtons.GENERATE: lambda context: self.document_handler.conversion_order(context.telegram_id),
+            BankDayButtons.REPLY_TO_BANK: lambda context: self.document_handler.bank_day_reply_to_bank(context.telegram_id),
+            BankDayButtons.SKIP_REPLY: lambda context: self.document_handler.bank_day_skip_reply(context.telegram_id),
             # invoice
             InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
             InvoiceMenuButtons.GET_INVOICE_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
             InvoiceMenuButtons.GENERATE_INVOICE: lambda context: self.document_handler.invoice(context.telegram_id),
+            InvoiceMenuButtons.SEND_TO_COMPANY: lambda context: self.document_handler.invoice_send_to_company(context.telegram_id),
+            InvoiceMenuButtons.SKIP_SEND: lambda context: self.document_handler.invoice_skip_send(context.telegram_id),
             # profile
             ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
             ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
             ProfileButtons.MY_PROFILE: lambda context: self.profile_handler.show_profile(context.telegram_id),
-            ProfileButtons.SIGNATURE: lambda context: self.menu_handler.signature_menu(context.telegram_id),
             # signature
             SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
             SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
-            SignatureButtons.SIGNATURE_STATUS: lambda context: self.signature_handler.signature_status(context.telegram_id),
             # integrations
             IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
             # gmail
@@ -168,8 +161,6 @@ class CommandRouter:
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
             # system
-            SystemButtons.ABOUT: lambda context: self.system_handler.about(context.telegram_id),
-            SystemButtons.HELP: lambda context: self._help(context.telegram_id),
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
             SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
             SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
@@ -203,9 +194,6 @@ class CommandRouter:
             status,
             details or None,
         )
-
-    def _help(self, telegram_id: int) -> None:
-        self.telegram.send_message(telegram_id, build_help_message())
 
     @staticmethod
     def _summarize_command(text: str) -> str:

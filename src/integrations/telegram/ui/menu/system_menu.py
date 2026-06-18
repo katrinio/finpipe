@@ -4,10 +4,7 @@ from src.integrations.telegram.ui.buttons import NavigationButtons, OwnerButtons
 def build_system_menu(is_owner: bool = False) -> dict:
     keyboard = [
         [
-            {"text": SystemButtons.ABOUT},
             {"text": SystemButtons.EASY_START},
-        ],
-        [
             {"text": SystemButtons.WHOAMI},
         ],
         [

@@ -1,6 +1,6 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_chatid, format_last_action, format_whoami
-from src.integrations.telegram.messages import AuditLogMessages, CommonMessages, MenuMessages
+from src.integrations.telegram.messages import AuditLogMessages, MenuMessages
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.storage.orm import AllowedUser
@@ -13,13 +13,6 @@ class SystemHandlers:
     def __init__(self, telegram: TelegramClient, audit_log: type[AuditLog]) -> None:
         self.telegram = telegram
         self.audit_log = audit_log
-
-    def about(self, telegram_id: int) -> None:
-        self.telegram.send_message(
-            telegram_id,
-            CommonMessages.General.ABOUT,
-            reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
-        )
 
     def easy_start(self, telegram_id: int) -> None:
         self.telegram.send_message(

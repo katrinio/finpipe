@@ -7,28 +7,13 @@ def build_profile_menu() -> dict:
             [
                 {"text": ProfileButtons.MY_PROFILE},
                 {"text": ProfileButtons.DOWNLOAD_TEMPLATE},
+            ],
+            [
                 {"text": ProfileButtons.UPLOAD_TEMPLATE},
-            ],
-            [
-                {"text": ProfileButtons.SIGNATURE},
-                {"text": NavigationButtons.HOME},
-            ],
-        ],
-        "resize_keyboard": True,
-    }
-
-
-def build_signature_menu() -> dict:
-    return {
-        "keyboard": [
-            [
-                {"text": SignatureButtons.SIGNATURE_DELETE},
                 {"text": SignatureButtons.SIGNATURE_UPLOAD},
             ],
             [
-                {"text": SignatureButtons.SIGNATURE_STATUS},
-            ],
-            [
+                {"text": SignatureButtons.SIGNATURE_DELETE},
                 {"text": NavigationButtons.HOME},
             ],
         ],
