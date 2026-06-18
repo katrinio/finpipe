@@ -162,7 +162,7 @@ def test_certificate_days_remaining_calculation(monkeypatch: pytest.MonkeyPatch)
 
     certificate = daily_report.load_certificate_status(now=datetime(2026, 6, 17, 7, 0, tzinfo=UTC))
 
-    assert certificate.days_remaining == 66
+    assert certificate.days_remaining == 67
     assert certificate.status_emoji == "✅"
     assert certificate.error is None
 

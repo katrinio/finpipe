@@ -18,7 +18,7 @@ class UserStateStorage(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     owner_telegram_id: Mapped[int] = mapped_column(BIGINT, nullable=False, unique=True, index=True)
-    state: Mapped[UserState] = mapped_column(Enum(UserState, native_enum=False), nullable=False)
+    state: Mapped[UserState] = mapped_column(Enum(UserState, native_enum=False, length=64), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(), nullable=True, server_default=func.current_timestamp(), onupdate=func.current_timestamp()

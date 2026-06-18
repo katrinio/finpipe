@@ -27,6 +27,7 @@ def upgrade() -> None:
     op.create_index(op.f("ix_app_events_created_at"), "app_events", ["created_at"], unique=False)
     op.create_index(op.f("ix_app_events_event_type"), "app_events", ["event_type"], unique=False)
     op.create_index(op.f("ix_app_events_severity"), "app_events", ["severity"], unique=False)
+    op.alter_column("user_state_storage", "state", existing_type=sa.VARCHAR(length=31), type_=sa.VARCHAR(length=64), existing_nullable=False)
     # ### end Alembic commands ###
 
 
@@ -39,4 +40,5 @@ def downgrade() -> None:
     op.alter_column("app_events", "details", existing_type=sa.Text(), type_=sa.VARCHAR(), existing_nullable=True)
     op.alter_column("app_events", "event_type", existing_type=sa.VARCHAR(), nullable=True)
     op.alter_column("app_events", "severity", existing_type=sa.VARCHAR(length=16), nullable=True)
+    op.alter_column("user_state_storage", "state", existing_type=sa.VARCHAR(length=64), type_=sa.VARCHAR(length=31), existing_nullable=False)
     # ### end Alembic commands ###

@@ -107,7 +107,7 @@ jobs:
             -o log_cli=false
 
   code-coverage:
-    name: 🧪 Code Coverage
+    name: 🧮 Code Coverage
     needs: code-style
     runs-on: ubuntu-latest
 
