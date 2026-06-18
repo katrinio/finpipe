@@ -30,6 +30,18 @@ x-alembic-upgrade: &alembic_upgrade
   name: Apply migrations
   run: poetry run alembic upgrade head
 
+x-postgres-service: &postgres_service
+  image: postgres:17
+  env:
+    POSTGRES_USER: finpipe
+    POSTGRES_PASSWORD: finpipe
+    POSTGRES_DB: finpipe_test
+  options: >-
+    --health-cmd "pg_isready -U finpipe -d finpipe_test"
+    --health-interval 5s
+    --health-timeout 5s
+    --health-retries 20
+
 jobs:
   code-style:
     name: 🎨 Code Style
@@ -56,17 +68,7 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: finpipe
-          POSTGRES_PASSWORD: finpipe
-          POSTGRES_DB: finpipe_test
-        options: >-
-          --health-cmd "pg_isready -U finpipe -d finpipe_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+      postgres: *postgres_service
 
     steps:
       - *checkout
@@ -93,18 +95,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: finpipe
-          POSTGRES_PASSWORD: finpipe
-          POSTGRES_DB: finpipe_test
+        <<: *postgres_service
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U finpipe -d finpipe_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
 
     steps:
       - *checkout
@@ -132,17 +125,7 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: finpipe
-          POSTGRES_PASSWORD: finpipe
-          POSTGRES_DB: finpipe_test
-        options: >-
-          --health-cmd "pg_isready -U finpipe -d finpipe_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+      postgres: *postgres_service
 
     steps:
       - *checkout
