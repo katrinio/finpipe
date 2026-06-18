@@ -128,6 +128,15 @@ class GmailOAuth:
 
     @classmethod
     def extract_email(cls, credentials: object) -> str | None:
+        try:
+            from googleapiclient.discovery import build as _build
+
+            service = _build("gmail", "v1", credentials=credentials)
+            profile = service.users().getProfile(userId="me").execute()
+            return profile.get("emailAddress") or None
+        except Exception:
+            LOGGER.warning("Could not fetch Gmail profile email via API")
+
         email = getattr(credentials, "email", None)
         if email:
             return email

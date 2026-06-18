@@ -1,156 +1,103 @@
-# Workflows
+# ⚙️ Workflows
 
-Workflows — высокоуровневые пользовательские сценарии.
-
-Обычно workflow объединяет несколько задач (tasks) в один законченный процесс.
-
-Права доступа и onboarding пользователей происходят через Telegram workflow, а не через отдельные CLI-команды.
-
-Примеры:
-
-- сформировать и отправить Salary Invoice;
-- обработать банковское письмо;
-- выполнить ежедневную проверку системы.
+Workflows — высокоуровневые пользовательские сценарии, объединяющие несколько tasks в один законченный процесс.
 
 ---
 
-## generate_invoice_and_send
+## 🔄 Workflows
 
-Основной сценарий подготовки Salary Invoice.
+### `generate_invoice_and_send`
 
-Workflow:
+Подготовка и отправка Salary Invoice.
 
-1. Генерирует Salary Invoice за текущий период.
-2. Создаёт PDF и DOCX версии документа.
-3. Сохраняет результат попытки генерации в историю БД.
-4. Отправляет результат в Telegram.
-5. Удаляет временные файлы после отправки.
+| Шаг | Действие |
+|---|---|
+| 1 | Генерация Salary Invoice за текущий период |
+| 2 | Создание PDF и DOCX |
+| 3 | Сохранение попытки в `document_generation_history` |
+| 4 | Отправка результата в Telegram |
+| 5 | Удаление временных файлов |
 
 ---
 
-## process_bank_request
+### `process_bank_request`
 
 Основной банковский сценарий.
 
-Workflow:
-
-1. Проверяет новые банковские письма.
-2. Загружает PDF-вложения.
-3. Извлекает данные из письма.
-4. Заполняет банковские документы.
-5. Отправляет результат в Telegram.
-
----
-
-## daily_monitoring_summary
-
-Ежедневная сводка мониторинга по реальным данным production.
-
-Workflow:
-
-1. GitHub Actions срабатывает по расписанию и выступает только как таймер.
-2. По SSH подключается к VPS.
-3. На VPS переходит в `~/projects/finpipe`.
-4. Запускает `docker compose exec -T -w /app finpipe-bot poetry run python -m src.workflows.monitoring.daily_report`.
-5. Скрипт читает `app_events` из production PostgreSQL за последние 24 часа.
-6. Формирует короткий Telegram-отчёт и отправляет его в monitoring chat.
-
-Причина запуска на VPS:
-
-- отчёт должен строиться по реальным production-данным;
-- в CI нет доступа к prod PostgreSQL;
-- рядом с приложением уже доступны prod env, docker compose и нужные секреты.
-
-Secrets для GitHub Actions:
-
-- `VPS_HOST`
-- `VPS_USER`
-- `VPS_PORT`
-- `VPS_SSH_KEY`
-
-Расписание:
-
-- `cron` в GitHub Actions работает в UTC;
-- для 07:00 по Белграду используется фиксированное значение `05:00 UTC` как MVP;
-- при смене DST cron нужно пересматривать.
+| Шаг | Действие |
+|---|---|
+| 1 | Поиск нового банковского письма (текущий месяц) |
+| 2 | Загрузка PDF-вложения |
+| 3 | Извлечение данных из письма |
+| 4 | Генерация Bank Confirmation с подписью |
+| 5 | Отправка результата в Telegram |
 
 ---
 
-## backup_database
+### `daily_monitoring_summary`
+
+Ежедневная сводка по реальным production-данным.
+
+```
+GitHub Actions (cron: 05:00 UTC)
+       │  SSH
+       ▼
+      VPS: docker compose exec finpipe-bot
+                  │
+                  ▼
+       src/workflows/monitoring/daily_report
+                  │  читает app_events за 24ч
+                  ▼
+         Telegram monitoring chat
+```
+
+**Secrets GitHub Actions:**
+
+| Secret | Назначение |
+|---|---|
+| `VPS_HOST` | Адрес VPS |
+| `VPS_USER` | SSH-пользователь |
+| `VPS_PORT` | SSH-порт |
+| `VPS_SSH_KEY` | Приватный ключ |
+
+> ⚠️ `cron` работает в UTC. `05:00 UTC` = `07:00` по Белграду (без учёта DST).
+
+---
+
+### `backup_database`
 
 Резервное копирование production PostgreSQL.
 
-Workflow:
+| Шаг | Действие |
+|---|---|
+| 1 | Читает настройки: `BACKUP_DIR`, `BACKUP_RETENTION_DAYS` |
+| 2 | Создаёт папку `backups`, если нет |
+| 3 | Запускает `pg_dump` внутри postgres-контейнера |
+| 4 | Сжимает в gzip |
+| 5 | Проверяет что архив создан и не пустой |
+| 6 | Удаляет бэкапы старше `BACKUP_RETENTION_DAYS` |
+| 7 | Отправляет статус в monitoring chat |
 
-1. Читает настройки проекта, папку для бэкапов, срок хранения и Telegram settings.
-2. Создаёт папку `backups`, если её нет.
-3. Запускает `pg_dump` внутри postgres-контейнера.
-4. Сжимает дамп в gzip.
-5. Проверяет, что архив создан и не пустой.
-6. Удаляет старые бэкапы.
-7. Отправляет статус в monitoring chat.
+**Ключевые env:**
 
-Ключевые env:
-
-- `DATABASE_URL`
-- `BACKUP_DIR`
-- `BACKUP_RETENTION_DAYS`
-- `BACKUP_POSTGRES_SERVICE`
-- `MONITORING_CHAT_ID`
-- `BOT_OWNER_TELEGRAM_ID` fallback через существующий monitoring flow
-
-# Tasks
-
-Tasks — низкоуровневые операции, которые могут использоваться как внутри workflows, так и отдельно во время разработки, тестирования или отладки.
+| Переменная | Назначение |
+|---|---|
+| `DATABASE_URL` | Строка подключения |
+| `BACKUP_DIR` | Папка для бэкапов |
+| `BACKUP_RETENTION_DAYS` | Срок хранения |
+| `BACKUP_POSTGRES_SERVICE` | Имя postgres-сервиса в compose |
+| `MONITORING_CHAT_ID` | Куда слать статус |
 
 ---
 
-## generate_invoice
+## 🔩 Tasks
 
-Генерирует Salary Invoice из шаблонов.
+Tasks — низкоуровневые операции, используемые внутри workflows и при отладке.
 
-- Формирует данные за период.
-- Создаёт PDF и DOCX документы.
-- Сохраняет в БД историю каждой попытки генерации.
-- Использует `DocumentType.SALARY_INVOICE` и `DocumentGenerationStatus`.
-- Не блокирует повторную генерацию по уже использованному `document_number`.
-
----
-
-## generate_conversion_order
-
-Генерирует Conversion Order.
-
-- Заполняет шаблон документа.
-- Создаёт PDF.
-- При наличии подписи добавляет её в документ.
-- Сохраняет историю генерации в `document_generation_history` c типом `conversion_order`.
-
----
-
-## generate_bank_confirmation
-
-Генерирует Bank Confirmation.
-
-- Подставляет реквизиты пользователя.
-- Подставляет сумму и дату.
-- При наличии подписи добавляет её в документ.
-- Сохраняет историю генерации в `document_generation_history` c типом `bank_confirmation`.
-
----
-
-## fetch_bank_email
-
-Получает банковские письма.
-
-- Находит новое письмо банка.
-- Загружает вложения.
-- Помечает письмо как обработанное.
-
----
-
-## clear_processed_history
-
-Очищает историю обработанных банковских писем.
-
-Используется для повторной обработки писем и локальной отладки.
+| Task | Назначение |
+|---|---|
+| `generate_invoice` | Генерация Salary Invoice (PDF + DOCX, история в БД) |
+| `generate_conversion_order` | Генерация Conversion Order с подписью |
+| `generate_bank_confirmation` | Генерация Bank Confirmation с подписью |
+| `fetch_bank_email` | Поиск письма банка + загрузка вложений |
+| `clear_processed_history` | Сброс истории обработанных писем |

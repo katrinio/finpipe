@@ -1,171 +1,153 @@
-## Development
+# 🛠️ Development
 
 Локальная разработка, запуск и отладка Finpipe.
 
 ---
 
-### 📦 Prerequisites
+## 📦 Prerequisites
 
-Нужно установить:
+| Инструмент | Назначение |
+|---|---|
+| Python 3.14 | Основной язык |
+| Poetry | Управление зависимостями |
+| PostgreSQL | База данных |
+| cloudflared | Gmail OAuth через локальный туннель |
 
-* Python 3.14
-* Poetry
-* PostgreSQL
-* cloudflared (для локальной Gmail OAuth разработки)
-
-Подготовка окружения:
-
+```bash
 poetry install
 cp .env.dist .env
-
-Заполнить .env:
-
-* TELEGRAM_BOT_TOKEN
-* owner/admin настройки
-* SIGNATURE_ENCRYPTION_KEY
-* GMAIL_CREDENTIALS_PATH
-
-⸻
-
-### 🚀 Первый запуск
-
-Создать или обновить структуру БД:
-
-./scripts/setup_database.sh
-
-Скрипт:
-
-* применяет Alembic миграции;
-* создаёт primary owner пользователя;
-* безопасен для повторного запуска.
-
-⸻
-
-### 🗄️ Alembic
-
-| Действие | Команда |
-|-----------|----------|
-| Создать новую миграцию | `poetry run alembic revision --autogenerate -m "description"` |
-| Применить все миграции | `poetry run alembic upgrade head` |
-| Откатить последнюю миграцию | `poetry run alembic downgrade -1` |
-| Показать текущую ревизию БД | `poetry run alembic current` |
-| Показать актуальные head-ревизии | `poetry run alembic heads` |
-| Показать историю миграций | `poetry run alembic history` |
-| Пометить БД как соответствующую текущей ревизии без выполнения миграций | `poetry run alembic stamp head` |
-На практике чаще всего используются только две команды: создание новой миграции и `upgrade head`.
-
-⸻
-
-### 🤖 Run Telegram Bot
-
-`poetry run python src/integrations/telegram/bot.py`
-
-Бот использует `DATABASE_URL` и настройки из `.env`.
-
-Пример для PostgreSQL:
-
-```env
-DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
 ```
 
-⸻
+Обязательные переменные в `.env`:
 
-### 🌐 Run FastAPI
+| Переменная | Назначение |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | Токен бота |
+| `BOT_OWNER_TELEGRAM_ID` | Telegram ID владельца |
+| `SIGNATURE_ENCRYPTION_KEY` | Ключ шифрования подписей |
+| `GMAIL_CREDENTIALS_PATH` | Путь к `credentials.json` (или `GMAIL_CLIENT_ID` + `GMAIL_CLIENT_SECRET`) |
+| `DATABASE_URL` | Строка подключения к PostgreSQL |
 
-Нужен для Gmail OAuth callback.
+---
 
-`poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000`
+## 🚀 Первый запуск
 
-⸻
+```bash
+./scripts/setup_database.sh
+```
 
-### ❤️ Health Check
+Скрипт применяет Alembic-миграции и создаёт primary owner. Безопасен для повторного запуска.
 
-Проверка, что web-слой поднялся:
+---
 
+## 🗄️ Alembic
+
+| Действие | Команда |
+|---|---|
+| Создать миграцию | `poetry run alembic revision --autogenerate -m "description"` |
+| Применить миграции | `poetry run alembic upgrade head` |
+| Откатить последнюю | `poetry run alembic downgrade -1` |
+| Текущая ревизия | `poetry run alembic current` |
+| Актуальные heads | `poetry run alembic heads` |
+| История миграций | `poetry run alembic history` |
+| Пометить без выполнения | `poetry run alembic stamp head` |
+
+На практике чаще всего нужны только `revision --autogenerate` и `upgrade head`.
+
+---
+
+## 🤖 Telegram Bot
+
+```bash
+poetry run python src/integrations/telegram/bot.py
+```
+
+Бот читает `DATABASE_URL` и остальные настройки из `.env`.
+
+---
+
+## 🌐 FastAPI
+
+Нужен для обработки Gmail OAuth callback.
+
+```bash
+poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
+```
+
+Проверка:
+
+```bash
 curl http://localhost:8000/health
+# {"status":"ok"}
+```
 
-Ожидаемый ответ:
+---
 
-`{"status":"ok"}`
+## 🏗️ Локальная инфраструктура
 
-⸻
+Для полного локального стенда нужны три процесса:
 
-### 🏗️ Локальная инфраструктура
+```
+Google OAuth ──► Cloudflare Tunnel ──► FastAPI
+                                           ▲
+                                    Telegram Bot
+```
 
-Обычно достаточно трёх процессов:
+| Процесс | Команда |
+|---|---|
+| FastAPI | `poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000` |
+| Telegram Bot | `poetry run python src/integrations/telegram/bot.py` |
+| Cloudflare Tunnel | `./scripts/start_oauth_tunnel.sh` |
 
-1. FastAPI
-2. Telegram Bot
-3. Cloudflare Tunnel
+---
 
-FastAPI ← Cloudflare Tunnel ← Google OAuth
-     ↑
- Telegram Bot
+## 📧 Gmail OAuth (локально)
 
-TODO(vps): заменить Cloudflare Tunnel постоянным доменом после переезда на VPS.
+```bash
+./scripts/start_oauth_tunnel.sh
+# или с другим портом:
+PORT=8080 ./scripts/start_oauth_tunnel.sh
+```
 
-⸻
+Скрипт автоматически:
+- запускает Cloudflare Quick Tunnel
+- формирует `https://<tunnel-host>/oauth/gmail/callback`
+- записывает `GMAIL_OAUTH_CALLBACK_URL` в `.env`
 
-### 📧 Gmail OAuth Development
+Затем:
 
-Локальный flow:
+1. Скопировать `OAuth Redirect URI` из вывода скрипта
+2. Добавить в Google Cloud Console → `Authorized redirect URIs`
+3. В `.env` установить `GMAIL_OAUTH_CALLBACK_ENABLED=true`
+4. Telegram → `📧 Gmail` → `🔗 Подключить`
 
-1. Поднять FastAPI
-2. Запустить tunnel
-3. Получить публичный URL
-4. Обновить Redirect URI в Google Cloud
-5. Нажать Integrations → Gmail → Connect Gmail
-6. Пройти Google Consent Screen
-7. Дождаться callback
+> ⚠️ Quick Tunnel URL меняется при каждом перезапуске — нужно обновлять Redirect URI в Google Cloud Console.
 
-Подробности:
+Подробности: [docs/oauth.md](oauth.md)
 
-docs/oauth.md
+---
 
-⸻
+## 🧪 Тесты
 
-### 🔗 start_oauth_tunnel.sh
+| Команда | Что запускает |
+|---|---|
+| `poetry run pytest -q` | Все тесты |
+| `poetry run pytest tests/unit` | Только unit |
+| `poetry run pytest tests/integration` | Только integration |
+| `poetry run mypy src` | Типизация |
+| `poetry run ruff check .` | Линтер |
 
-Для локальной OAuth-разработки:
+---
 
-`./scripts/start_oauth_tunnel.sh`
+## 🔍 Отладка
 
-Скрипт:
+**Health check:**
 
-* запускает Cloudflare Quick Tunnel;
-* получает публичный URL;
-* формирует OAuth callback URL;
-* обновляет локальную конфигурацию;
-* печатает готовый Redirect URI.
-
-Пример:
-
-Tunnel URL:
-https://example.trycloudflare.com
-OAuth Redirect URI:
-https://example.trycloudflare.com/oauth/gmail/callback
-
-Другой порт:
-
-`PORT=8080 ./scripts/start_oauth_tunnel.sh`
-
-После каждого нового tunnel URL необходимо обновить:
-
-Google Cloud Console
-→ APIs & Services
-→ Credentials
-→ OAuth Web Client
-→ Authorized Redirect URIs
-
-⸻
-
-### 🔍 Debugging
-
-Health:
-
+```bash
 curl http://localhost:8000/health
+```
 
-Последние OAuth sessions:
+**Последние OAuth-сессии:**
 
 ```sql
 SELECT id, state, telegram_id, status, expires_at, used_at
@@ -174,69 +156,24 @@ ORDER BY id DESC
 LIMIT 5;
 ```
 
-Последние Gmail подключения:
+**Последние Gmail-подключения:**
 
 ```sql
-SELECT id,
-       owner_telegram_id,
-       gmail_refresh_token IS NOT NULL,
-       gmail_connected_at,
-       gmail_last_error
+SELECT id, owner_telegram_id,
+       gmail_refresh_token IS NOT NULL AS has_token,
+       gmail_connected_at, gmail_last_error
 FROM gmail_account
 ORDER BY id DESC
 LIMIT 5;
 ```
-⸻
 
-### 🧪 Testing
+---
 
-Все тесты: `poetry run pytest -q`
+## 🚨 Troubleshooting
 
-Типизация: `poetry run mypy src`
-
-Линтер: `poetry run ruff check .`
-
-⸻
-
-### 🚨 Troubleshooting
-
-Cloudflare Error 1033
-
-Tunnel не может достучаться до FastAPI.
-
-Проверить:
-
-`curl http://localhost:8000/health`
-
-⸻
-
-redirect_uri_mismatch
-
-Google OAuth Redirect URI не совпадает с текущим tunnel URL.
-
-Решение:
-
-1. Перезапустить tunnel
-2. Скопировать новый Redirect URI
-3. Обновить его в Google Cloud Console
-
-⸻
-
-OAuth callback returns 400
-
-Проверить:
-
-* flow запущен через Connect Gmail;
-* callback не открыт повторно;
-* в oauth_sessions появилась новая запись.
-
-⸻
-
-Gmail connect requested while callback flow is disabled
-
-В .env должно быть:
-
-```
-GMAIL_OAUTH_CALLBACK_ENABLED=true
-GMAIL_OAUTH_CALLBACK_URL=https://...
-```
+| Симптом | Решение |
+|---|---|
+| `Cloudflare Error 1033` | Tunnel не достучался до FastAPI — проверить `curl http://localhost:8000/health` |
+| `redirect_uri_mismatch` | Обновить Redirect URI в Google Cloud Console под текущий tunnel URL |
+| `OAuth callback returns 400` | Убедиться что flow запущен через `Connect Gmail`, не через прямой переход |
+| `callback flow is disabled` | В `.env`: `GMAIL_OAUTH_CALLBACK_ENABLED=true` и `GMAIL_OAUTH_CALLBACK_URL=https://...` |

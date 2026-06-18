@@ -3,16 +3,16 @@
 import base64
 import logging
 from pathlib import Path
+from typing import Any
 
 from src.constants import Dir
-from src.integrations.gmail.auth import get_gmail_service
 from src.integrations.gmail.gmail_models import BankEmail
 from src.utils.utils import Utils
 
 LOGGER = logging.getLogger(__name__)
 
 
-def download_attachments(bank_email: BankEmail) -> Path | None:
+def download_attachments(bank_email: BankEmail, service: Any) -> Path | None:
     """
     Скачивает первое PDF-вложение из письма банка
     и возвращает путь к сохранённому файлу.
@@ -20,7 +20,6 @@ def download_attachments(bank_email: BankEmail) -> Path | None:
 
     LOGGER.info("Downloading PDF attachments from Gmail message: %s", bank_email.message_id)
 
-    service = get_gmail_service()
     user_id = "me"
     attachment_stem = f"bank-form-{Utils.today()}"
 

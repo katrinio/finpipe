@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from src.integrations.gmail.exceptions import GmailOAuthError
@@ -6,11 +7,18 @@ from src.interfaces.web.app import app
 client = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def _no_audit(monkeypatch) -> None:
+    import src.interfaces.web.routes.gmail_oauth as _route_module
+
+    monkeypatch.setattr(_route_module, "_audit", lambda **_kwargs: None)
+
+
 def test_callback_route_returns_success_page(monkeypatch) -> None:
     monkeypatch.setattr("src.interfaces.web.routes.gmail_oauth.GmailOAuthSettings.is_callback_enabled", lambda: True)
     monkeypatch.setattr(
         "src.interfaces.web.routes.gmail_oauth.GmailOAuthCallbackService.handle_callback",
-        lambda **kwargs: type("Result", (), {"ok": True, "message": "ok"})(),
+        lambda **kwargs: type("Result", (), {"ok": True, "message": "ok", "telegram_id": 123})(),
     )
 
     response = client.get("/oauth/gmail/callback?code=abc&state=state-1")

@@ -21,7 +21,7 @@ def _ready_profile(monkeypatch) -> None:
     """Подставляет заглушки, имитирующие полный профиль с подписью."""
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True),
+        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=True),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: True)
 
@@ -67,7 +67,7 @@ def test_bank_day_requires_complete_profile(tmp_path: Path, monkeypatch) -> None
 
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=False, bank_details=True),
+        lambda _telegram_id: SimpleNamespace(company=False, bank_details=True, gmail=True),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: True)
 
@@ -85,7 +85,7 @@ def test_bank_day_requires_signature(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True),
+        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=True),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: False)
 
@@ -99,8 +99,26 @@ def test_bank_day_requires_signature(tmp_path: Path, monkeypatch) -> None:
 # ---------------------------------------------------------------------------
 
 
+def test_bank_day_requires_gmail(tmp_path: Path, monkeypatch) -> None:
+    """Без подключённого Gmail — сообщение GMAIL_NOT_CONNECTED без старта workflow."""
+    storage = build_storage_dependencies()
+    AllowedUser.create(123, "alice")
+    telegram_client = FakeTelegramClient()
+    bot = TelegramBot(storage, telegram=telegram_client)
+
+    monkeypatch.setattr(
+        "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
+        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=False),
+    )
+    monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: True)
+
+    bot.handlers.document_handler.bank_day(123)
+
+    assert telegram_client.sent_messages == [BankMessages.Validation.GMAIL_NOT_CONNECTED]
+
+
 def test_bank_day_reports_gmail_not_configured(tmp_path: Path, monkeypatch) -> None:
-    """Если Gmail не настроен — сообщение BANK_EMAIL_NOT_CONFIGURED."""
+    """Если Gmail подключён, но настройки поиска письма не заданы — BANK_EMAIL_NOT_CONFIGURED."""
     storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()

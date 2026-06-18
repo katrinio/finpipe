@@ -54,7 +54,7 @@ def test_process_bank_email_workflow_returns_when_no_email(monkeypatch: pytest.M
 
     monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
     monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service, **_kwargs: None)
-    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: _record_call(calls, "download"))
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email, _service: _record_call(calls, "download"))
     monkeypatch.setattr(fetch_bank_email, "ProcessedMessage", FakeProcessedMessage)
 
     result = fetch_bank_email.fetch_bank_email_workflow(owner_telegram_id=123)
@@ -73,7 +73,7 @@ def test_process_bank_email_workflow_skips_processed_email(monkeypatch: pytest.M
 
     monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
     monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service, **_kwargs: bank_email)
-    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: _record_call(calls, "download"))
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email, _service: _record_call(calls, "download"))
     monkeypatch.setattr(fetch_bank_email, "ProcessedMessage", FakeProcessedMessage)
 
     result = fetch_bank_email.fetch_bank_email_workflow(owner_telegram_id=123)
@@ -93,7 +93,7 @@ def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch: 
     monkeypatch.setattr(
         fetch_bank_email,
         "download_attachments",
-        lambda email: _record_download(calls, email.message_id),
+        lambda email, _service: _record_download(calls, email.message_id),
     )
     monkeypatch.setattr(fetch_bank_email, "ProcessedMessage", FakeProcessedMessage)
 
@@ -110,7 +110,7 @@ def test_process_bank_email_workflow_does_not_mark_without_pdf(monkeypatch: pyte
 
     monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda: object())
     monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service, **_kwargs: bank_email)
-    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email: None)
+    monkeypatch.setattr(fetch_bank_email, "download_attachments", lambda _email, _service: None)
     monkeypatch.setattr(fetch_bank_email, "ProcessedMessage", FakeProcessedMessage)
 
     result = fetch_bank_email.fetch_bank_email_workflow(owner_telegram_id=123)

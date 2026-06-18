@@ -8,6 +8,7 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.ui.buttons import GmailButtons, NavigationButtons
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu
 from src.integrations.telegram.ui.messages import GmailMessages
+from src.storage.orm.system.processed_message import ProcessedMessage
 
 LOGGER = logging.getLogger(__name__)
 
@@ -65,9 +66,10 @@ class GmailHandlers:
             self.telegram.send_message(telegram_id, GmailMessages.Status.NOT_CONNECTED, reply_markup=build_gmail_menu())
             return
         LOGGER.info("Gmail status checked: connected for Telegram user %s", telegram_id)
-        self.telegram.send_message(
-            telegram_id, f"{GmailMessages.Status.CONNECTED}\n{status.gmail_email or 'unknown'}", reply_markup=build_gmail_menu()
-        )
+        text = f"{GmailMessages.Status.CONNECTED}\n{status.gmail_email or 'unknown'}"
+        if status.last_error:
+            text += f"\n\n⚠️ Последняя ошибка: {status.last_error}"
+        self.telegram.send_message(telegram_id, text, reply_markup=build_gmail_menu())
 
     def gmail_disconnect(self, telegram_id: int) -> None:
         """Отключает сохранённый Gmail-аккаунт пользователя."""
@@ -75,3 +77,10 @@ class GmailHandlers:
         GmailAccountService.disconnect(telegram_id)
         LOGGER.info("Gmail disconnected for Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, GmailMessages.Connect.DISCONNECTED, reply_markup=build_gmail_menu())
+
+    def gmail_clear_history(self, telegram_id: int) -> None:
+        """Сбрасывает историю обработанных писем банка."""
+
+        ProcessedMessage.clear_processed_message()
+        LOGGER.info("Processed bank email history cleared by Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, GmailMessages.History.CLEARED, reply_markup=build_gmail_menu())

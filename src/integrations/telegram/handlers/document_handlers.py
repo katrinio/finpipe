@@ -62,6 +62,10 @@ class DocumentHandlers:
 
     def invoice(self, telegram_id: int) -> None:
         LOGGER.info("Salary invoice generation requested by Telegram user %s", telegram_id)
+        readiness_error = self._invoice_readiness_error(telegram_id)
+        if readiness_error is not None:
+            self.telegram.send_message(telegram_id, readiness_error, reply_markup=build_invoice_menu())
+            return
         self.telegram.send_message(telegram_id, InvoiceMessages.Generation.IN_PROGRESS)
         try:
             generate_and_send_invoice(telegram_id)
@@ -192,8 +196,19 @@ class DocumentHandlers:
     def bank_day_skip_reply(self, telegram_id: int) -> None:
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
 
+    def _invoice_readiness_error(self, telegram_id: int) -> str | None:
+        status = SystemStatusService.get_status(telegram_id)
+        if not status.company or not status.bank_details:
+            return InvoiceMessages.Validation.PROFILE_REQUIRED
+        config = UserConfig.get_by_owner(telegram_id)
+        if config is None or config.invoice_amount_eur is None:
+            return InvoiceMessages.Validation.NO_INVOICE_AMOUNT
+        return None
+
     def _bank_confirmation_readiness_error(self, telegram_id: int) -> str | None:
         status = SystemStatusService.get_status(telegram_id)
+        if not status.gmail:
+            return BankMessages.Validation.GMAIL_NOT_CONNECTED
         if not status.company or not status.bank_details:
             return BankMessages.Validation.PROFILE_REQUIRED
         if not Signature.is_usable(telegram_id):

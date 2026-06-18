@@ -38,8 +38,10 @@ def fetch_bank_email_workflow(
     и возвращает путь к вложению или `None`.
     """
 
+    service = get_gmail_service()
+
     if bank_email is None:
-        bank_email = find_bank_email(get_gmail_service(), owner_telegram_id=owner_telegram_id)
+        bank_email = find_bank_email(service, owner_telegram_id=owner_telegram_id)
 
     if bank_email is None:
         # Если новых писем банка нет, дальнейшая обработка не требуется.
@@ -51,7 +53,7 @@ def fetch_bank_email_workflow(
         return None
 
     LOGGER.info("Processing bank email: %s", bank_email.message_id)
-    attachment_path = download_attachments(bank_email)
+    attachment_path = download_attachments(bank_email, service)
     if attachment_path is None:
         # Без PDF-вложения письмо нельзя считать обработанным.
         LOGGER.warning("Skipping processed marker because no PDF attachment was downloaded")

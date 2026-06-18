@@ -1,98 +1,94 @@
-# FINPIPE
+# 🚀 Finpipe
 
 Finpipe — сервис для автоматизации Salary Invoice, Bank Confirmation, Conversion Order и Gmail-сценариев через Telegram.
 
-Проект вырос из набора локальных скриптов в единый сервис с:
+Вырос из набора локальных скриптов в единый сервис с PostgreSQL-хранилищем, Telegram-ботом и Gmail-интеграцией.
 
-- Telegram-ботом
-- PostgreSQL-хранилищем
-- пользовательскими профилями
-- Gmail-интеграцией
-- историей генерации документов
+---
 
-## Database
+## ✨ Возможности
 
-Finpipe uses PostgreSQL.
+### 📄 Документы
 
-Example:
+| Документ | Описание |
+|---|---|
+| Salary Invoice | Генерация счёта на оплату с подстановкой профиля |
+| Bank Confirmation | Подтверждение для банка с подписью |
+| Conversion Order | Поручение на конвертацию с подписью |
+
+### 📧 Gmail
+
+- Подключение Gmail-аккаунта через OAuth
+- Поиск входящих банковских писем (текущий месяц)
+- Скачивание PDF-вложений
+- Отправка ответных писем через Gmail API
+
+### 🤖 Telegram
+
+- Управление профилем работодателя и реквизитами
+- Загрузка и хранение электронной подписи
+- Генерация документов прямо из чата
+- Подключение и диагностика Gmail
+- Статус системы и аудит
+
+---
+
+## 🗄️ База данных
+
+Finpipe использует PostgreSQL.
 
 ```env
 DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
 ```
 
-## Main Features
+---
 
-### Documents
+## 🐳 Docker
 
-- Salary Invoice
-- Bank Confirmation
-- Conversion Order
-- автоматическая подстановка пользовательских данных
-- вставка электронной подписи
+| Режим | Команда |
+|---|---|
+| Локально (с проброшенными портами) | `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d` |
+| Прод | `docker compose up -d` |
 
-### Gmail
+Доступные порты при локальном запуске:
 
-- подключение Gmail-аккаунта
-- поиск банковских писем
-- скачивание PDF-вложений
-- отправка писем через Gmail API
+| Сервис | Порт |
+|---|---|
+| PostgreSQL | `localhost:5433` |
+| Web (FastAPI) | `localhost:8000` |
 
-### Telegram
+---
 
-Через Telegram доступны:
-
-- профиль пользователя
-- подпись
-- генерация документов
-- Gmail integration
-- статус профиля и системы
-
-## Docker
-
-Базовый файл `docker-compose.yml` содержит общую конфигурацию сервисов и используется в проде.
-`docker-compose.local.yml` добавляет проброс портов для локальной разработки.
-
-**Локально:**
+## ⚡ Quick Start
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
-```
-
-Доступные порты:
-- PostgreSQL: `localhost:5433`
-- Web (FastAPI): `localhost:8000`
-
-**На сервере (прод):**
-
-```bash
-docker compose up -d
-```
-
-## Quick Start
-
-1. Установить зависимости:
-
-```bash
+# 1. Установить зависимости
 poetry install
-```
 
-2. Подготовить `.env`
+# 2. Подготовить .env
+cp .env.dist .env
 
-3. Запустить Telegram-бота:
+# 3. Применить миграции и создать owner
+./scripts/setup_database.sh
 
-```bash
+# 4. Запустить Telegram-бота
 poetry run python src/integrations/telegram/bot.py
-```
 
-4. При необходимости поднять FastAPI для OAuth callback:
-
-```bash
+# 5. (Опционально) FastAPI для Gmail OAuth
 poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
 ```
 
-## Documentation
+---
 
-- Development: [docs/development.md](docs/development.md)
-- Gmail OAuth: [docs/oauth.md](docs/oauth.md)
-- Storage: [docs/storage.md](docs/storage.md)
-- Telegram UI: [src/integrations/telegram/README.md](src/integrations/telegram/README.md)
+## 📚 Документация
+
+| Раздел | Файл |
+|---|---|
+| Разработка и отладка | [docs/development.md](docs/development.md) |
+| Gmail OAuth | [docs/oauth.md](docs/oauth.md) |
+| Хранение данных | [docs/storage.md](docs/storage.md) |
+| Мониторинг | [docs/monitoring.md](docs/monitoring.md) |
+| Telegram UI | [src/integrations/telegram/README.md](src/integrations/telegram/README.md) |
+| Storage ORM | [src/storage/README.md](src/storage/README.md) |
+| Workflows | [src/workflows/README.md](src/workflows/README.md) |
+| Тесты | [tests/README.md](tests/README.md) |
