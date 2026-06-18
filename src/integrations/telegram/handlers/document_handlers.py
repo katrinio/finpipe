@@ -7,6 +7,7 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.document_menu import (
+    build_bank_day_reply_prompt_menu,
     build_document_menu,
     build_invoice_menu,
     build_invoice_send_prompt_menu,
@@ -179,7 +180,17 @@ class DocumentHandlers:
                 delete_file(conversion_order_path.with_suffix(".docx"), LOGGER)
 
         LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE.format(f"{amount:.2f}"), reply_markup=build_document_menu())
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE.format(f"{amount:.2f}"))
+        # Предложить ответить банку — пользователь видит документы и принимает решение
+        # Ответ включает: подтверждение + конвертация + инвойс за прошлый период
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_PROMPT, reply_markup=build_bank_day_reply_prompt_menu())
+
+    def bank_day_reply_to_bank(self, telegram_id: int) -> None:
+        LOGGER.info("Bank day reply to bank requested by Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SEND_SOON, reply_markup=build_document_menu())
+
+    def bank_day_skip_reply(self, telegram_id: int) -> None:
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
 
     def _bank_confirmation_readiness_error(self, telegram_id: int) -> str | None:
         status = SystemStatusService.get_status(telegram_id)

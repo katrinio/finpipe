@@ -14,6 +14,7 @@ from src.integrations.telegram.handlers.system_handlers import SystemHandlers
 from src.integrations.telegram.messages.menu_messages import MenuMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.ui.buttons import (
+    BankDayButtons,
     DocumentsMenuButtons,
     GmailButtons,
     IntegrationsButtons,
@@ -138,6 +139,8 @@ class CommandRouter:
             # documents
             DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
             DocumentsMenuButtons.BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
+            BankDayButtons.REPLY_TO_BANK: lambda context: self.document_handler.bank_day_reply_to_bank(context.telegram_id),
+            BankDayButtons.SKIP_REPLY: lambda context: self.document_handler.bank_day_skip_reply(context.telegram_id),
             # invoice
             InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
             InvoiceMenuButtons.GET_INVOICE_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
