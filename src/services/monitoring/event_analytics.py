@@ -56,6 +56,21 @@ class EventAnalytics:
             )
             return [{"document_type": document_type_value, "count": count} for document_type_value, count in session.execute(statement).all()]
 
+    @classmethod
+    def get_recent_events(cls, limit: int = 10) -> list[dict[str, object]]:
+        with AppEvent.session() as session:
+            statement = select(AppEvent).order_by(AppEvent.created_at.desc(), AppEvent.id.desc()).limit(limit)
+            rows = session.scalars(statement).all()
+            return [
+                {
+                    "created_at": row.created_at,
+                    "event_type": row.event_type,
+                    "severity": row.severity,
+                    "details": row.details,
+                }
+                for row in rows
+            ]
+
     @staticmethod
     def _row_to_error(row: AppEvent) -> dict[str, object]:
         details: dict[str, object] | str | None
