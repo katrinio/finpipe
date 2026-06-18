@@ -13,6 +13,23 @@ env:
   BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
   TEST_DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe_test
 
+x-checkout: &checkout
+  uses: actions/checkout@v5
+
+x-alembic-heads: &alembic_heads
+  name: Check Alembic heads
+  run: poetry run alembic heads
+
+x-alembic-debug: &alembic_debug
+  name: Debug Alembic environment
+  run: |
+    echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
+    grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
+
+x-alembic-upgrade: &alembic_upgrade
+  name: Apply migrations
+  run: poetry run alembic upgrade head
+
 jobs:
   code-style:
     name: 🎨 Code Style
@@ -22,7 +39,7 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     steps:
-      - uses: actions/checkout@v5
+      - *checkout
 
       - name: Run Ruff
         run: poetry run ruff check .
@@ -52,18 +69,13 @@ jobs:
           --health-retries 20
 
     steps:
-      - uses: actions/checkout@v5
+      - *checkout
 
-      - name: Check Alembic heads
-        run: poetry run alembic heads
+      - *alembic_heads
 
-      - name: Debug Alembic environment
-        run: |
-          echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
-          grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
+      - *alembic_debug
 
-      - name: Apply migrations
-        run: poetry run alembic upgrade head
+      - *alembic_upgrade
 
       - name: Run Unit Tests + Coverage
         run: |
@@ -95,18 +107,13 @@ jobs:
           --health-retries 20
 
     steps:
-      - uses: actions/checkout@v5
+      - *checkout
 
-      - name: Check Alembic heads
-        run: poetry run alembic heads
+      - *alembic_heads
 
-      - name: Debug Alembic environment
-        run: |
-          echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
-          grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
+      - *alembic_debug
 
-      - name: Apply migrations
-        run: poetry run alembic upgrade head
+      - *alembic_upgrade
 
       - name: Run Integration Tests
         run: |
@@ -138,18 +145,13 @@ jobs:
           --health-retries 20
 
     steps:
-      - uses: actions/checkout@v5
+      - *checkout
 
-      - name: Check Alembic heads
-        run: poetry run alembic heads
+      - *alembic_heads
 
-      - name: Debug Alembic environment
-        run: |
-          echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
-          grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
+      - *alembic_debug
 
-      - name: Apply migrations
-        run: poetry run alembic upgrade head
+      - *alembic_upgrade
       - name: Run All Tests + Coverage
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
