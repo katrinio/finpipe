@@ -37,11 +37,13 @@ class SignatureService:
 
         try:
             encrypted_path = SignatureCipher.encrypt_file(temp_path, destination)
-            signature_hash = hashlib.sha256(encrypted_path.read_bytes()).hexdigest()
+            encrypted_bytes = encrypted_path.read_bytes()
+            signature_hash = hashlib.sha256(encrypted_bytes).hexdigest()
             Signature.create(
                 owner_telegram_id=telegram_id,
                 signature_path=encrypted_path,
                 signature_hash=signature_hash,
+                signature_data=encrypted_bytes,
                 active=True,
             )
             success = True
