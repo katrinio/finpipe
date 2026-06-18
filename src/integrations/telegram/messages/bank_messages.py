@@ -19,16 +19,16 @@ class BankMessages:
         )
 
     class Generation:
-        IN_PROGRESS = "⏳ Формируется подтверждение для банка..."
+        IN_PROGRESS = MsgIcon.waiting("Формируется подтверждение для банка...")
         SENT = MsgIcon.success("Подтверждение для банка отправлено.")
         FILLED = MsgIcon.success("Подтверждение для банка заполнено.")
         ORIGINAL_AND_FILLED = MsgIcon.success("Письмо банка обработано и отправлено.")
 
     class Search:
-        CHECKING = "⏳ Проверяю письмо из банка..."
+        CHECKING = MsgIcon.waiting("Проверяю письмо из банка...")
         FOUND = MsgIcon.success("Письмо из банка найдено.")
         NOT_FOUND = MsgIcon.warning("Письмо из банка не найдено.")
 
     class BankDay:
-        IN_PROGRESS = "⏳ Банковский день: ищу письмо банка и готовлю документы..."
+        IN_PROGRESS = MsgIcon.waiting("Банковский день: ищу письмо банка и готовлю документы...")
         DONE = MsgIcon.success("Банковский день завершён. Отправлено 3 документа: оригинал, подтверждение и запрос на конвертацию.")

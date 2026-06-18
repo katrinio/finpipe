@@ -7,7 +7,7 @@ class InvoiceMessages:
         INPUT = "💰 Введите сумму Salary Invoice:"
 
     class Generation:
-        IN_PROGRESS = "⏳ Формируется Salary Invoice..."
+        IN_PROGRESS = MsgIcon.waiting("Формируется Salary Invoice...")
         SENT = MsgIcon.success("Salary Invoice отправлен.")
 
     class Validation:

@@ -142,7 +142,7 @@ def test_bank_confirmation_reports_missing_signature(tmp_path: Path, monkeypatch
     bot.handlers.document_handler.bank_confirmation(123)
 
     assert telegram_client.sent_messages == [
-        "⏳ Формируется подтверждение для банка...",
+        BankMessages.Generation.IN_PROGRESS,
         BankMessages.Validation.SIGNATURE_REQUIRED,
     ]
     assert telegram_client.sent_message_payloads[-1] == (
