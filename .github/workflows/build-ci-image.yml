@@ -37,5 +37,5 @@ jobs:
           file: .docker/ci/Dockerfile
           push: true
           tags: |
-            ghcr.io/katrinio/finpipe-ci:latest
-            ghcr.io/katrinio/finpipe-ci:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/finpipe-ci:latest
+            ghcr.io/${{ github.repository_owner }}/finpipe-ci:${{ github.sha }}
