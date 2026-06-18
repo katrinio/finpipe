@@ -15,3 +15,4 @@ class InvoiceMessages:
     class Validation:
         NOT_INT = MsgIcon.error("Сумма должна содержать только цифры.\nПример: 1500")
         NO_INVOICE_AMOUNT = "💰 Сумма Salary Invoice не задана.\nИспользуйте «Указать сумму»."
+        PROFILE_REQUIRED = "🏢 Профиль заполнен не полностью.\nСначала загрузите профиль и банковские реквизиты."
