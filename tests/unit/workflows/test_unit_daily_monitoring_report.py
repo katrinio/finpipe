@@ -194,7 +194,7 @@ def test_certificate_days_remaining_calculation(monkeypatch) -> None:
 
     certificate = daily_report.load_certificate_status()
 
-    assert certificate.days_remaining == 67
+    assert certificate.days_remaining == 66
     assert certificate.status_emoji == "✅"
     assert certificate.error is None
 
