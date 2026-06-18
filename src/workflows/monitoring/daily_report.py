@@ -203,7 +203,8 @@ def load_infrastructure_summary() -> InfrastructureSummary:
     return InfrastructureSummary(database_status=database_status, disk_usage_percent=disk_usage, certificate=certificate)
 
 
-def load_certificate_status() -> CertificateStatus:
+def load_certificate_status(now: datetime | None = None) -> CertificateStatus:
+    now = now or datetime.now(UTC)
     domain = _get_monitoring_domain()
     if not domain:
         return CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error="domain is not configured")
@@ -213,7 +214,7 @@ def load_certificate_status() -> CertificateStatus:
     except Exception as exc:
         return CertificateStatus(expires_at=None, days_remaining=None, status_emoji="unknown", error=str(exc))
 
-    days_remaining = max(0, (expires_at.date() - datetime.now(UTC).date()).days)
+    days_remaining = max(0, (expires_at.date() - now.date()).days)
     return CertificateStatus(
         expires_at=expires_at,
         days_remaining=days_remaining,

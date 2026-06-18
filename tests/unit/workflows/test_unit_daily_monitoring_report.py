@@ -160,7 +160,7 @@ def test_certificate_days_remaining_calculation(monkeypatch: pytest.MonkeyPatch)
         lambda domain: datetime(2026, 8, 23, 7, 0, tzinfo=UTC),
     )
 
-    certificate = daily_report.load_certificate_status()
+    certificate = daily_report.load_certificate_status(now=datetime(2026, 6, 17, 7, 0, tzinfo=UTC))
 
     assert certificate.days_remaining == 67
     assert certificate.status_emoji == "✅"

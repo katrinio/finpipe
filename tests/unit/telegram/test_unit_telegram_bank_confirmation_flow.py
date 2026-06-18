@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 from src.integrations.gmail.gmail_models import BankEmail
 from src.integrations.telegram.bot import TelegramBot
-from src.integrations.telegram.ui.buttons import BankConfirmationButtons, DocumentsMenuButtons
+from src.integrations.telegram.ui.buttons import DocumentsMenuButtons
 from src.integrations.telegram.ui.menu.document_menu import build_bank_confirmation_menu
 from src.integrations.telegram.ui.messages import BankMessages
 from src.storage.dependencies import build_storage_dependencies
@@ -37,15 +37,7 @@ def test_bank_confirmation_upload_button_sets_waiting_state(tmp_path: Path) -> N
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
 
-    bot.process_update(
-        {
-            "update_id": 12,
-            "message": {
-                "text": BankConfirmationButtons.UPLOAD_FOR_FILLING,
-                "from": {"id": 123, "username": "alice"},
-            },
-        }
-    )
+    bot.handlers.document_handler.start_bank_confirmation_upload(123)
 
     assert telegram_client.sent_messages == [BankMessages.Menu.UPLOAD]
     assert telegram_client.sent_message_payloads == [(123, BankMessages.Menu.UPLOAD, build_bank_confirmation_menu())]
