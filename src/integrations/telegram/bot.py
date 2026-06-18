@@ -15,7 +15,7 @@ from src.integrations.telegram.ui.menu.admin_menu import build_users_menu
 from src.integrations.telegram.ui.menu.document_menu import build_invoice_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
-from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
+from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
 from src.integrations.telegram.ui.messages import CommonMessages
 from src.logging_config import configure_logging
 from src.services.known_user_service import KnownUserService
@@ -293,7 +293,7 @@ class TelegramBot:
 
     def _build_state_navigation_menu(self, telegram_id: int, state: UserState) -> dict:
         if state == UserState.WAITING_SIGNATURE_UPLOAD:
-            return build_signature_menu()
+            return build_profile_menu()
         if state == UserState.WAITING_PROFILE_TEMPLATE_UPLOAD:
             return build_profile_menu()
         if state == UserState.WAITING_INVOICE_AMOUNT:

@@ -6,7 +6,6 @@ from src.integrations.telegram.ui.buttons import (
     MainMenuButtons,
     NavigationButtons,
     OwnerButtons,
-    ProfileButtons,
 )
 from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu, build_users_menu
 from src.integrations.telegram.ui.menu.document_menu import (
@@ -15,7 +14,7 @@ from src.integrations.telegram.ui.menu.document_menu import (
 )
 from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu, build_integration_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
-from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
+from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.storage.orm import AllowedUser
 from src.storage.orm.user.user_config import UserConfig
@@ -73,15 +72,6 @@ class MenuHandler:
             telegram_id,
             IntegrationsButtons.GMAIL,
             reply_markup=build_gmail_menu(),
-        )
-
-    def signature_menu(self, telegram_id: int) -> None:
-        """Открывает раздел управления подписью."""
-
-        self.telegram.send_message(
-            telegram_id,
-            ProfileButtons.SIGNATURE,
-            reply_markup=build_signature_menu(),
         )
 
     def settings_menu(self, telegram_id: int) -> None:
