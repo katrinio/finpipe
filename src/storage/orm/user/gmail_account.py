@@ -87,7 +87,7 @@ class GmailAccount(BaseModel):
                 gmail_account = cls(owner_telegram_id=telegram_id)
                 session.add(gmail_account)
 
-            gmail_account.gmail_last_error = error_message
+            gmail_account.gmail_last_error = error_message or None
             session.commit()
 
     @classmethod

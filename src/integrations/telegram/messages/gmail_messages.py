@@ -12,5 +12,8 @@ class GmailMessages:
         DISCONNECTED = "📧 Gmail отключён."
         CONNECT_PROMPT = "📧 Gmail\n\nПодключите аккаунт Google для работы с банковыми письмами.\n\nНажмите кнопку ниже для авторизации."
 
+    class History:
+        CLEARED = MsgIcon.success("История обработанных писем сброшена.")
+
     class Validation:
         OAUTH_TEMPORARILY_UNAVAILABLE = MsgIcon.warning("Подключение Gmail временно недоступно.")
