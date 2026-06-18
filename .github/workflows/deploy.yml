@@ -26,7 +26,9 @@ jobs:
             docker compose down
             docker compose build
             docker compose up -d
-          
+
+            docker compose run --rm finpipe-bot alembic upgrade head
+
             docker compose ps
             docker compose logs --tail=30 finpipe-bot
             docker compose logs --tail=30 finpipe-web
