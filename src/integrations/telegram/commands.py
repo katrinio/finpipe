@@ -117,5 +117,20 @@ def format_recent_errors(errors: list[dict[str, object]]) -> str:
     return "\n".join(lines).rstrip()
 
 
+def format_recent_events(events: list[dict[str, object]]) -> str:
+    lines = ["📋 Recent Events", ""]
+    if not events:
+        return "📋 Recent Events\n\n• no data"
+
+    for event in events:
+        created_at = event["created_at"]
+        created = created_at.strftime("%Y-%m-%d %H:%M") if hasattr(created_at, "strftime") else str(created_at)
+        lines.append(f"{created}  [{event.get('severity', '')}]  {event.get('event_type', '')}")
+        if event.get("details"):
+            lines.append(f"  {event['details']}")
+
+    return "\n".join(lines)
+
+
 def _top_items(mapping: dict[str, int], limit: int) -> list[tuple[str, int]]:
     return sorted(mapping.items(), key=lambda item: item[1], reverse=True)[:limit]

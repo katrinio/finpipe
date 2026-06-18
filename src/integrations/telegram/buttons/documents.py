@@ -2,12 +2,12 @@ class DocumentsMenuButtons:
     SALARY_INVOICE = "🧾 Salary Invoice"
     BANK_CONFIRMATION = "🏦 Подтверждение для банка"
     CONVERSION_ORDER = "💱 Conversion Order"
+    BANK_DAY = "🏦 Банковский день"
 
 
 class BankConfirmationButtons:
     UPLOAD_FOR_FILLING = "📤 Загрузить для заполнения"
     CHECK_BANK_EMAIL = "🔎 Проверить письмо из банка"
-    GET_AND_PROCESS = "📥 Получить и обработать"
 
 
 class ConversionOrderButtons:

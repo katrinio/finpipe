@@ -142,8 +142,8 @@ class CommandRouter:
             DocumentsMenuButtons.BANK_CONFIRMATION: lambda context: self.menu_handler.bank_confirmation_menu(context.telegram_id),
             BankConfirmationButtons.UPLOAD_FOR_FILLING: lambda context: self.document_handler.start_bank_confirmation_upload(context.telegram_id),
             BankConfirmationButtons.CHECK_BANK_EMAIL: lambda context: self.document_handler.check_bank_email(context.telegram_id),
-            BankConfirmationButtons.GET_AND_PROCESS: lambda context: self.document_handler.get_and_process_bank_email(context.telegram_id),
             DocumentsMenuButtons.CONVERSION_ORDER: lambda context: self.menu_handler.conversion_order_menu(context.telegram_id),
+            DocumentsMenuButtons.BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
             ConversionOrderButtons.SET_AMOUNT: lambda context: self.document_handler.start_conversion_amount_input(context.telegram_id),
             ConversionOrderButtons.GET_AMOUNT: lambda context: self.document_handler.conversion_order_menu(context.telegram_id),
             ConversionOrderButtons.USE_BANK_AMOUNT: lambda context: self.document_handler.use_bank_amount(context.telegram_id),
@@ -175,7 +175,6 @@ class CommandRouter:
             SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
-            OwnerButtons.STATISTICS: lambda context: self.system_handler.statistics(context.telegram_id),
             OwnerButtons.ADD_USER: lambda context: (
                 self.owner_handler.start_add_user_input(context.telegram_id)
                 if context.command == OwnerButtons.ADD_USER

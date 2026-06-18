@@ -114,36 +114,3 @@ def test_check_bank_email_reports_found(tmp_path: Path, monkeypatch) -> None:
     assert telegram_client.sent_messages[0] == BankMessages.Search.CHECKING
     assert BankMessages.Search.FOUND in telegram_client.sent_messages[-1]
     assert "bank@example.com" in telegram_client.sent_messages[-1]
-
-
-def test_get_and_process_bank_email_sends_original_and_filled(tmp_path: Path, monkeypatch) -> None:
-    storage = build_storage_dependencies()
-    AllowedUser.create(123, "alice")
-    telegram_client = FakeTelegramClient()
-    bot = TelegramBot(storage, telegram=telegram_client)
-
-    original_pdf = tmp_path / "original.pdf"
-    original_pdf.write_bytes(b"%PDF-1.7\noriginal")
-    filled_pdf = tmp_path / "filled.pdf"
-    filled_pdf.write_bytes(b"%PDF-1.7\nfilled")
-
-    monkeypatch.setattr(
-        "src.integrations.telegram.handlers.document_handlers.fetch_bank_email_workflow",
-        lambda **_kwargs: original_pdf,
-    )
-    monkeypatch.setattr(
-        "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True),
-    )
-    monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: True)
-    monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.extract_amount", lambda _pdf: 77.7)
-    monkeypatch.setattr(
-        bot.handlers.document_handler,
-        "_fill_bank_confirmation_pdf",
-        lambda _telegram_id, _input_pdf, _amount: filled_pdf,
-    )
-
-    bot.handlers.document_handler.get_and_process_bank_email(123)
-
-    assert telegram_client.sent_documents == [(123, str(original_pdf)), (123, str(filled_pdf))]
-    assert telegram_client.sent_messages[-1] == BankMessages.Generation.ORIGINAL_AND_FILLED

@@ -1,5 +1,5 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import format_chatid, format_recent_errors, format_stats
+from src.integrations.telegram.commands import format_chatid, format_recent_errors, format_recent_events, format_stats
 from src.integrations.telegram.settings import TelegramSettings
 from src.integrations.telegram.ui.messages import CommonMessages
 from src.services.monitoring.event_analytics import EventAnalytics
@@ -14,7 +14,7 @@ class MonitoringHandler:
         self.telegram = telegram
 
     def handle_message(self, text: str | None, chat_id: int | None, telegram_id: int | None, username: str | None) -> bool:
-        """Обрабатывает /status, /health, /events, /errors и /chatid только в monitoring chat."""
+        """Обрабатывает /status, /health, /events, /errors, /stats и /chatid только в monitoring chat."""
 
         monitoring_chat_id = TelegramSettings.get_monitoring_chat_id()
         if monitoring_chat_id is None or chat_id != monitoring_chat_id or text is None:
@@ -33,6 +33,9 @@ class MonitoringHandler:
                 return True
             if command == "/errors":
                 self._errors(chat_id)
+                return True
+            if command == "/stats":
+                self._stats(chat_id)
                 return True
             if command == "/chatid":
                 self.telegram.send_message(chat_id, format_chatid(chat_id))
@@ -72,6 +75,14 @@ class MonitoringHandler:
 
     def _events(self, chat_id: int) -> None:
         analytics = EventAnalytics()
+        self.telegram.send_message(chat_id, format_recent_events(analytics.get_recent_events(limit=10)))
+
+    def _errors(self, chat_id: int) -> None:
+        analytics = EventAnalytics()
+        self.telegram.send_message(chat_id, format_recent_errors(analytics.get_recent_errors(limit=10)))
+
+    def _stats(self, chat_id: int) -> None:
+        analytics = EventAnalytics()
         self.telegram.send_message(
             chat_id,
             format_stats(
@@ -82,10 +93,6 @@ class MonitoringHandler:
                 recent_error_count=len(analytics.get_recent_errors(limit=3)),
             ),
         )
-
-    def _errors(self, chat_id: int) -> None:
-        analytics = EventAnalytics()
-        self.telegram.send_message(chat_id, format_recent_errors(analytics.get_recent_errors(limit=10)))
 
     @staticmethod
     def _normalize_command(text: str) -> str:

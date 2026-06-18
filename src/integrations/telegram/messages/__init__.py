@@ -2,7 +2,7 @@
 
 from src.integrations.telegram.messages.audit_messages import AuditLogMessages
 from src.integrations.telegram.messages.bank_messages import BankMessages
-from src.integrations.telegram.messages.common_messages import CommonMessages, Msg
+from src.integrations.telegram.messages.common_messages import CommonMessages, MsgIcon
 from src.integrations.telegram.messages.gmail_messages import GmailMessages
 from src.integrations.telegram.messages.invoice_messages import InvoiceMessages
 from src.integrations.telegram.messages.menu_messages import ConversionOrderMessages, MenuMessages
@@ -18,7 +18,7 @@ __all__ = [
     "GmailMessages",
     "InvoiceMessages",
     "MenuMessages",
-    "Msg",
+    "MsgIcon",
     "OwnerMessages",
     "ProfileMessages",
     "SignatureMessages",

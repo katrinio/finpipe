@@ -1,8 +1,7 @@
 class OwnerButtons:
     ADMIN_PANEL = "🛠️ Админка"
     USERS = "👥 Пользователи"
-    STATISTICS = "📊 Статистика"
-    ERRORS = "🚨 Ошибки"
+
     ADD_USER = "➕ Добавить пользователя"
     REMOVE_USER = "➖ Удалить пользователя"
     LIST_USERS = "📋 Список пользователей"
