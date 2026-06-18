@@ -70,8 +70,9 @@ def test_download_attachments_saves_pdf_attachment(tmp_path, monkeypatch) -> Non
             ],
         },
     }
+    pdf_bytes = b"%PDF-1.4 fake content"
     attachment_response = {
-        "data": base64.urlsafe_b64encode(b"pdf-bytes").decode("utf-8"),
+        "data": base64.urlsafe_b64encode(pdf_bytes).decode("utf-8"),
     }
     service = FakeGmailService(message_response, attachment_response)
 
@@ -81,7 +82,37 @@ def test_download_attachments_saves_pdf_attachment(tmp_path, monkeypatch) -> Non
     attachment_path = downloader.download_attachments(build_bank_email(), service)
 
     assert attachment_path == tmp_path / "bank-form-2026-05-29.pdf"
-    assert attachment_path.read_bytes() == b"pdf-bytes"
+    assert attachment_path.read_bytes() == pdf_bytes
+
+
+def test_download_attachments_skips_attachment_without_pdf_magic_bytes(
+    tmp_path,
+    monkeypatch,
+    caplog,
+) -> None:
+    message_response = {
+        "payload": {
+            "parts": [
+                {
+                    "filename": "malicious.pdf",
+                    "body": {"attachmentId": "attachment-123"},
+                }
+            ],
+        },
+    }
+    attachment_response = {
+        "data": base64.urlsafe_b64encode(b"MZ\x90\x00not-a-pdf").decode("utf-8"),
+    }
+    service = FakeGmailService(message_response, attachment_response)
+
+    monkeypatch.setattr(downloader.Dir, "ATTACHMENTS", tmp_path)
+
+    with caplog.at_level(logging.WARNING):
+        attachment_path = downloader.download_attachments(build_bank_email(), service)
+
+    assert attachment_path is None
+    assert list(tmp_path.iterdir()) == []
+    assert "is not a PDF" in caplog.text
 
 
 def test_download_attachments_logs_warning_when_pdf_is_missing(
