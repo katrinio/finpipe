@@ -12,7 +12,7 @@ from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import PUBLIC_COMMANDS
 from src.integrations.telegram.ui.menu.admin_menu import build_users_menu
-from src.integrations.telegram.ui.menu.document_menu import build_bank_confirmation_menu, build_invoice_menu
+from src.integrations.telegram.ui.menu.document_menu import build_invoice_menu
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu, build_signature_menu
@@ -56,10 +56,6 @@ class TelegramBot:
             UserState.WAITING_PROFILE_TEMPLATE_UPLOAD: StateHandler(
                 handler=self.handlers.profile_handler.handle_profile_template_upload,
                 error_message="📄 Пришлите заполненный шаблон в YAML формате.",
-            ),
-            UserState.WAITING_BANK_CONFIRMATION_UPLOAD: StateHandler(
-                handler=self.handlers.document_handler.handle_bank_confirmation_upload,
-                error_message="📄 Пришлите PDF-файл для заполнения.",
             ),
             UserState.WAITING_INVOICE_AMOUNT: StateHandler(
                 handler=self.handlers.document_handler.handle_invoice_amount_input,
@@ -229,7 +225,6 @@ class TelegramBot:
 
             if state in {
                 UserState.WAITING_INVOICE_AMOUNT,
-                UserState.WAITING_BANK_CONFIRMATION_UPLOAD,
                 UserState.WAITING_NEW_USER_ID,
                 UserState.WAITING_NEW_USER_CONFIRMATION,
                 UserState.WAIT_CONFIRM_ADD_USER,
@@ -301,8 +296,6 @@ class TelegramBot:
             return build_signature_menu()
         if state == UserState.WAITING_PROFILE_TEMPLATE_UPLOAD:
             return build_profile_menu()
-        if state == UserState.WAITING_BANK_CONFIRMATION_UPLOAD:
-            return build_bank_confirmation_menu()
         if state == UserState.WAITING_INVOICE_AMOUNT:
             return build_invoice_menu()
         if state in {
