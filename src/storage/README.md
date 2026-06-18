@@ -1,245 +1,82 @@
-# Storage
+# 🗄️ Storage
 
 Storage отвечает за долговременное хранение данных Finpipe.
 
-Все пользовательские настройки, профили, состояния Telegram, Gmail-аккаунты и системные данные сохраняются в PostgreSQL и переживают перезапуск приложения.
+Все пользовательские настройки, профили, состояния Telegram, Gmail-аккаунты и системные данные хранятся в PostgreSQL и переживают перезапуск приложения.
 
-Подробное описание схемы хранения находится в `docs/storage.md`.
-
----
-
-## Основные компоненты
-
-`storage/`
-├── `orm/`
-├── `dependencies.py`
-└── `bootstrap_allowed_users.py`
-
-### orm/
-
-SQLAlchemy-модели проекта.
-
-Содержит пользовательские и системные сущности.
-
-### dependencies.py
-
-Сборка зависимостей для сервисов и интеграций.
-
-### bootstrap_allowed_users.py
-
-Первичная инициализация владельца системы при запуске приложения.
+Подробная схема хранения: [docs/storage.md](../../docs/storage.md)
 
 ---
 
-## Пользовательские данные
+## 📁 Структура
 
-Модели:
-
-### AllowedUser
-
-Авторизованные пользователи Telegram.
-
-Является источником прав доступа.
-
-Хранит:
-
-- telegram_id
-- username
-- роль пользователя
-- дату создания
-
----
-
-### KnownUser
-
-Известные Telegram-пользователи.
-
-Используется для onboarding и безопасной выдачи доступа.
-
-Не означает наличие доступа.
-
-Хранит:
-
-- telegram_id
-- username
-- first_name
-- created_at
-- last_seen_at
+```
+storage/
+├── orm/                         ORM-модели
+│   ├── user/                    Пользовательские данные
+│   │   ├── allowed_user.py
+│   │   ├── known_user.py
+│   │   ├── company_profile.py
+│   │   ├── bank_details.py
+│   │   ├── user_config.py
+│   │   ├── signature.py
+│   │   └── gmail_account.py
+│   └── system/                  Системные данные
+│       ├── audit_log.py
+│       ├── user_state_storage.py
+│       ├── telegram_update.py
+│       ├── processed_message.py
+│       ├── oauth_session.py
+│       ├── document_generation_history.py
+│       └── app_events.py
+├── dependencies.py              Сборка зависимостей
+└── bootstrap_allowed_users.py  Первичная инициализация owner
+```
 
 ---
 
-### CompanyProfile
+## 👤 Пользовательские модели
 
-Данные работодателя.
-
-Хранит:
-
-- company_name
-- company_address
-- registration_number
-- city
-- service_agreement_date
-
----
-
-### BankDetails
-
-Банковские реквизиты пользователя.
-
-Хранит:
-
-- account_holder
-- bank_name
-- account_number
-- iban
-- bic
-- account_holder_email
-- account_holder_address
+| Модель | Таблица | Назначение |
+|---|---|---|
+| `AllowedUser` | `allowed_user` | Авторизованные пользователи + роли |
+| `KnownUser` | `known_user` | Пользователи, открывавшие бота |
+| `CompanyProfile` | `company_profile` | Данные работодателя |
+| `BankDetails` | `bank_details` | Банковские реквизиты |
+| `UserConfig` | `user_config` | Настройки (суммы Invoice и конвертации) |
+| `Signature` | `signature` | Подпись: метаданные + зашифрованные байты |
+| `GmailAccount` | `gmail_account` | Gmail: refresh token (зашифрован), email, ошибка |
 
 ---
 
-### UserConfig
+## ⚙️ Системные модели
 
-Пользовательские настройки.
-
-Хранит:
-
-- invoice_amount_eur
-- received_amount_eur
-- exchange_amount_eur
-
----
-
-### Signature
-
-Информация о загруженной подписи пользователя.
-
-Используется для поиска и управления подписью.
+| Модель | Таблица | Назначение |
+|---|---|---|
+| `AuditLog` | `audit_log` | Журнал всех команд и OAuth-событий |
+| `UserStateStorage` | `user_state_storage` | Текущее состояние Telegram workflow |
+| `TelegramUpdate` | `telegram_update` | Обработанные updates (защита от дублей) |
+| `ProcessedMessage` | `processed_message` | Обработанные банковские письма |
+| `OAuthSession` | `oauth_sessions` | Временные сессии Gmail OAuth |
+| `DocumentGenerationHistory` | `document_generation_history` | История попыток генерации |
+| `AppEvent` | `app_events` | Системные события для мониторинга |
 
 ---
 
-### GmailAccount
+## 🔒 Безопасность
 
-Подключённый Gmail-аккаунт пользователя.
-
-Хранит:
-
-- email
-- refresh token
-- служебные OAuth данные
+| Данные | Защита |
+|---|---|
+| Gmail refresh token | Зашифрован через `TokenCipher` |
+| Подпись пользователя | Зашифрована через `SignatureCipher` |
+| Чувствительные поля | Не должны попадать в логи |
 
 ---
 
-## Системные данные
+## 🛠️ Добавить новую ORM-модель
 
-### AuditLog
-
-Журнал действий пользователей.
-
-Используется для аудита и диагностики.
-
----
-
-### UserStateStorage
-
-Текущее состояние Telegram workflow.
-
-Примеры:
-
-- ожидание подписи;
-- ожидание профиля;
-- ожидание суммы Invoice.
-- ожидание telegram_id нового пользователя;
-- ожидание подтверждения выдачи доступа;
-- ожидание telegram_id для отзыва доступа.
-
----
-
-### TelegramUpdate
-
-Обработанные Telegram updates.
-
-Позволяет избежать повторной обработки сообщений после перезапуска.
-
----
-
-### ProcessedMessage
-
-Обработанные банковские письма.
-
-Используется для защиты от повторной обработки вложений.
-
----
-
-### OAuthSession
-
-Временные OAuth-сессии Gmail.
-
-Используются во время подключения аккаунта.
-
----
-
-### DocumentGenerationHistory
-
-Единая история генерации документов.
-
-Хранит:
-
-- тип документа;
-- номер документа;
-- telegram_id инициатора;
-- статус попытки;
-- текст ошибки для неуспешной генерации;
-- время попытки.
-
-Поддерживает:
-
-- `salary_invoice`
-- `bank_confirmation`
-- `conversion_order`
-
-Сами PDF-файлы постоянно не хранятся. Для аудита и диагностики используется запись в БД.
-
----
-
-## Безопасность
-
-Storage содержит чувствительные данные пользователей.
-
-В проекте используются следующие меры защиты:
-
-- Gmail refresh token хранится в зашифрованном виде;
-- подписи пользователей хранятся в зашифрованном виде;
-- пользовательские данные вынесены из ENV в базу данных;
-- чувствительные данные не должны попадать в логи.
-
----
-
-## Формат времени
-
-Все служебные временные метки в ORM сохраняются в формате:
-
-`YYYY-MM-DD HH:MM:SS`
-
-без микросекунд.
-
-Для этого проект использует `CURRENT_TIMESTAMP` и нормализацию Python `datetime` до секунд перед записью.
-
----
-
-## Миграции
-
-Схема создаётся и обновляется через Alembic миграции.
-
-При запуске применяются миграции к базе, указанной в `DATABASE_URL`.
-
----
-
-## Разработка
-
-При добавлении новой ORM-модели необходимо:
-
-1. Добавить модель в src/storage/orm/.
-2. Экспортировать её через соответствующий __init__.py.
-3. Добавить unit-тесты.
-4. Обновить docs/storage.md, если изменилась структура хранения данных.
+1. Добавить файл в `src/storage/orm/user/` или `src/storage/orm/system/`
+2. Экспортировать через `__init__.py`
+3. Создать Alembic-миграцию: `poetry run alembic revision --autogenerate -m "description"`
+4. Добавить тесты
+5. Обновить [docs/storage.md](../../docs/storage.md)
