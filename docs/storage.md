@@ -35,7 +35,7 @@ DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
 | `user_state_storage` | Текущее состояние Telegram workflow |
 | `telegram_update` | Обработанные updates (защита от дублей после рестарта) |
 | `oauth_session` | Временные OAuth-сессии Gmail |
-| `processed_message` | Обработанные банковские письма (защита от повторной обработки) |
+| `processed_message` | Обработанные банковские письма + маркеры нотификаций `notify:{tid}:{msg_id}` |
 | `document_generation_history` | История всех попыток генерации документов |
 | `audit_log` | Журнал всех действий пользователей и OAuth-событий |
 | `app_events` | Системные события для мониторинга |
