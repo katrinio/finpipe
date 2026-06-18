@@ -8,7 +8,6 @@ class DocumentsMenuButtons:
 class BankConfirmationButtons:
     UPLOAD_FOR_FILLING = "📤 Загрузить для заполнения"
     CHECK_BANK_EMAIL = "🔎 Проверить письмо из банка"
-    GET_AND_PROCESS = "📥 Получить и обработать"
 
 
 class ConversionOrderButtons:

@@ -34,7 +34,6 @@ def build_bank_confirmation_menu() -> dict:
                 {"text": BankConfirmationButtons.CHECK_BANK_EMAIL},
             ],
             [
-                {"text": BankConfirmationButtons.GET_AND_PROCESS},
                 {"text": NavigationButtons.HOME},
             ],
         ],

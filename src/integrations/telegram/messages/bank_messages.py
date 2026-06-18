@@ -30,5 +30,8 @@ class BankMessages:
         NOT_FOUND = MsgIcon.warning("Письмо из банка не найдено.")
 
     class BankDay:
-        IN_PROGRESS = MsgIcon.waiting("Банковский день: ищу письмо банка и готовлю документы...")
-        DONE = MsgIcon.success("Банковский день завершён. Отправлено 3 документа: оригинал, подтверждение и запрос на конвертацию.")
+        IN_PROGRESS = MsgIcon.waiting("Банковский день: ищу письмо банка...")
+        EMAIL_RECEIVED = "✅ Письмо банка получено. Сумма: {} EUR"
+        CONFIRMATION_READY = "✅ Подтверждение для банка готово."
+        CONVERSION_READY = "✅ Запрос на конвертацию готов."
+        DONE = "✅ Банковский день завершён. Сумма: {} EUR. Отправлено 3 документа."
