@@ -1,4 +1,4 @@
-from src.integrations.telegram.messages.common_messages import Msg
+from src.integrations.telegram.messages.common_messages import MsgIcon
 
 
 class BankMessages:
@@ -20,15 +20,15 @@ class BankMessages:
 
     class Generation:
         IN_PROGRESS = "⏳ Формируется подтверждение для банка..."
-        SENT = Msg.success("Подтверждение для банка отправлено.")
-        FILLED = Msg.success("Подтверждение для банка заполнено.")
-        ORIGINAL_AND_FILLED = Msg.success("Письмо банка обработано и отправлено.")
+        SENT = MsgIcon.success("Подтверждение для банка отправлено.")
+        FILLED = MsgIcon.success("Подтверждение для банка заполнено.")
+        ORIGINAL_AND_FILLED = MsgIcon.success("Письмо банка обработано и отправлено.")
 
     class Search:
         CHECKING = "⏳ Проверяю письмо из банка..."
-        FOUND = Msg.success("Письмо из банка найдено.")
-        NOT_FOUND = Msg.warning("Письмо из банка не найдено.")
+        FOUND = MsgIcon.success("Письмо из банка найдено.")
+        NOT_FOUND = MsgIcon.warning("Письмо из банка не найдено.")
 
     class BankDay:
         IN_PROGRESS = "⏳ Банковский день: ищу письмо банка и готовлю документы..."
-        DONE = Msg.success("Банковский день завершён. Отправлено 3 документа: оригинал, подтверждение и запрос на конвертацию.")
+        DONE = MsgIcon.success("Банковский день завершён. Отправлено 3 документа: оригинал, подтверждение и запрос на конвертацию.")

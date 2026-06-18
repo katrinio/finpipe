@@ -16,7 +16,7 @@
 """
 
 
-class Msg:
+class MsgIcon:
     @staticmethod
     def success(text: str) -> str:
         return f"✅ {text}"
@@ -28,6 +28,10 @@ class Msg:
     @staticmethod
     def warning(text: str) -> str:
         return f"⚠️ {text}"
+
+    @staticmethod
+    def waiting(text: str) -> str:
+        return f"⏳ {text}"
 
 
 class CommonMessages:
@@ -52,7 +56,7 @@ class CommonMessages:
 
     class Status:
         PROJECT_RUNNING = "🟢 Finpipe работает."
-        TELEGRAM_API_OK = Msg.success("Telegram API работает.")
+        TELEGRAM_API_OK = MsgIcon.success("Telegram API работает.")
 
     class Errors:
         ACCESS_DENIED = "⛔ У вас пока нет доступа к Finpipe.\nНажмите «Кто я» и отправьте свой Telegram ID владельцу бота."
