@@ -1,5 +1,5 @@
 from src.integrations.telegram.bot import TelegramBot
-from src.integrations.telegram.ui.buttons import DocumentsMenuButtons, MainMenuButtons, OwnerButtons
+from src.integrations.telegram.ui.buttons import DocumentsMenuButtons, GmailButtons, MainMenuButtons, OwnerButtons
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
@@ -48,5 +48,5 @@ def test_main_menu_nav_callbacks_present() -> None:
     callback_data_values = {btn["callback_data"] for row in menu["inline_keyboard"] for btn in row}
     assert MainMenuButtons.CB_DOCUMENTS in callback_data_values
     assert MainMenuButtons.CB_PROFILE in callback_data_values
-    assert MainMenuButtons.CB_INTEGRATIONS in callback_data_values
+    assert GmailButtons.CB_GMAIL in callback_data_values
     assert MainMenuButtons.CB_SYSTEM in callback_data_values

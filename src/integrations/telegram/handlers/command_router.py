@@ -17,7 +17,6 @@ from src.integrations.telegram.ui.buttons import (
     BankDayButtons,
     DocumentsMenuButtons,
     GmailButtons,
-    IntegrationsButtons,
     InvoiceMenuButtons,
     MainMenuButtons,
     NavigationButtons,
@@ -130,7 +129,7 @@ class CommandRouter:
             Cmd.MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # main menu (inline callback_data)
             MainMenuButtons.CB_DOCUMENTS: lambda context: self.menu_handler.document_menu(context.telegram_id),
-            MainMenuButtons.CB_INTEGRATIONS: lambda context: self.menu_handler.integration_menu(context.telegram_id),
+            MainMenuButtons.CB_INTEGRATIONS: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
             MainMenuButtons.CB_PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
             MainMenuButtons.CB_SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
             MainMenuButtons.CB_ADMIN: lambda context: self.menu_handler.admin_menu(context.telegram_id),
@@ -159,15 +158,13 @@ class CommandRouter:
             # signature (inline callback_data)
             SignatureButtons.CB_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
             SignatureButtons.CB_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
-            # integrations (inline callback_data)
-            IntegrationsButtons.CB_GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
-            IntegrationsButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # gmail (inline callback_data)
+            GmailButtons.CB_GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
             GmailButtons.CB_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
             GmailButtons.CB_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.CB_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
             GmailButtons.CB_CLEAR_HISTORY: lambda context: self.gmail_handler.gmail_clear_history(context.telegram_id),
-            GmailButtons.CB_BACK: lambda context: self.menu_handler.integration_menu(context.telegram_id),
+            GmailButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # system
             SystemButtons.CB_WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
             SystemButtons.CB_EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),

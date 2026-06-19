@@ -1,7 +1,7 @@
 """Telegram UI button constants."""
 
 from src.integrations.telegram.buttons.documents import BankDayButtons, DocumentsMenuButtons
-from src.integrations.telegram.buttons.gmail import GmailButtons, IntegrationsButtons
+from src.integrations.telegram.buttons.gmail import GmailButtons
 from src.integrations.telegram.buttons.invoice import InvoiceMenuButtons
 from src.integrations.telegram.buttons.main_menu import MainMenuButtons
 from src.integrations.telegram.buttons.navigation import NavigationButtons
@@ -15,7 +15,6 @@ __all__ = [
     "BankDayButtons",
     "DocumentsMenuButtons",
     "GmailButtons",
-    "IntegrationsButtons",
     "InvoiceMenuButtons",
     "MainMenuButtons",
     "NavigationButtons",

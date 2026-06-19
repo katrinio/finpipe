@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import MainMenuButtons, OwnerButtons
+from src.integrations.telegram.ui.buttons import GmailButtons, MainMenuButtons, OwnerButtons
 
 
 def build_main_menu(is_owner: bool = False) -> dict:
@@ -10,7 +10,7 @@ def build_main_menu(is_owner: bool = False) -> dict:
             {"text": MainMenuButtons.PROFILE, "callback_data": MainMenuButtons.CB_PROFILE},
         ],
         [
-            {"text": MainMenuButtons.INTEGRATIONS, "callback_data": MainMenuButtons.CB_INTEGRATIONS},
+            {"text": MainMenuButtons.INTEGRATIONS, "callback_data": GmailButtons.CB_GMAIL},
             {"text": MainMenuButtons.SYSTEM, "callback_data": MainMenuButtons.CB_SYSTEM},
         ],
     ]

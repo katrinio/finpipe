@@ -1,17 +1,4 @@
-from src.integrations.telegram.ui.buttons import GmailButtons, IntegrationsButtons, NavigationButtons
-
-
-def build_integration_menu() -> dict:
-    return {
-        "inline_keyboard": [
-            [
-                {"text": IntegrationsButtons.GMAIL, "callback_data": IntegrationsButtons.CB_GMAIL},
-            ],
-            [
-                {"text": NavigationButtons.BACK, "callback_data": IntegrationsButtons.CB_BACK},
-            ],
-        ],
-    }
+from src.integrations.telegram.ui.buttons import GmailButtons, NavigationButtons
 
 
 def build_gmail_menu() -> dict:
