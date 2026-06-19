@@ -137,6 +137,8 @@ class DocumentHandlers:
 
         LOGGER.info("Bank day workflow started for Telegram user %s", telegram_id)
 
+        self._cleanup_pending_bank_reply(telegram_id)
+
         readiness_error = self._bank_confirmation_readiness_error(telegram_id)
         if readiness_error is not None:
             self.telegram.send_message(telegram_id, readiness_error, reply_markup=build_document_menu())
@@ -281,6 +283,17 @@ class DocumentHandlers:
             delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
             PendingBankReply.clear(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
+
+    def _cleanup_pending_bank_reply(self, telegram_id: int) -> None:
+        pending = PendingBankReply.get(telegram_id)
+        if pending is None:
+            return
+        LOGGER.info("Cleaning up stale pending bank reply for Telegram user %s", telegram_id)
+        delete_file(Path(pending.invoice_pdf_path), LOGGER)
+        delete_file(Path(pending.bank_confirmation_path), LOGGER)
+        delete_file(Path(pending.conversion_order_path), LOGGER)
+        delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
+        PendingBankReply.clear(telegram_id)
 
     def _invoice_readiness_error(self, telegram_id: int) -> str | None:
         status = SystemStatusService.get_status(telegram_id)
