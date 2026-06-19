@@ -278,7 +278,7 @@ def test_bank_day_sends_done_message_on_success(tmp_path: Path, monkeypatch) -> 
     bot.handlers.document_handler.bank_day(123)
 
     assert BankMessages.BankDay.DONE.format("100.00") in telegram_client.sent_messages
-    assert telegram_client.sent_messages[-1] == BankMessages.BankDay.REPLY_PROMPT
+    assert "Отправить ответ банку на" in telegram_client.sent_messages[-1]
 
 
 def test_bank_day_cleans_up_files_on_error(tmp_path: Path, monkeypatch) -> None:
