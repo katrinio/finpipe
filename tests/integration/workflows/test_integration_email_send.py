@@ -56,6 +56,7 @@ def test_send_invoice_email_subject_body_and_attachment_from_profile(tmp_path: P
 
     monkeypatch.setattr(run_invoice_delivery, "_current_invoice_pdf_path", lambda: pdf)
     monkeypatch.setattr(run_invoice_delivery.EnvVar, "get_required_env", lambda _name: "test@example.com")
+    monkeypatch.setenv("EMAIL_DRY_RUN", "false")
     monkeypatch.setattr(
         run_invoice_delivery,
         "send_email",
@@ -95,6 +96,8 @@ def test_send_bank_email_reply_body_thread_and_three_attachments(tmp_path: Path,
 
     service = FakeService(response={"id": "msg-bank"})
 
+    monkeypatch.setattr(run_bank_request.EnvVar, "get_required_env", lambda _name: "test@example.com")
+    monkeypatch.setenv("EMAIL_DRY_RUN", "false")
     monkeypatch.setattr(
         run_bank_request,
         "send_reply",
