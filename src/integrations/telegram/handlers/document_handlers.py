@@ -33,6 +33,7 @@ from src.workflows.run_bank_request import BankDocuments, fetch_bank_email_workf
 from src.workflows.run_invoice_delivery import discard_invoice_pdf, generate_and_send_invoice, send_invoice_email
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
+from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 
 LOGGER = logging.getLogger(__name__)
 
@@ -159,6 +160,7 @@ class DocumentHandlers:
 
         bank_confirmation_path: Path | None = None
         conversion_order_path: Path | None = None
+        invoice_pdf_path: Path | None = None
         amount: float = 0.0
 
         try:
@@ -181,12 +183,21 @@ class DocumentHandlers:
             )
             self.telegram.send_message(telegram_id, BankMessages.BankDay.CONVERSION_READY)
 
-            # Шаг 5: отправить все три документа в Telegram
+            # Шаг 5: сгенерировать инвойс за 20-е предыдущего месяца (для ответного письма)
+            prev_month_20 = Utils.today().replace(day=20)
+            if prev_month_20.month == 1:
+                prev_month_20 = prev_month_20.replace(year=prev_month_20.year - 1, month=12)
+            else:
+                prev_month_20 = prev_month_20.replace(month=prev_month_20.month - 1)
+            invoice_pdf_path = generate_invoice_pdf(telegram_id=telegram_id, invoice_date=prev_month_20)
+            self.telegram.send_message(telegram_id, BankMessages.BankDay.INVOICE_READY)
+
+            # Шаг 6: отправить все три документа в Telegram
             self.telegram.send_document(telegram_id, bank_pdf_path)
             self.telegram.send_document(telegram_id, bank_confirmation_path)
             self.telegram.send_document(telegram_id, conversion_order_path)
 
-        except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError) as error:
+        except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError, InvoiceError) as error:
             LOGGER.warning("Bank day workflow failed for Telegram user %s: %s", telegram_id, error)
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
             delete_file(bank_pdf_path, LOGGER)
@@ -195,16 +206,22 @@ class DocumentHandlers:
             if conversion_order_path is not None:
                 delete_file(conversion_order_path, LOGGER)
                 delete_file(conversion_order_path.with_suffix(".docx"), LOGGER)
+            if invoice_pdf_path is not None:
+                delete_file(invoice_pdf_path, LOGGER)
+                delete_file(invoice_pdf_path.with_suffix(".docx"), LOGGER)
             return
+        finally:
+            # Оригинальный PDF банка больше не нужен после Telegram-отправки
+            delete_file(bank_pdf_path, LOGGER)
 
-        # Шаг 6: сохранить состояние для отложенного ответа банку
+        # Шаг 7: сохранить состояние для отложенного ответа банку
         PendingBankReply.save(
             telegram_id=telegram_id,
             thread_id=bank_email.thread_id,
             subject=bank_email.subject,
             sender=bank_email.sender,
             message_id=bank_email.message_id,
-            invoice_pdf_path=str(bank_pdf_path),
+            invoice_pdf_path=str(invoice_pdf_path),
             bank_confirmation_path=str(bank_confirmation_path),
             conversion_order_path=str(conversion_order_path),
         )

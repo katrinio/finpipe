@@ -168,7 +168,7 @@ def test_bank_day_reports_no_new_email(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_bank_day_sends_three_documents(tmp_path: Path, monkeypatch) -> None:
-    """Успешный флоу отправляет ровно 3 документа: оригинал, подтверждение, конвертация."""
+    """Успешный флоу отправляет ровно 3 документа в Telegram: оригинал банка, подтверждение, конвертация."""
     storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
@@ -180,6 +180,8 @@ def test_bank_day_sends_three_documents(tmp_path: Path, monkeypatch) -> None:
     filled_pdf.write_bytes(b"%PDF-1.7\nfilled")
     conversion_pdf = tmp_path / "conversion.pdf"
     conversion_pdf.write_bytes(b"%PDF-1.7\nconversion")
+    invoice_pdf = tmp_path / "invoice.pdf"
+    invoice_pdf.write_bytes(b"%PDF-1.7\ninvoice")
 
     _ready_profile(monkeypatch)
     monkeypatch.setattr(
@@ -195,6 +197,10 @@ def test_bank_day_sends_three_documents(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.generate_conversion_order_pdf",
         lambda **_kwargs: conversion_pdf,
+    )
+    monkeypatch.setattr(
+        "src.integrations.telegram.handlers.document_handlers.generate_invoice_pdf",
+        lambda **_kwargs: invoice_pdf,
     )
 
     bot.handlers.document_handler.bank_day(123)
@@ -221,6 +227,8 @@ def test_bank_day_saves_extracted_amount_to_user_config(tmp_path: Path, monkeypa
     filled_pdf.write_bytes(b"%PDF-1.7\nfilled")
     conversion_pdf = tmp_path / "conversion.pdf"
     conversion_pdf.write_bytes(b"%PDF-1.7\nconversion")
+    invoice_pdf = tmp_path / "invoice.pdf"
+    invoice_pdf.write_bytes(b"%PDF-1.7\ninvoice")
 
     _ready_profile(monkeypatch)
     monkeypatch.setattr(
@@ -236,6 +244,10 @@ def test_bank_day_saves_extracted_amount_to_user_config(tmp_path: Path, monkeypa
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.generate_conversion_order_pdf",
         lambda **_kwargs: conversion_pdf,
+    )
+    monkeypatch.setattr(
+        "src.integrations.telegram.handlers.document_handlers.generate_invoice_pdf",
+        lambda **_kwargs: invoice_pdf,
     )
 
     bot.handlers.document_handler.bank_day(123)
@@ -258,6 +270,8 @@ def test_bank_day_sends_done_message_on_success(tmp_path: Path, monkeypatch) -> 
     filled_pdf.write_bytes(b"%PDF-1.7\nfilled")
     conversion_pdf = tmp_path / "conversion.pdf"
     conversion_pdf.write_bytes(b"%PDF-1.7\nconversion")
+    invoice_pdf = tmp_path / "invoice.pdf"
+    invoice_pdf.write_bytes(b"%PDF-1.7\ninvoice")
 
     _ready_profile(monkeypatch)
     monkeypatch.setattr(
@@ -273,6 +287,10 @@ def test_bank_day_sends_done_message_on_success(tmp_path: Path, monkeypatch) -> 
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.generate_conversion_order_pdf",
         lambda **_kwargs: conversion_pdf,
+    )
+    monkeypatch.setattr(
+        "src.integrations.telegram.handlers.document_handlers.generate_invoice_pdf",
+        lambda **_kwargs: invoice_pdf,
     )
 
     bot.handlers.document_handler.bank_day(123)
