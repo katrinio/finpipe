@@ -1,6 +1,3 @@
-from src.integrations.telegram.buttons.navigation import NavigationButtons
-
-
 class SystemButtons:
     WHOAMI = "👤 Кто я"
     CHATID = "/chatid"
@@ -12,6 +9,5 @@ class SystemButtons:
 
 
 PUBLIC_COMMANDS = {
-    SystemButtons.WHOAMI,
-    NavigationButtons.HOME,
+    SystemButtons.CB_WHOAMI,
 }
