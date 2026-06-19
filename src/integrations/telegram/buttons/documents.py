@@ -11,4 +11,4 @@ class DocumentsMenuButtons:
 class BankDayButtons:
     START = "▶️ Запустить"
     REPLY_TO_BANK = "📤 Ответить банку"
-    SKIP_REPLY = "Не отправлять"
+    SKIP_REPLY = "✖️ Не отправлять"
