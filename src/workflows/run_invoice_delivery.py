@@ -18,6 +18,21 @@ from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 LOGGER = logging.getLogger(__name__)
 
 _MONTHS_RU = {
+    1: "jan",
+    2: "feb",
+    3: "mar",
+    4: "apr",
+    5: "may",
+    6: "jun",
+    7: "jul",
+    8: "aug",
+    9: "sep",
+    10: "oct",
+    11: "nov",
+    12: "dec",
+}
+
+_MONTHS_RU_GENITIVE = {
     1: "январь",
     2: "февраль",
     3: "март",
@@ -35,14 +50,15 @@ _MONTHS_RU = {
 
 def _invoice_email_subject(account_holder: str, month: date | None = None) -> str:
     current = month or date.today()
-    month_name = _MONTHS_RU[current.month].capitalize()
-    return f"{month_name} Invoice - {account_holder.title()}"
+    month_short = _MONTHS_RU[current.month]
+    year_short = str(current.year)[2:]
+    return f"Invoice {month_short}'{year_short} — {account_holder.title()}"
 
 
-def _invoice_email_body(account_holder: str, month: date | None = None) -> str:
+def _invoice_email_body(account_holder: str, account_holder_email: str, month: date | None = None) -> str:
     current = month or date.today()
-    month_name = _MONTHS_RU[current.month]
-    return f"Добрый день.\nПрошу принять в работу инвойс за {month_name}.\n\nRegards,\n{account_holder.title()}"
+    month_name = _MONTHS_RU_GENITIVE[current.month]
+    return f"Добрый день.\nПрошу принять в работу инвойс за {month_name}.\n\nС уважением,\n{account_holder.title()}\n{account_holder_email}"
 
 
 def _current_invoice_pdf_path() -> Path:
@@ -55,6 +71,7 @@ def send_invoice_email(telegram_id: int) -> None:
 
     bank_details = BankDetails.get_by_owner(telegram_id)
     account_holder = bank_details.account_holder if bank_details else ""
+    account_holder_email = bank_details.account_holder_email if bank_details else ""
 
     # TODO: заменить на email компании из профиля или отдельного поля настроек
     to_email = EnvVar.get_required_env("EMAIL_DRY_RUN_RECIPIENT")
@@ -65,7 +82,7 @@ def send_invoice_email(telegram_id: int) -> None:
             telegram_id=telegram_id,
             to_email=to_email,
             subject=_invoice_email_subject(account_holder),
-            body=_invoice_email_body(account_holder),
+            body=_invoice_email_body(account_holder, account_holder_email or ""),
             attachments=[pdf_path],
         )
         LOGGER.info("Invoice email sent for telegram_id=%s", telegram_id)
