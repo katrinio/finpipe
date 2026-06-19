@@ -93,6 +93,7 @@ def test_send_invoice_email_calls_send_email_and_removes_pdf(tmp_path: Path) -> 
     with (
         patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=pdf_path),
         patch.object(run_invoice_delivery.BankDetails, "get_by_owner", return_value=_fake_bank_details()),
+        patch.object(run_invoice_delivery.EnvVar, "get_required_env", return_value="test@example.com"),
         patch.object(run_invoice_delivery, "send_email", fake_send_email),
     ):
         send_invoice_email(telegram_id=123)
@@ -111,6 +112,7 @@ def test_send_invoice_email_removes_pdf_even_if_send_fails(tmp_path: Path) -> No
     with (
         patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=pdf_path),
         patch.object(run_invoice_delivery.BankDetails, "get_by_owner", return_value=_fake_bank_details()),
+        patch.object(run_invoice_delivery.EnvVar, "get_required_env", return_value="test@example.com"),
         patch.object(run_invoice_delivery, "send_email", side_effect=RuntimeError("smtp error")),
         pytest.raises(RuntimeError),
     ):
