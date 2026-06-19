@@ -32,7 +32,6 @@ jobs:
 
   tests-and-coverage:
     name: 🧪 Tests + Coverage
-    needs: code-style
     runs-on: ubuntu-latest
 
     container:
