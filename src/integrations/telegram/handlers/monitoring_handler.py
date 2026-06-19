@@ -63,9 +63,9 @@ class MonitoringHandler:
             "Integrations:\n"
             f"{icon(status.gmail)} Gmail\n\n"
             "Documents:\n"
-            f"{icon(status.bank_confirmation_available)} Bank Confirmation\n"
-            f"{icon(status.invoice_available)} Salary Invoice\n"
-            f"{icon(status.conversion_order_available)} Conversion Order"
+            f"{icon(status.bank_confirmation_available)} Подтверждение банка\n"
+            f"{icon(status.invoice_available)} Инвойс\n"
+            f"{icon(status.conversion_order_available)} Заявка на конвертацию"
         )
         self.telegram.send_message(chat_id, message)
 
