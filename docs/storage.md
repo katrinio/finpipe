@@ -23,6 +23,7 @@ DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
 | `user_config` | Настройки: сумма Invoice, полученная сумма, сумма конвертации |
 | `signature` | Метаданные подписи + зашифрованные байты (`signature_data`) |
 | `gmail_account` | Gmail: зашифрованный refresh token, email, последняя ошибка |
+| `pending_bank_reply` | Отложенный ответ банку: thread_id, subject, sender + пути к 3 документам |
 
 ---
 
