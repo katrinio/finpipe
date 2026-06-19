@@ -27,12 +27,23 @@ def build_bank_day_reply_prompt_menu() -> dict:
     }
 
 
+def build_bank_day_start_menu() -> dict:
+    return {
+        "inline_keyboard": [
+            [
+                {"text": BankDayButtons.START, "callback_data": DocumentsMenuButtons.CB_BANK_DAY_START},
+                {"text": "◀️ Назад", "callback_data": DocumentsMenuButtons.CB_BACK},
+            ],
+        ],
+    }
+
+
 def build_document_menu() -> dict:
     return {
         "inline_keyboard": [
             [
                 {"text": DocumentsMenuButtons.SALARY_INVOICE, "callback_data": DocumentsMenuButtons.CB_INVOICE},
-                {"text": DocumentsMenuButtons.BANK_DAY, "callback_data": DocumentsMenuButtons.CB_BANK_DAY},
+                {"text": DocumentsMenuButtons.BANK_DAY, "callback_data": DocumentsMenuButtons.CB_BANK_DAY_INFO},
             ],
             [
                 {"text": "◀️ Назад", "callback_data": DocumentsMenuButtons.CB_BACK},

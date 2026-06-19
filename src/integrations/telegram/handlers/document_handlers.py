@@ -7,6 +7,7 @@ from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.document_menu import (
     build_bank_day_reply_prompt_menu,
+    build_bank_day_start_menu,
     build_document_menu,
     build_invoice_menu,
     build_invoice_send_prompt_menu,
@@ -108,6 +109,16 @@ class DocumentHandlers:
             f"💶 Текущая сумма инвойса: {current_amount.invoice_amount_eur} EUR",
             reply_markup=build_invoice_menu(),
         )
+
+    def bank_day_info(self, telegram_id: int) -> None:
+        status = SystemStatusService.get_status(telegram_id)
+        lines = [
+            f"{'✅' if status.company and status.bank_details else '❌'} Профиль (компания + реквизиты)",
+            f"{'✅' if status.signature else '❌'} Подпись",
+            f"{'✅' if status.gmail else '❌'} Gmail",
+        ]
+        text = BankMessages.BankDay.INFO.format(status_lines="\n".join(lines))
+        self.telegram.send_message(telegram_id, text, parse_mode="HTML", reply_markup=build_bank_day_start_menu())
 
     def bank_day(self, telegram_id: int) -> None:
         """Банковский день: письмо банка → подтверждение + запрос на конвертацию → все три документа."""

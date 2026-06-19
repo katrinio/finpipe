@@ -139,7 +139,8 @@ class CommandRouter:
             MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents (inline callback_data)
             DocumentsMenuButtons.CB_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
-            DocumentsMenuButtons.CB_BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
+            DocumentsMenuButtons.CB_BANK_DAY_INFO: lambda context: self.document_handler.bank_day_info(context.telegram_id),
+            DocumentsMenuButtons.CB_BANK_DAY_START: lambda context: self.document_handler.bank_day(context.telegram_id),
             DocumentsMenuButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
             BankDayButtons.REPLY_TO_BANK: lambda context: self.document_handler.bank_day_reply_to_bank(context.telegram_id),
             BankDayButtons.SKIP_REPLY: lambda context: self.document_handler.bank_day_skip_reply(context.telegram_id),

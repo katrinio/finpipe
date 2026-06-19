@@ -10,7 +10,7 @@ class FakeTelegramClient:
         self._updates = updates or {"result": []}
         self._files = files or {}
 
-    def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None) -> None:
+    def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None, parse_mode: str | None = None) -> None:
         self.sent_messages_with_chat_ids.append((chat_id, text))
         self.sent_message_payloads.append((chat_id, text, reply_markup))
         self.sent_messages.append(text)

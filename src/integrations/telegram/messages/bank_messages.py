@@ -15,6 +15,18 @@ class BankMessages:
         NOT_FOUND = MsgIcon.warning("Письмо из банка не найдено.")
 
     class BankDay:
+        INFO = (
+            "🏦 <b>Банковский день</b>\n\n"
+            "Бот найдёт последнее письмо банка в Gmail и автоматически:\n"
+            "• извлечёт сумму платежа\n"
+            "• заполнит Bank Confirmation\n"
+            "• сгенерирует Conversion Order\n"
+            "• сгенерирует инвойс за прошлый месяц\n"
+            "• пришлёт все три документа\n"
+            "• предложит отправить ответ банку\n\n"
+            "Необходимые условия:\n"
+            "{status_lines}"
+        )
         IN_PROGRESS = MsgIcon.waiting("Банковский день: ищу письмо банка...")
         EMAIL_RECEIVED = MsgIcon.success("Письмо банка получено. Сумма: {} EUR")
         CONFIRMATION_READY = MsgIcon.success("Подтверждение для банка готово.")

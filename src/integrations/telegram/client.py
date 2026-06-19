@@ -26,7 +26,7 @@ class TelegramClient:
             msg = "Telegram API healthcheck failed"
             raise TelegramApiError(msg)
 
-    def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None) -> None:
+    def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None, parse_mode: str | None = None) -> None:
         """Отправляет текстовое сообщение в целевой Telegram-чат."""
 
         payload: dict[str, object] = {
@@ -35,6 +35,8 @@ class TelegramClient:
         }
         if reply_markup is not None:
             payload["reply_markup"] = reply_markup
+        if parse_mode is not None:
+            payload["parse_mode"] = parse_mode
 
         self.http.post(
             f"{self.base_url}/sendMessage",
