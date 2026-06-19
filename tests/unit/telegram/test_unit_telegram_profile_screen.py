@@ -62,12 +62,12 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
     assert "🏦 Реквизиты        ✔️" in message
     assert "💳 Платёж           ➖" in message
     assert "✍️ Подпись          ✔️" in message
-    assert "💰 Invoice          ✔️" in message
+    assert "💰 Инвойс           ✔️" in message
     assert "• payment_code" in message
     assert "• payment_description" in message
-    assert "• Bank email sender: bank@example.com" in message
-    assert "• Bank email recipient: company@example.com" in message
-    assert "• Bank email subject contains: payment confirmation" in message
+    assert "• Email отправителя: bank@example.com" in message
+    assert "• Email получателя: company@example.com" in message
+    assert "• Тема письма содержит: payment confirmation" in message
 
 
 def test_profile_screen_marks_signature_unusable_when_file_is_missing(tmp_path: Path) -> None:

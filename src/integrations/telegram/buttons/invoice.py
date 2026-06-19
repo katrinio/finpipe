@@ -4,7 +4,3 @@ class InvoiceMenuButtons:
     GENERATE_INVOICE = "📄 Сгенерировать инвойс"
     SEND_TO_COMPANY = "📤 Отправить компании"
     SKIP_SEND = "Не отправлять"
-
-
-class InvoiceButtons(InvoiceMenuButtons):
-    pass

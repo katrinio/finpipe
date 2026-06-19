@@ -128,12 +128,13 @@ class CommandRouter:
             # root navigation
             Cmd.START: lambda context: self.menu_handler.main_start(context.telegram_id),
             Cmd.MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
-            # main menu
-            MainMenuButtons.DOCUMENTS: lambda context: self.menu_handler.document_menu(context.telegram_id),
-            MainMenuButtons.INTEGRATIONS: lambda context: self.menu_handler.integration_menu(context.telegram_id),
-            MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
-            MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
-            OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.admin_menu(context.telegram_id),
+            # main menu (inline callback_data)
+            MainMenuButtons.CB_DOCUMENTS: lambda context: self.menu_handler.document_menu(context.telegram_id),
+            MainMenuButtons.CB_INTEGRATIONS: lambda context: self.menu_handler.integration_menu(context.telegram_id),
+            MainMenuButtons.CB_PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
+            MainMenuButtons.CB_SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
+            MainMenuButtons.CB_ADMIN: lambda context: self.menu_handler.admin_menu(context.telegram_id),
+            # legacy text navigation (HOME кнопка в подменю, /menu команда)
             NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
             MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents

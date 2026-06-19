@@ -6,19 +6,16 @@ def build_main_menu(is_owner: bool = False) -> dict:
 
     keyboard = [
         [
-            {"text": MainMenuButtons.DOCUMENTS},
-            {"text": MainMenuButtons.PROFILE},
+            {"text": MainMenuButtons.DOCUMENTS, "callback_data": MainMenuButtons.CB_DOCUMENTS},
+            {"text": MainMenuButtons.PROFILE, "callback_data": MainMenuButtons.CB_PROFILE},
         ],
         [
-            {"text": MainMenuButtons.INTEGRATIONS},
-            {"text": MainMenuButtons.SYSTEM},
+            {"text": MainMenuButtons.INTEGRATIONS, "callback_data": MainMenuButtons.CB_INTEGRATIONS},
+            {"text": MainMenuButtons.SYSTEM, "callback_data": MainMenuButtons.CB_SYSTEM},
         ],
     ]
 
     if is_owner:
-        keyboard.append([{"text": OwnerButtons.ADMIN_PANEL}])
+        keyboard.append([{"text": OwnerButtons.ADMIN_PANEL, "callback_data": MainMenuButtons.CB_ADMIN}])
 
-    return {
-        "keyboard": keyboard,
-        "resize_keyboard": True,
-    }
+    return {"inline_keyboard": keyboard}

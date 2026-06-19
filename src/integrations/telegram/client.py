@@ -89,6 +89,15 @@ class TelegramClient:
             timeout=10,
         )
 
+    def delete_message(self, chat_id: int, message_id: int) -> None:
+        """Удаляет сообщение из чата."""
+
+        self.http.post(
+            f"{self.base_url}/deleteMessage",
+            json={"chat_id": chat_id, "message_id": message_id},
+            timeout=10,
+        )
+
     def get_updates(self, offset: int | None = None) -> dict:
         """Получает входящие Telegram updates."""
 
