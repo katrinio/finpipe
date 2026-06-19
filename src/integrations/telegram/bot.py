@@ -367,7 +367,7 @@ class TelegramBot:
     def _register_known_user(self, update: dict) -> None:
         """Регистрирует Telegram-пользователя при любом входящем update."""
 
-        message = update.get("message")
+        message = update.get("message") or update.get("callback_query")
         if not message:
             return
 
