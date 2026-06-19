@@ -107,7 +107,7 @@ class DocumentHandlers:
 
         self.telegram.send_message(
             telegram_id,
-            f"💶 Текущая сумма Salary Invoice: {current_amount.invoice_amount_eur} EUR",
+            f"💶 Текущая сумма инвойса: {current_amount.invoice_amount_eur} EUR",
             reply_markup=build_invoice_menu(),
         )
 
