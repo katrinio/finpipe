@@ -2,7 +2,6 @@ import logging
 import tempfile
 from pathlib import Path
 
-from src.infrastructure.security.exceptions import SignatureDecryptionError
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
@@ -32,7 +31,6 @@ from src.utils.files import delete_file
 from src.utils.utils import Utils
 from src.workflows.run_bank_request import BankDocuments, fetch_bank_email_workflow, send_bank_email_reply
 from src.workflows.run_invoice_delivery import discard_invoice_pdf, generate_and_send_invoice, send_invoice_email
-from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 
@@ -110,28 +108,6 @@ class DocumentHandlers:
             f"💶 Текущая сумма инвойса: {current_amount.invoice_amount_eur} EUR",
             reply_markup=build_invoice_menu(),
         )
-
-    def bank_confirmation(self, telegram_id: int) -> None:
-        LOGGER.info("Bank confirmation generation requested by Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, BankMessages.Generation.IN_PROGRESS)
-
-        try:
-            bank_confirmation_path = generate_bank_confirmation(telegram_id)
-        except FileNotFoundError, SignatureDecryptionError:
-            LOGGER.info("Bank confirmation failed due to missing signature for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, BankMessages.Validation.SIGNATURE_REQUIRED, reply_markup=build_document_menu())
-            return
-        except BankPdfError as error:
-            LOGGER.info("Bank confirmation failed for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
-            return
-
-        LOGGER.info("Bank confirmation generated for Telegram user %s", telegram_id)
-        try:
-            self.telegram.send_document(telegram_id, bank_confirmation_path)
-        finally:
-            delete_file(bank_confirmation_path, LOGGER)
-        self.telegram.send_message(telegram_id, BankMessages.Generation.SENT, reply_markup=build_document_menu())
 
     def bank_day(self, telegram_id: int) -> None:
         """Банковский день: письмо банка → подтверждение + запрос на конвертацию → все три документа."""

@@ -1,6 +1,3 @@
-from src.integrations.telegram.messages.common_messages import MsgIcon
-
-
 class MenuMessages:
     MAIN_MENU = "🏠 Главное меню"
 
@@ -28,20 +25,3 @@ class MenuMessages:
             "Укажите сумму инвойса один раз — она сохранится.\n\n"
             "После этого всё готово к работе."
         )
-
-
-class ConversionOrderMessages:
-    class Amount:
-        INPUT = "💱 Укажите сумму для обмена:"
-        SAVED = MsgIcon.success("Сумма для обмена сохранена: {0} EUR")
-        CURRENT = "💱 Сумма для обмена: {0} EUR"
-        NOT_SET = "🫥 Сумма для обмена не задана."
-        FROM_BANK_SAVED = MsgIcon.success("Для обмена установлена сумма из банковского PDF: {0} EUR")
-
-    class Validation:
-        NOT_INT = MsgIcon.error("Сумма должна содержать только цифры.\nПример: 1500")
-        NO_BANK_AMOUNT = "🫥 Сумма из банковского PDF отсутствует.\nСначала обработайте банковское письмо."
-        NO_CONVERSION_AMOUNT = MsgIcon.error("Сумма для обмена не задана.")
-
-    class Generation:
-        SENT = MsgIcon.success("Заявка на конвертацию сгенерирована.")
