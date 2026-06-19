@@ -21,25 +21,26 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 # ---------------------------------------------------------------------------
 
 
-def test_invoice_email_subject_uses_ru_month_and_title_case_name() -> None:
+def test_invoice_email_subject_format() -> None:
     result = _invoice_email_subject("KATRIN TORSUNOVA", month=date(2026, 6, 1))
-    assert result == "Июнь Invoice - Katrin Torsunova"
+    assert result == "Invoice jun'26 — Katrin Torsunova"
 
 
-def test_invoice_email_subject_may_month() -> None:
+def test_invoice_email_subject_may() -> None:
     result = _invoice_email_subject("JOHN DOE", month=date(2026, 5, 15))
-    assert result == "Май Invoice - John Doe"
+    assert result == "Invoice may'26 — John Doe"
 
 
-def test_invoice_email_body_contains_month_and_name() -> None:
-    result = _invoice_email_body("KATRIN TORSUNOVA", month=date(2026, 6, 1))
+def test_invoice_email_body_contains_month_name_and_signature() -> None:
+    result = _invoice_email_body("KATRIN TORSUNOVA", "katrin@example.com", month=date(2026, 6, 1))
     assert "июнь" in result
     assert "Katrin Torsunova" in result
-    assert "Regards" in result
+    assert "С уважением" in result
+    assert "katrin@example.com" in result
 
 
 def test_invoice_email_body_may() -> None:
-    result = _invoice_email_body("JOHN DOE", month=date(2026, 5, 15))
+    result = _invoice_email_body("JOHN DOE", "john@example.com", month=date(2026, 5, 15))
     assert "май" in result
 
 
@@ -72,9 +73,10 @@ def test_generate_and_send_invoice_keeps_pdf_and_removes_docx(tmp_path: Path) ->
 # ---------------------------------------------------------------------------
 
 
-def _fake_bank_details(account_holder: str = "KATRIN TORSUNOVA"):
+def _fake_bank_details(account_holder: str = "KATRIN TORSUNOVA", account_holder_email: str = "katrin@example.com"):
     details = MagicMock()
     details.account_holder = account_holder
+    details.account_holder_email = account_holder_email
     return details
 
 
@@ -100,7 +102,7 @@ def test_send_invoice_email_calls_send_email_and_removes_pdf(tmp_path: Path) -> 
 
     assert captured["telegram_id"] == 123
     assert "Invoice" in captured["subject"]
-    assert "Regards" in captured["body"]
+    assert "С уважением" in captured["body"]
     assert pdf_path in captured["attachments"]
     assert not pdf_path.exists(), "PDF должен быть удалён после отправки"
 

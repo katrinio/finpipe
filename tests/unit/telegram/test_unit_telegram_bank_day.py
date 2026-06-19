@@ -5,12 +5,21 @@ from types import SimpleNamespace
 
 import pytest
 
+from src.integrations.gmail.gmail_models import BankEmail
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.ui.buttons import DocumentsMenuButtons
 from src.integrations.telegram.ui.messages import BankMessages
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
 from tests.fakes.fake_telegram import FakeTelegramClient
+
+_FAKE_BANK_EMAIL = BankEmail(
+    subject="Obaveštenje",
+    sender="bank@rs.com",
+    date="2026-06-19",
+    message_id="msg-1",
+    thread_id="thread-1",
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -175,7 +184,7 @@ def test_bank_day_sends_three_documents(tmp_path: Path, monkeypatch) -> None:
     _ready_profile(monkeypatch)
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.fetch_bank_email_workflow",
-        lambda **_kwargs: original_pdf,
+        lambda **_kwargs: (original_pdf, _FAKE_BANK_EMAIL),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.extract_amount", lambda _pdf: 500.0)
     monkeypatch.setattr(
@@ -216,7 +225,7 @@ def test_bank_day_saves_extracted_amount_to_user_config(tmp_path: Path, monkeypa
     _ready_profile(monkeypatch)
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.fetch_bank_email_workflow",
-        lambda **_kwargs: original_pdf,
+        lambda **_kwargs: (original_pdf, _FAKE_BANK_EMAIL),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.extract_amount", lambda _pdf: 777.5)
     monkeypatch.setattr(
@@ -253,7 +262,7 @@ def test_bank_day_sends_done_message_on_success(tmp_path: Path, monkeypatch) -> 
     _ready_profile(monkeypatch)
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.fetch_bank_email_workflow",
-        lambda **_kwargs: original_pdf,
+        lambda **_kwargs: (original_pdf, _FAKE_BANK_EMAIL),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.extract_amount", lambda _pdf: 100.0)
     monkeypatch.setattr(
@@ -287,7 +296,7 @@ def test_bank_day_cleans_up_files_on_error(tmp_path: Path, monkeypatch) -> None:
     _ready_profile(monkeypatch)
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.fetch_bank_email_workflow",
-        lambda **_kwargs: original_pdf,
+        lambda **_kwargs: (original_pdf, _FAKE_BANK_EMAIL),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.extract_amount", lambda _pdf: 100.0)
     monkeypatch.setattr(

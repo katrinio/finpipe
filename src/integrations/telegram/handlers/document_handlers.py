@@ -141,15 +141,17 @@ class DocumentHandlers:
 
         # Шаг 1: получить оригинальный PDF из письма банка
         try:
-            bank_pdf_path = fetch_bank_email_workflow(telegram_id=telegram_id)
+            fetch_result = fetch_bank_email_workflow(telegram_id=telegram_id)
         except RuntimeError as error:
             LOGGER.warning("Bank day: Gmail not configured for Telegram user %s: %s", telegram_id, error)
             self.telegram.send_message(telegram_id, BankMessages.Validation.BANK_EMAIL_NOT_CONFIGURED, reply_markup=build_document_menu())
             return
 
-        if bank_pdf_path is None:
+        if fetch_result is None:
             self.telegram.send_message(telegram_id, BankMessages.Search.NOT_FOUND, reply_markup=build_document_menu())
             return
+
+        bank_pdf_path, _ = fetch_result
 
         bank_confirmation_path: Path | None = None
         conversion_order_path: Path | None = None

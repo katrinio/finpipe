@@ -39,10 +39,10 @@ def main() -> int:
 def fetch_bank_email_workflow(
     telegram_id: int,
     bank_email: BankEmail | None = None,
-) -> Path | None:
+) -> tuple[Path, BankEmail] | None:
     """
     Находит новое письмо банка, скачивает PDF
-    и возвращает путь к вложению или `None`.
+    и возвращает (путь к вложению, письмо) или `None`.
     """
 
     service = get_gmail_service(telegram_id)
@@ -68,7 +68,7 @@ def fetch_bank_email_workflow(
 
     ProcessedMessage.mark_as_processed(bank_email.message_id)
     LOGGER.info("Marked bank email as processed: %s", bank_email.message_id)
-    return attachment_path
+    return attachment_path, bank_email
 
 
 if __name__ == "__main__":

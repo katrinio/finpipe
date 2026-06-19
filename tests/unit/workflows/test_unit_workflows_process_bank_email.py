@@ -99,7 +99,7 @@ def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch: 
 
     result = fetch_bank_email.fetch_bank_email_workflow(telegram_id=123)
 
-    assert result == "attachments/bank-form.pdf"
+    assert result == ("attachments/bank-form.pdf", bank_email)
     assert calls == [("download", "message-123")]
     assert FakeProcessedMessage.mark_calls == ["message-123"]
 
