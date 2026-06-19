@@ -16,6 +16,8 @@ class TelegramClient:
         self.http = http_client or HttpClient()
         self.base_url = f"https://api.telegram.org/bot{self.token}"
         self.file_base_url = f"https://api.telegram.org/file/bot{self.token}"
+        self._edit_chat_id: int | None = None
+        self._edit_message_id: int | None = None
 
     def healthcheck(self) -> None:
         """Проверяет, что токен Telegram-бота валиден."""
@@ -26,8 +28,22 @@ class TelegramClient:
             msg = "Telegram API healthcheck failed"
             raise TelegramApiError(msg)
 
+    def set_edit_target(self, chat_id: int, message_id: int) -> None:
+        """Указывает сообщение, которое будет отредактировано следующим send_message."""
+        self._edit_chat_id = chat_id
+        self._edit_message_id = message_id
+
+    def clear_edit_target(self) -> None:
+        self._edit_chat_id = None
+        self._edit_message_id = None
+
     def send_message(self, chat_id: int, text: str, reply_markup: dict | None = None, parse_mode: str | None = None) -> None:
-        """Отправляет текстовое сообщение в целевой Telegram-чат."""
+        """Отправляет текстовое сообщение; если задан edit target для этого чата — редактирует существующее."""
+
+        if self._edit_message_id is not None and self._edit_chat_id == chat_id:
+            self.edit_message(chat_id, self._edit_message_id, text, reply_markup, parse_mode)
+            self.clear_edit_target()
+            return
 
         payload: dict[str, object] = {
             "chat_id": chat_id,
@@ -40,6 +56,25 @@ class TelegramClient:
 
         self.http.post(
             f"{self.base_url}/sendMessage",
+            json=payload,
+            timeout=10,
+        )
+
+    def edit_message(self, chat_id: int, message_id: int, text: str, reply_markup: dict | None = None, parse_mode: str | None = None) -> None:
+        """Редактирует текст существующего сообщения."""
+
+        payload: dict[str, object] = {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": text,
+        }
+        if reply_markup is not None:
+            payload["reply_markup"] = reply_markup
+        if parse_mode is not None:
+            payload["parse_mode"] = parse_mode
+
+        self.http.post(
+            f"{self.base_url}/editMessageText",
             json=payload,
             timeout=10,
         )

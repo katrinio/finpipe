@@ -347,16 +347,20 @@ class TelegramBot:
         )
 
         callback_query = update.get("callback_query")
+        if callback_query and str(callback_query.get("data", "")).startswith("nav:"):
+            cb_message = callback_query.get("message", {})
+            edit_chat_id = cb_message.get("chat", {}).get("id")
+            edit_message_id = cb_message.get("message_id")
+            if edit_chat_id is not None and edit_message_id is not None:
+                self.telegram.set_edit_target(edit_chat_id, edit_message_id)
+
         try:
             self.handle_message(text=text, telegram_id=telegram_id, username=username)
         finally:
+            self.telegram.clear_edit_target()
             if callback_query:
                 with contextlib.suppress(Exception):
                     self.telegram.answer_callback_query(callback_query["id"])
-                if str(callback_query.get("data", "")).startswith("nav:"):
-                    with contextlib.suppress(Exception):
-                        cb_message = callback_query.get("message", {})
-                        self.telegram.delete_message(cb_message["chat"]["id"], cb_message["message_id"])
             self.update_storage.mark_processed(update["update_id"])
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
