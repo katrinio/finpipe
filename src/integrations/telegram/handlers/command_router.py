@@ -158,13 +158,15 @@ class CommandRouter:
             # signature (inline callback_data)
             SignatureButtons.CB_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
             SignatureButtons.CB_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
-            # integrations
-            IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
-            # gmail
-            GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
-            GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
-            GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
-            GmailButtons.GMAIL_CLEAR_HISTORY: lambda context: self.gmail_handler.gmail_clear_history(context.telegram_id),
+            # integrations (inline callback_data)
+            IntegrationsButtons.CB_GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
+            IntegrationsButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            # gmail (inline callback_data)
+            GmailButtons.CB_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
+            GmailButtons.CB_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
+            GmailButtons.CB_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
+            GmailButtons.CB_CLEAR_HISTORY: lambda context: self.gmail_handler.gmail_clear_history(context.telegram_id),
+            GmailButtons.CB_BACK: lambda context: self.menu_handler.integration_menu(context.telegram_id),
             # system
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
             SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
