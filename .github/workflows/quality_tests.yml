@@ -22,8 +22,7 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     steps:
-      - &checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
       - name: Run Ruff
         run: poetry run ruff check .
@@ -31,85 +30,8 @@ jobs:
       - name: Run MyPy
         run: poetry run mypy src
 
-# ПОКА НЕТ ПОДРЕБНОСТИ В ОТДЕЛЬНЫХ ЧЕКАХ
-#  unit-tests:
-#    name: 🧪 Unit Tests
-#    needs: code-style
-#    runs-on: ubuntu-latest
-#
-#    container:
-#      image: ghcr.io/katrinio/finpipe-ci:latest
-#
-#    services:
-#      postgres:
-#        &postgres_service
-#        image: postgres:17
-#        env:
-#          POSTGRES_USER: finpipe
-#          POSTGRES_PASSWORD: finpipe
-#          POSTGRES_DB: finpipe_test
-#        ports:
-#          - 5432:5432
-#        options: >-
-#          --health-cmd "pg_isready -U finpipe -d finpipe_test"
-#          --health-interval 5s
-#          --health-timeout 5s
-#          --health-retries 20
-#
-#    steps:
-#      - *checkout
-#
-#      - &alembic_heads
-#        name: Check Alembic heads
-#        run: poetry run alembic heads
-#
-#      - &alembic_debug
-#        name: Debug Alembic environment
-#        run: |
-#          echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
-#          grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
-#
-#      - &alembic_upgrade
-#        name: Apply migrations
-#        run: poetry run alembic upgrade head
-#
-#      - name: Run Unit Tests + Coverage
-#        run: |
-#          poetry run pytest tests/unit \
-#          -ra \
-#          -o log_cli=false
-#
-#  integration-tests:
-#    name: 🔗 Integration Tests
-#    needs: code-style
-#    runs-on: ubuntu-latest
-#
-#    container:
-#      image: ghcr.io/katrinio/finpipe-ci:latest
-#
-#    services:
-#      postgres: *postgres_service
-#
-#    steps:
-#      - *checkout
-#
-#      - *alembic_heads
-#
-#      - *alembic_debug
-#
-#      - *alembic_upgrade
-#
-#      - name: Run Integration Tests
-#        run: |
-#          poetry run pytest tests/integration \
-#            -q \
-#            -ra \
-#            --durations=10 \
-#            -o log_cli=false
-
-
-  code-coverage:
-    name: 🧮 Code Coverage
+  tests-and-coverage:
+    name: 🧪 Tests + Coverage
     needs: code-style
     runs-on: ubuntu-latest
 
@@ -117,18 +39,31 @@ jobs:
       image: ghcr.io/katrinio/finpipe-ci:latest
 
     services:
-      postgres: *postgres_service
+      image: postgres:17
+      env:
+        POSTGRES_USER: finpipe
+        POSTGRES_PASSWORD: finpipe
+        POSTGRES_DB: finpipe_test
 
-    steps:
-      - *checkout
+      steps:
+      - name: Check Alembic heads
+        run: poetry run alembic heads
 
-      - *alembic_heads
+      - name: Debug Alembic environment
+        run: |
+          echo "TEST_DATABASE_URL is set: ${TEST_DATABASE_URL:+yes}"
+          grep -n "TEST_DATABASE_URL\|DATABASE_URL\|get_database_url" migrations/env.py || true
 
-      - *alembic_debug
+      - name: Apply migrations
+        run: poetry run alembic upgrade head
 
-      - *alembic_upgrade
+      - name: Run Unit Tests + Coverage
+        run: |
+          poetry run pytest tests/unit \
+          -ra \
+          -o log_cli=false
+
       - name: Run All Tests + Coverage
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           poetry run pytest tests \
             --cov=src \
