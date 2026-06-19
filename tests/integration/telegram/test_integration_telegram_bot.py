@@ -103,9 +103,11 @@ class TestTelegramBot:
         bot.process_update(
             {
                 "update_id": 12,
-                "message": {
-                    "text": "👤 Кто я",
+                "callback_query": {
+                    "id": "cq1",
+                    "data": "nav:whoami",
                     "from": {"id": 999, "username": "intruder"},
+                    "message": {"message_id": 1, "chat": {"id": 999}},
                 },
             }
         )
