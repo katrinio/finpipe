@@ -2,6 +2,7 @@
 
 import base64
 import email
+import email.header
 from datetime import datetime
 from pathlib import Path
 
@@ -20,6 +21,10 @@ from tests.fakes.fake_gmail import FakeService
 
 def _decode_raw(body: dict) -> email.message.Message:
     return email.message_from_bytes(base64.urlsafe_b64decode(body["raw"]))
+
+
+def _decode_header(msg: email.message.Message, name: str) -> str:
+    return str(email.header.make_header(email.header.decode_header(msg[name])))
 
 
 def _setup_profile(telegram_id: int = 123) -> None:
@@ -70,8 +75,9 @@ def test_send_invoice_email_subject_body_and_attachment_from_profile(tmp_path: P
     sent = service.users_client.messages_client.sent_bodies[0]
     parsed = _decode_raw(sent)
 
-    assert "Invoice" in parsed["Subject"]
-    assert "Katrin Torsunova" in parsed["Subject"]
+    subject = _decode_header(parsed, "Subject")
+    assert "Invoice" in subject
+    assert "Katrin Torsunova" in subject
 
     body_text = parsed.get_payload(0).get_payload(decode=True).decode()
     assert "С уважением" in body_text
@@ -125,7 +131,7 @@ def test_send_bank_email_reply_body_thread_and_three_attachments(tmp_path: Path,
     assert sent["threadId"] == "thread-bank-456"
 
     parsed = _decode_raw(sent)
-    assert parsed["Subject"] == "Re: Obaveštenje o uplati"
+    assert _decode_header(parsed, "Subject") == "Re: Obaveštenje o uplati"
     assert parsed["To"] == "bank@raiffeisen.rs"
 
     body_text = parsed.get_payload(0).get_payload(decode=True).decode()
