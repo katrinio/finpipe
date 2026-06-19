@@ -22,6 +22,7 @@ from src.services.monitoring.event_logger import EventLogger
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm import UserConfig
 from src.storage.orm.system.app_events import EventSeverity, EventType
+from src.storage.orm.system.processed_message import ProcessedMessage
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.storage.orm.user.pending_bank_reply import PendingBankReply
@@ -281,6 +282,7 @@ class DocumentHandlers:
             delete_file(Path(pending.bank_confirmation_path), LOGGER)
             delete_file(Path(pending.conversion_order_path), LOGGER)
             delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
+            ProcessedMessage.unmark(pending.message_id)
             PendingBankReply.clear(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
 

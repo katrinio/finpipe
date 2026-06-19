@@ -44,5 +44,5 @@ class BankMessages:
         )
         REPLY_SENDING = MsgIcon.waiting("Отправляю ответ банку...")
         REPLY_SENT = MsgIcon.success("Ответ банку отправлен.")
-        REPLY_SKIPPED = "Хорошо. Документы в чате."
+        REPLY_SKIPPED = "Хорошо. Письмо можно обработать позже через «Банковский день»."
         REPLY_NO_PENDING = MsgIcon.warning("Нет данных для ответа. Запустите банковский день заново.")
