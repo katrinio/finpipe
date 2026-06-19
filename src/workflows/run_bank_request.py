@@ -4,6 +4,8 @@ import logging
 from pathlib import Path
 
 from src.constants import Message
+from src.integrations.gmail.gmail_models import BankEmail
+from src.integrations.gmail.gmail_sender import send_reply
 from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.services.bank.bank_extract import extract_amount
@@ -11,6 +13,7 @@ from src.services.monitoring.event_logger import EventLogger
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser, UserConfig
 from src.storage.orm.system.app_events import EventSeverity, EventType
+from src.storage.orm.user.bank_details import BankDetails
 from src.utils.credentials import EnvVar
 from src.utils.files import delete_file
 from src.workflows.tasks.fetch_bank_email import fetch_bank_email_workflow
@@ -34,15 +37,17 @@ def main() -> int:
     telegram_client.send_message(owner.telegram_id, Message.START)
 
     try:
-        bank_template_path = fetch_bank_email_workflow(telegram_id=owner.telegram_id)
+        fetch_result = fetch_bank_email_workflow(telegram_id=owner.telegram_id)
     except RuntimeError as error:
         LOGGER.warning("Bank email workflow stopped: %s", error)
         telegram_client.send_message(owner.telegram_id, Message.BANK_EMAIL_SEARCH_NOT_CONFIGURED)
         return 1
-    if bank_template_path is None:
+    if fetch_result is None:
         # Без нового письма workflow ничего не генерирует и завершаетcя штатно.
         telegram_client.send_message(owner.telegram_id, Message.NO_NEW_BANK_EMAIL)
         return 0
+
+    bank_template_path, bank_email = fetch_result
 
     telegram_client.send_message(owner.telegram_id, Message.EMAIL_FETCHING_COMPLETED)
     invoice_pdf_path: Path | None = None
@@ -87,6 +92,13 @@ def main() -> int:
             conversion_order_pdf_path,
             bank_confirmation_path,
         )
+        send_bank_email_reply(
+            telegram_id=owner.telegram_id,
+            bank_email=bank_email,
+            invoice_pdf_path=invoice_pdf_path,
+            bank_confirmation_path=bank_confirmation_path,
+            conversion_order_pdf_path=conversion_order_pdf_path,
+        )
     finally:
         if invoice_pdf_path is not None:
             delete_file(invoice_pdf_path, LOGGER)
@@ -107,6 +119,38 @@ def send_bank_response(telegram_client: TelegramClient, chat_id: int, *document_
     telegram_client.send_message(chat_id, Message.BANK_RESPONSE)
     for document_path in document_paths:
         telegram_client.send_document(chat_id, document_path=document_path)
+
+
+def send_bank_email_reply(
+    telegram_id: int,
+    bank_email: BankEmail,
+    invoice_pdf_path: Path,
+    bank_confirmation_path: Path,
+    conversion_order_pdf_path: Path,
+) -> None:
+    """Отправляет ответ на письмо банка с тремя документами."""
+
+    bank_details = BankDetails.get_by_owner(telegram_id)
+    account_holder = bank_details.account_holder.title() if bank_details else ""
+    account_holder_email = bank_details.account_holder_email or "" if bank_details else ""
+
+    body = (
+        f"Dobar dan,\n\n"
+        f"U prilogu dostavljam dokumenta koja ste tražili.\n\n"
+        f"Takođe vas molim da odmah izvršite prenos sredstava sa računa u evrima na račun u dinarima.\n\n"
+        f"S poštovanjem,\n"
+        f"{account_holder}\n"
+        f"{account_holder_email}"
+    )
+
+    send_reply(
+        telegram_id=telegram_id,
+        thread_id=bank_email.thread_id,
+        to_email=bank_email.sender,
+        subject=f"Re: {bank_email.subject}",
+        body=body,
+        attachments=[invoice_pdf_path, bank_confirmation_path, conversion_order_pdf_path],
+    )
 
 
 if __name__ == "__main__":
