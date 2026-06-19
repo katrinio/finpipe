@@ -150,13 +150,14 @@ class CommandRouter:
             InvoiceMenuButtons.CB_BACK: lambda context: self.menu_handler.document_menu(context.telegram_id),
             InvoiceMenuButtons.SEND_TO_COMPANY: lambda context: self.document_handler.invoice_send_to_company(context.telegram_id),
             InvoiceMenuButtons.SKIP_SEND: lambda context: self.document_handler.invoice_skip_send(context.telegram_id),
-            # profile
-            ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
-            ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
-            ProfileButtons.MY_PROFILE: lambda context: self.profile_handler.show_profile(context.telegram_id),
-            # signature
-            SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
-            SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
+            # profile (inline callback_data)
+            ProfileButtons.CB_VIEW: lambda context: self.profile_handler.show_profile(context.telegram_id),
+            ProfileButtons.CB_DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
+            ProfileButtons.CB_UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
+            ProfileButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            # signature (inline callback_data)
+            SignatureButtons.CB_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
+            SignatureButtons.CB_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
             # integrations
             IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
             # gmail
