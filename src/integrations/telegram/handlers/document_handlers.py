@@ -24,10 +24,12 @@ from src.storage.orm import UserConfig
 from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from src.storage.orm.user.pending_bank_reply import PendingBankReply
 from src.storage.orm.user.signature import Signature
+from src.utils.credentials import EnvVar
 from src.utils.files import delete_file
 from src.utils.utils import Utils
-from src.workflows.run_bank_request import fetch_bank_email_workflow
+from src.workflows.run_bank_request import BankDocuments, fetch_bank_email_workflow, send_bank_email_reply
 from src.workflows.run_invoice_delivery import discard_invoice_pdf, generate_and_send_invoice, send_invoice_email
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
@@ -74,8 +76,10 @@ class DocumentHandlers:
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_invoice_menu())
             return
         LOGGER.info("Salary invoice generated for Telegram user %s", telegram_id)
-        # Предложить отправить компании — пользователь видит PDF и принимает решение
-        self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SEND_PROMPT, reply_markup=build_invoice_send_prompt_menu())
+        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
+        self.telegram.send_message(
+            telegram_id, InvoiceMessages.Generation.SEND_PROMPT.format(to_email), reply_markup=build_invoice_send_prompt_menu()
+        )
 
     def invoice_send_to_company(self, telegram_id: int) -> None:
         LOGGER.info("Invoice send to company requested by Telegram user %s", telegram_id)
@@ -151,7 +155,7 @@ class DocumentHandlers:
             self.telegram.send_message(telegram_id, BankMessages.Search.NOT_FOUND, reply_markup=build_document_menu())
             return
 
-        bank_pdf_path, _ = fetch_result
+        bank_pdf_path, bank_email = fetch_result
 
         bank_confirmation_path: Path | None = None
         conversion_order_path: Path | None = None
@@ -177,7 +181,7 @@ class DocumentHandlers:
             )
             self.telegram.send_message(telegram_id, BankMessages.BankDay.CONVERSION_READY)
 
-            # Шаг 5: отправить все три документа
+            # Шаг 5: отправить все три документа в Telegram
             self.telegram.send_document(telegram_id, bank_pdf_path)
             self.telegram.send_document(telegram_id, bank_confirmation_path)
             self.telegram.send_document(telegram_id, conversion_order_path)
@@ -185,26 +189,80 @@ class DocumentHandlers:
         except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError) as error:
             LOGGER.warning("Bank day workflow failed for Telegram user %s: %s", telegram_id, error)
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
-            return
-        finally:
             delete_file(bank_pdf_path, LOGGER)
             if bank_confirmation_path is not None:
                 delete_file(bank_confirmation_path, LOGGER)
             if conversion_order_path is not None:
                 delete_file(conversion_order_path, LOGGER)
                 delete_file(conversion_order_path.with_suffix(".docx"), LOGGER)
+            return
+
+        # Шаг 6: сохранить состояние для отложенного ответа банку
+        PendingBankReply.save(
+            telegram_id=telegram_id,
+            thread_id=bank_email.thread_id,
+            subject=bank_email.subject,
+            sender=bank_email.sender,
+            message_id=bank_email.message_id,
+            invoice_pdf_path=str(bank_pdf_path),
+            bank_confirmation_path=str(bank_confirmation_path),
+            conversion_order_path=str(conversion_order_path),
+        )
 
         LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE.format(f"{amount:.2f}"))
-        # Предложить ответить банку — пользователь видит документы и принимает решение
-        # Ответ включает: подтверждение + конвертация + инвойс за прошлый период
-        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_PROMPT, reply_markup=build_bank_day_reply_prompt_menu())
+        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_PROMPT.format(to_email), reply_markup=build_bank_day_reply_prompt_menu())
 
     def bank_day_reply_to_bank(self, telegram_id: int) -> None:
         LOGGER.info("Bank day reply to bank requested by Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SEND_SOON, reply_markup=build_document_menu())
+
+        pending = PendingBankReply.get(telegram_id)
+        if pending is None:
+            LOGGER.warning("No pending bank reply for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_NO_PENDING, reply_markup=build_document_menu())
+            return
+
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SENDING)
+        try:
+            from src.integrations.gmail.gmail_models import BankEmail
+
+            bank_email = BankEmail(
+                subject=pending.subject,
+                sender=pending.sender,
+                date="",
+                message_id=pending.message_id,
+                thread_id=pending.thread_id,
+            )
+            docs = BankDocuments(
+                invoice_pdf=Path(pending.invoice_pdf_path),
+                bank_confirmation=Path(pending.bank_confirmation_path),
+                conversion_order=Path(pending.conversion_order_path),
+            )
+            send_bank_email_reply(telegram_id=telegram_id, bank_email=bank_email, docs=docs)
+        except Exception as error:
+            LOGGER.warning("Bank day reply failed for Telegram user %s: %s", telegram_id, error)
+            self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
+            return
+        finally:
+            if pending is not None:
+                delete_file(Path(pending.invoice_pdf_path), LOGGER)
+                delete_file(Path(pending.bank_confirmation_path), LOGGER)
+                delete_file(Path(pending.conversion_order_path), LOGGER)
+                delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
+                PendingBankReply.clear(telegram_id)
+
+        LOGGER.info("Bank day reply sent for Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SENT, reply_markup=build_document_menu())
 
     def bank_day_skip_reply(self, telegram_id: int) -> None:
+        pending = PendingBankReply.get(telegram_id)
+        if pending is not None:
+            delete_file(Path(pending.invoice_pdf_path), LOGGER)
+            delete_file(Path(pending.bank_confirmation_path), LOGGER)
+            delete_file(Path(pending.conversion_order_path), LOGGER)
+            delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
+            PendingBankReply.clear(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
 
     def _invoice_readiness_error(self, telegram_id: int) -> str | None:

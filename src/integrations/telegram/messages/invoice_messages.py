@@ -9,7 +9,7 @@ class InvoiceMessages:
     class Generation:
         IN_PROGRESS = MsgIcon.waiting("Формируется Salary Invoice...")
         SENT = MsgIcon.success("Salary Invoice отправлен.")
-        SEND_PROMPT = "Отправить инвойс компании?"
+        SEND_PROMPT = "Отправить инвойс компании на {}?"
         SENDING = MsgIcon.waiting("Отправляю инвойс компании...")
         SENT_TO_COMPANY = MsgIcon.success("Инвойс отправлен компании.")
 

@@ -16,6 +16,7 @@ from src.storage.orm.user.allowed_user import AllowedUser, UserRole
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.storage.orm.user.gmail_account import GmailAccount
+from src.storage.orm.user.pending_bank_reply import PendingBankReply
 from src.storage.orm.user.signature import Signature
 from src.storage.orm.user.user_config import UserConfig
 
@@ -31,6 +32,7 @@ __all__ = [
     "GmailAccount",
     "KnownUser",
     "OAuthSession",
+    "PendingBankReply",
     "ProcessedMessage",
     "Signature",
     "TelegramUpdate",

@@ -27,6 +27,8 @@ cp .env.dist .env
 | `SIGNATURE_ENCRYPTION_KEY` | Ключ шифрования подписей |
 | `GMAIL_CREDENTIALS_PATH` | Путь к `credentials.json` (или `GMAIL_CLIENT_ID` + `GMAIL_CLIENT_SECRET`) |
 | `DATABASE_URL` | Строка подключения к PostgreSQL |
+| `EMAIL_DRY_RUN` | `true` — письма не отправляются (для разработки и CI) |
+| `EMAIL_DRY_RUN_RECIPIENT` | Email для тестовой отправки (когда `EMAIL_DRY_RUN=false`) |
 
 ---
 
