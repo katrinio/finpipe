@@ -8,6 +8,16 @@ from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser, UserConfig
 from tests.fakes.fake_telegram import FakeTelegramClient
 
+_SET_AMOUNT_UPDATE = {
+    "update_id": 11,
+    "callback_query": {
+        "id": "cq1",
+        "data": InvoiceMenuButtons.CB_SET_AMOUNT,
+        "from": {"id": 123, "username": "alice"},
+        "message": {"message_id": 1, "chat": {"id": 123}},
+    },
+}
+
 
 def test_invoice_amount_button_starts_waiting_state_and_prompts(tmp_path: Path) -> None:
     storage = build_storage_dependencies()
@@ -15,15 +25,7 @@ def test_invoice_amount_button_starts_waiting_state_and_prompts(tmp_path: Path) 
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
 
-    bot.process_update(
-        {
-            "update_id": 11,
-            "message": {
-                "text": InvoiceMenuButtons.SET_INVOICE_AMOUNT,
-                "from": {"id": 123, "username": "alice"},
-            },
-        }
-    )
+    bot.process_update(_SET_AMOUNT_UPDATE)
 
     assert bot.handlers.state_service.get_state(123) == UserState.WAITING_INVOICE_AMOUNT
     assert len(telegram_client.sent_messages) == 1
@@ -37,15 +39,7 @@ def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
 
-    bot.process_update(
-        {
-            "update_id": 11,
-            "message": {
-                "text": InvoiceMenuButtons.SET_INVOICE_AMOUNT,
-                "from": {"id": 123, "username": "alice"},
-            },
-        }
-    )
+    bot.process_update(_SET_AMOUNT_UPDATE)
     bot.process_update(
         {
             "update_id": 12,
@@ -72,15 +66,7 @@ def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
 
-    bot.process_update(
-        {
-            "update_id": 11,
-            "message": {
-                "text": InvoiceMenuButtons.SET_INVOICE_AMOUNT,
-                "from": {"id": 123, "username": "alice"},
-            },
-        }
-    )
+    bot.process_update(_SET_AMOUNT_UPDATE)
     bot.process_update(
         {
             "update_id": 12,

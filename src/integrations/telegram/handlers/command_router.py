@@ -137,15 +137,17 @@ class CommandRouter:
             # legacy text navigation (HOME кнопка в подменю, /menu команда)
             NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
             MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
-            # documents
-            DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
-            DocumentsMenuButtons.BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
+            # documents (inline callback_data)
+            DocumentsMenuButtons.CB_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
+            DocumentsMenuButtons.CB_BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
+            DocumentsMenuButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
             BankDayButtons.REPLY_TO_BANK: lambda context: self.document_handler.bank_day_reply_to_bank(context.telegram_id),
             BankDayButtons.SKIP_REPLY: lambda context: self.document_handler.bank_day_skip_reply(context.telegram_id),
-            # invoice
-            InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
-            InvoiceMenuButtons.GET_INVOICE_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
-            InvoiceMenuButtons.GENERATE_INVOICE: lambda context: self.document_handler.invoice(context.telegram_id),
+            # invoice (inline callback_data)
+            InvoiceMenuButtons.CB_SET_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
+            InvoiceMenuButtons.CB_GET_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
+            InvoiceMenuButtons.CB_GENERATE: lambda context: self.document_handler.invoice(context.telegram_id),
+            InvoiceMenuButtons.CB_BACK: lambda context: self.menu_handler.document_menu(context.telegram_id),
             InvoiceMenuButtons.SEND_TO_COMPANY: lambda context: self.document_handler.invoice_send_to_company(context.telegram_id),
             InvoiceMenuButtons.SKIP_SEND: lambda context: self.document_handler.invoice_skip_send(context.telegram_id),
             # profile
