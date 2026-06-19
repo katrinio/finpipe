@@ -1,5 +1,6 @@
 """Локальный Telegram listener и обработчик команд."""
 
+import contextlib
 import time
 
 from scripts.bootstrap_allowed_users import bootstrap_primary_admin
@@ -345,9 +346,13 @@ class TelegramBot:
             telegram_id,
         )
 
+        callback_query = update.get("callback_query")
         try:
             self.handle_message(text=text, telegram_id=telegram_id, username=username)
         finally:
+            if callback_query:
+                with contextlib.suppress(Exception):
+                    self.telegram.answer_callback_query(callback_query["id"])
             self.update_storage.mark_processed(update["update_id"])
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:

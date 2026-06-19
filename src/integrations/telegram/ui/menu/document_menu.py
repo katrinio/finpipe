@@ -8,27 +8,23 @@ from src.integrations.telegram.ui.buttons import (
 
 def build_invoice_send_prompt_menu() -> dict:
     return {
-        "keyboard": [
+        "inline_keyboard": [
             [
-                {"text": InvoiceMenuButtons.SEND_TO_COMPANY},
-                {"text": InvoiceMenuButtons.SKIP_SEND},
+                {"text": InvoiceMenuButtons.SEND_TO_COMPANY, "callback_data": InvoiceMenuButtons.SEND_TO_COMPANY},
+                {"text": InvoiceMenuButtons.SKIP_SEND, "callback_data": InvoiceMenuButtons.SKIP_SEND},
             ],
         ],
-        "resize_keyboard": True,
-        "one_time_keyboard": True,
     }
 
 
 def build_bank_day_reply_prompt_menu() -> dict:
     return {
-        "keyboard": [
+        "inline_keyboard": [
             [
-                {"text": BankDayButtons.REPLY_TO_BANK},
-                {"text": BankDayButtons.SKIP_REPLY},
+                {"text": BankDayButtons.REPLY_TO_BANK, "callback_data": BankDayButtons.REPLY_TO_BANK},
+                {"text": BankDayButtons.SKIP_REPLY, "callback_data": BankDayButtons.SKIP_REPLY},
             ],
         ],
-        "resize_keyboard": True,
-        "one_time_keyboard": True,
     }
 
 
