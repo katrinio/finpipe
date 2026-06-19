@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import MainMenuButtons, OwnerButtons, SystemButtons
+from src.integrations.telegram.ui.buttons import MainMenuButtons, NavigationButtons, OwnerButtons, SystemButtons
 
 
 def build_system_menu(is_owner: bool = False) -> dict:
@@ -8,7 +8,7 @@ def build_system_menu(is_owner: bool = False) -> dict:
             {"text": SystemButtons.WHOAMI, "callback_data": SystemButtons.CB_WHOAMI},
         ],
         [
-            {"text": "◀️ Назад", "callback_data": SystemButtons.CB_BACK},
+            {"text": NavigationButtons.BACK, "callback_data": SystemButtons.CB_BACK},
         ],
     ]
 

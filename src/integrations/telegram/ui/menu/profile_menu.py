@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import ProfileButtons, SignatureButtons
+from src.integrations.telegram.ui.buttons import NavigationButtons, ProfileButtons, SignatureButtons
 
 
 def build_profile_menu() -> dict:
@@ -16,7 +16,7 @@ def build_profile_menu() -> dict:
                 {"text": SignatureButtons.SIGNATURE_DELETE, "callback_data": SignatureButtons.CB_DELETE},
             ],
             [
-                {"text": "◀️ Назад", "callback_data": ProfileButtons.CB_BACK},
+                {"text": NavigationButtons.BACK, "callback_data": ProfileButtons.CB_BACK},
             ],
         ],
     }

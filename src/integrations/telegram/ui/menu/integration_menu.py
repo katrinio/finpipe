@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import GmailButtons, IntegrationsButtons
+from src.integrations.telegram.ui.buttons import GmailButtons, IntegrationsButtons, NavigationButtons
 
 
 def build_integration_menu() -> dict:
@@ -8,7 +8,7 @@ def build_integration_menu() -> dict:
                 {"text": IntegrationsButtons.GMAIL, "callback_data": IntegrationsButtons.CB_GMAIL},
             ],
             [
-                {"text": "◀️ Назад", "callback_data": IntegrationsButtons.CB_BACK},
+                {"text": NavigationButtons.BACK, "callback_data": IntegrationsButtons.CB_BACK},
             ],
         ],
     }
@@ -26,7 +26,7 @@ def build_gmail_menu() -> dict:
                 {"text": GmailButtons.GMAIL_CLEAR_HISTORY, "callback_data": GmailButtons.CB_CLEAR_HISTORY},
             ],
             [
-                {"text": "◀️ Назад", "callback_data": GmailButtons.CB_BACK},
+                {"text": NavigationButtons.BACK, "callback_data": GmailButtons.CB_BACK},
             ],
         ],
     }
