@@ -5,7 +5,8 @@ import pytest
 
 from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.integrations.telegram.bot import TelegramBot
-from src.integrations.telegram.ui.buttons import OwnerButtons
+from src.integrations.telegram.commands import format_whoami
+from src.integrations.telegram.ui.buttons import OwnerButtons, SystemButtons
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.messages import CommonMessages
 from src.storage.dependencies import build_storage_dependencies
@@ -85,37 +86,24 @@ class TestTelegramBot:
         tmp_path: Path,
     ) -> None:
         storage = build_storage_dependencies()
-        telegram_client = fake_telegram_client(
-            {
-                "result": [
-                    {
-                        "update_id": 12,
-                        "message": {
-                            "text": "👤 Кто я",
-                            "from": {"id": 999, "username": "intruder"},
-                        },
-                    }
-                ]
-            }
-        )
+        telegram_client = fake_telegram_client()
         bot = TelegramBot(storage, telegram=telegram_client)
 
         bot.process_update(
             {
                 "update_id": 12,
-                "message": {
-                    "text": "👤 Кто я",
+                "callback_query": {
+                    "id": "cq1",
+                    "data": SystemButtons.CB_WHOAMI,
                     "from": {"id": 999, "username": "intruder"},
+                    "message": {"message_id": 1, "chat": {"id": 999}},
                 },
             }
         )
 
-        assert telegram_client.sent_messages == [
-            "👤 Информация о пользователе\nTelegram ID: 999\nUsername: @intruder",
-        ]
-        assert telegram_client.sent_message_payloads == [
-            (999, "👤 Информация о пользователе\nTelegram ID: 999\nUsername: @intruder", build_guest_menu())
-        ]
+        expected_message = format_whoami(999, "intruder")
+        assert telegram_client.sent_messages == [expected_message]
+        assert telegram_client.sent_message_payloads == [(999, expected_message, build_guest_menu())]
         known_user = KnownUser.get_by_telegram_id(999)
         assert known_user is not None
         assert known_user.username == "intruder"

@@ -137,35 +137,41 @@ class CommandRouter:
             # legacy text navigation (HOME кнопка в подменю, /menu команда)
             NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
             MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
-            # documents
-            DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
-            DocumentsMenuButtons.BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
+            # documents (inline callback_data)
+            DocumentsMenuButtons.CB_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
+            DocumentsMenuButtons.CB_BANK_DAY: lambda context: self.document_handler.bank_day(context.telegram_id),
+            DocumentsMenuButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
             BankDayButtons.REPLY_TO_BANK: lambda context: self.document_handler.bank_day_reply_to_bank(context.telegram_id),
             BankDayButtons.SKIP_REPLY: lambda context: self.document_handler.bank_day_skip_reply(context.telegram_id),
-            # invoice
-            InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
-            InvoiceMenuButtons.GET_INVOICE_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
-            InvoiceMenuButtons.GENERATE_INVOICE: lambda context: self.document_handler.invoice(context.telegram_id),
+            # invoice (inline callback_data)
+            InvoiceMenuButtons.CB_SET_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
+            InvoiceMenuButtons.CB_GET_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
+            InvoiceMenuButtons.CB_GENERATE: lambda context: self.document_handler.invoice(context.telegram_id),
+            InvoiceMenuButtons.CB_BACK: lambda context: self.menu_handler.document_menu(context.telegram_id),
             InvoiceMenuButtons.SEND_TO_COMPANY: lambda context: self.document_handler.invoice_send_to_company(context.telegram_id),
             InvoiceMenuButtons.SKIP_SEND: lambda context: self.document_handler.invoice_skip_send(context.telegram_id),
-            # profile
-            ProfileButtons.DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
-            ProfileButtons.UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
-            ProfileButtons.MY_PROFILE: lambda context: self.profile_handler.show_profile(context.telegram_id),
-            # signature
-            SignatureButtons.SIGNATURE_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
-            SignatureButtons.SIGNATURE_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
-            # integrations
-            IntegrationsButtons.GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
-            # gmail
-            GmailButtons.GMAIL_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
-            GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
-            GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
-            GmailButtons.GMAIL_CLEAR_HISTORY: lambda context: self.gmail_handler.gmail_clear_history(context.telegram_id),
+            # profile (inline callback_data)
+            ProfileButtons.CB_VIEW: lambda context: self.profile_handler.show_profile(context.telegram_id),
+            ProfileButtons.CB_DOWNLOAD_TEMPLATE: lambda context: self.profile_handler.download_template(context.telegram_id),
+            ProfileButtons.CB_UPLOAD_TEMPLATE: lambda context: self.profile_handler.upload_template(context.telegram_id),
+            ProfileButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            # signature (inline callback_data)
+            SignatureButtons.CB_UPLOAD: lambda context: self.signature_handler.upload_signature(context.telegram_id),
+            SignatureButtons.CB_DELETE: lambda context: self.signature_handler.delete_signature(context.telegram_id),
+            # integrations (inline callback_data)
+            IntegrationsButtons.CB_GMAIL: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
+            IntegrationsButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
+            # gmail (inline callback_data)
+            GmailButtons.CB_CONNECT: lambda context: self.gmail_handler.gmail_connect(context.telegram_id, context.username),
+            GmailButtons.CB_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
+            GmailButtons.CB_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
+            GmailButtons.CB_CLEAR_HISTORY: lambda context: self.gmail_handler.gmail_clear_history(context.telegram_id),
+            GmailButtons.CB_BACK: lambda context: self.menu_handler.integration_menu(context.telegram_id),
             # system
-            SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
+            SystemButtons.CB_WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
+            SystemButtons.CB_EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
+            SystemButtons.CB_BACK: lambda context: self.menu_handler.main_menu(context.telegram_id),
             SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
-            SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
             OwnerButtons.ADD_USER: lambda context: (

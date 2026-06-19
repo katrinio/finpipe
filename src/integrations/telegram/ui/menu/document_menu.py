@@ -2,7 +2,6 @@ from src.integrations.telegram.ui.buttons import (
     BankDayButtons,
     DocumentsMenuButtons,
     InvoiceMenuButtons,
-    NavigationButtons,
 )
 
 
@@ -30,30 +29,30 @@ def build_bank_day_reply_prompt_menu() -> dict:
 
 def build_document_menu() -> dict:
     return {
-        "keyboard": [
+        "inline_keyboard": [
             [
-                {"text": DocumentsMenuButtons.SALARY_INVOICE},
-                {"text": DocumentsMenuButtons.BANK_DAY},
+                {"text": DocumentsMenuButtons.SALARY_INVOICE, "callback_data": DocumentsMenuButtons.CB_INVOICE},
+                {"text": DocumentsMenuButtons.BANK_DAY, "callback_data": DocumentsMenuButtons.CB_BANK_DAY},
             ],
             [
-                {"text": NavigationButtons.HOME},
+                {"text": "◀️ Назад", "callback_data": DocumentsMenuButtons.CB_BACK},
             ],
         ],
-        "resize_keyboard": True,
     }
 
 
 def build_invoice_menu() -> dict:
     return {
-        "keyboard": [
+        "inline_keyboard": [
             [
-                {"text": InvoiceMenuButtons.SET_INVOICE_AMOUNT},
-                {"text": InvoiceMenuButtons.GET_INVOICE_AMOUNT},
+                {"text": InvoiceMenuButtons.SET_INVOICE_AMOUNT, "callback_data": InvoiceMenuButtons.CB_SET_AMOUNT},
+                {"text": InvoiceMenuButtons.GET_INVOICE_AMOUNT, "callback_data": InvoiceMenuButtons.CB_GET_AMOUNT},
             ],
             [
-                {"text": NavigationButtons.HOME},
-                {"text": InvoiceMenuButtons.GENERATE_INVOICE},
+                {"text": InvoiceMenuButtons.GENERATE_INVOICE, "callback_data": InvoiceMenuButtons.CB_GENERATE},
+            ],
+            [
+                {"text": "◀️ Назад", "callback_data": InvoiceMenuButtons.CB_BACK},
             ],
         ],
-        "resize_keyboard": True,
     }

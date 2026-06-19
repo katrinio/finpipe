@@ -3,10 +3,10 @@ from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 
 
 def test_guest_menu_contains_only_whoami() -> None:
-    assert build_guest_menu() == {
-        "keyboard": [[{"text": "👤 Кто я"}, {"text": "🏠 Домой"}]],
-        "resize_keyboard": True,
-    }
+    menu = build_guest_menu()
+    all_buttons = [btn for row in menu["inline_keyboard"] for btn in row]
+    assert len(all_buttons) == 1
+    assert all_buttons[0]["callback_data"] == "nav:whoami"
 
 
 def test_format_whoami_uses_friendly_labels() -> None:

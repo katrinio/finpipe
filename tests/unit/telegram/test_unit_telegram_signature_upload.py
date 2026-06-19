@@ -16,6 +16,16 @@ from src.storage.orm import AllowedUser
 from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 
+_SIGNATURE_UPLOAD_UPDATE = {
+    "update_id": 11,
+    "callback_query": {
+        "id": "cq1",
+        "data": SignatureButtons.CB_UPLOAD,
+        "from": {"id": 123, "username": "alice"},
+        "message": {"message_id": 1, "chat": {"id": 123}},
+    },
+}
+
 
 def test_upload_signature_sets_waiting_state(
     monkeypatch: pytest.MonkeyPatch,
@@ -33,11 +43,10 @@ def test_upload_signature_sets_waiting_state(
     tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
     tg_bot.update_storage = cast(Any, fake_update_storage)
 
-    assert tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice") is True
+    tg_bot.process_update(_SIGNATURE_UPLOAD_UPDATE)
+
     assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
-    assert telegram_client.sent_messages == [
-        SignatureMessages.Upload.REQUIREMENTS,
-    ]
+    assert telegram_client.sent_messages == [SignatureMessages.Upload.REQUIREMENTS]
     assert telegram_client.sent_messages_with_chat_ids == [(123, SignatureMessages.Upload.REQUIREMENTS)]
 
 
@@ -53,17 +62,13 @@ def test_successful_signature_upload_clears_state(
     )
     monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
 
-    telegram_client = FakeTelegramClient(
-        files={
-            "signature-file-id": b"png-bytes",
-        }
-    )
+    telegram_client = FakeTelegramClient(files={"signature-file-id": b"png-bytes"})
     tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
     tg_bot.update_storage = cast(Any, fake_update_storage)
 
     monkeypatch.setattr(telegram_handlers.SignatureService, "upload", lambda **kwargs: None)
 
-    tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice")
+    tg_bot.process_update(_SIGNATURE_UPLOAD_UPDATE)
     tg_bot.process_update(
         {
             "update_id": 42,
@@ -87,7 +92,7 @@ def test_successful_signature_upload_clears_state(
         (123, SignatureMessages.Upload.REQUIREMENTS),
         (123, SignatureMessages.Upload.UPDATED),
     ]
-    assert fake_update_storage.processed == [42]
+    assert fake_update_storage.processed == [11, 42]
 
 
 def test_invalid_file_keeps_state(
@@ -102,11 +107,7 @@ def test_invalid_file_keeps_state(
     )
     monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
 
-    telegram_client = FakeTelegramClient(
-        files={
-            "signature-file-id": b"jpeg-bytes",
-        }
-    )
+    telegram_client = FakeTelegramClient(files={"signature-file-id": b"jpeg-bytes"})
     tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
     tg_bot.update_storage = cast(Any, fake_update_storage)
 
@@ -115,7 +116,7 @@ def test_invalid_file_keeps_state(
 
     monkeypatch.setattr(telegram_handlers.SignatureService, "upload", raise_invalid)
 
-    tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice")
+    tg_bot.process_update(_SIGNATURE_UPLOAD_UPDATE)
     tg_bot.process_update(
         {
             "update_id": 43,
@@ -133,4 +134,4 @@ def test_invalid_file_keeps_state(
     assert tg_bot.handlers.state_service.get_state(123) == UserState.WAITING_SIGNATURE_UPLOAD
     assert telegram_client.sent_messages[0] == SignatureMessages.Upload.REQUIREMENTS
     assert telegram_client.sent_messages_with_chat_ids[0] == (123, SignatureMessages.Upload.REQUIREMENTS)
-    assert fake_update_storage.processed == [43]
+    assert fake_update_storage.processed == [11, 43]
