@@ -28,7 +28,7 @@ from src.storage.orm.user.signature import Signature
 from src.utils.files import delete_file
 from src.utils.utils import Utils
 from src.workflows.run_bank_request import fetch_bank_email_workflow
-from src.workflows.run_invoice_delivery import generate_and_send_invoice
+from src.workflows.run_invoice_delivery import discard_invoice_pdf, generate_and_send_invoice, send_invoice_email
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
 
@@ -79,9 +79,18 @@ class DocumentHandlers:
 
     def invoice_send_to_company(self, telegram_id: int) -> None:
         LOGGER.info("Invoice send to company requested by Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SEND_TO_COMPANY_SOON, reply_markup=build_invoice_menu())
+        self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SENDING)
+        try:
+            send_invoice_email(telegram_id)
+        except InvoiceError as error:
+            LOGGER.warning("Invoice email sending failed for Telegram user %s", telegram_id)
+            self.telegram.send_message(telegram_id, str(error), reply_markup=build_invoice_menu())
+            return
+        LOGGER.info("Invoice email sent for Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SENT_TO_COMPANY, reply_markup=build_invoice_menu())
 
     def invoice_skip_send(self, telegram_id: int) -> None:
+        discard_invoice_pdf()
         self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SENT, reply_markup=build_invoice_menu())
 
     def get_invoice_amount(self, telegram_id: int) -> None:
