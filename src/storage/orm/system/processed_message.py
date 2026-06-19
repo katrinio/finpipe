@@ -60,6 +60,12 @@ class ProcessedMessage(BaseModel):
             session.commit()
 
     @classmethod
+    def unmark(cls, message_id: str) -> None:
+        with cls.session() as session:
+            session.query(cls).filter(cls.message_id == message_id).delete()
+            session.commit()
+
+    @classmethod
     def clear_processed_message(cls) -> None:
         with cls.session() as session:
             session.query(cls).delete()

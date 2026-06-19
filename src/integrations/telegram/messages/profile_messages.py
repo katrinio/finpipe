@@ -2,10 +2,6 @@ from src.integrations.telegram.messages.common_messages import MsgIcon
 
 
 class ProfileMessages:
-    class Status:
-        FOUND = MsgIcon.success("Подпись загружена.")
-        NOT_FOUND = MsgIcon.warning("Подпись не найдена.")
-
     class Upload:
         REQUIREMENTS = (
             "✍️ Пришлите заполненный шаблон в YAML формате.\n\nТребования:\n- YAML\n- до 2 МБ\n- заполнен словарем значений по ключам шаблона"

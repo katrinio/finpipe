@@ -124,7 +124,7 @@ class ProfileHandlers:
             f"🏦 Реквизиты        {bank_status}",
             f"💳 Платёж           {payment_status}",
             f"✍️ Подпись          {signature_status}",
-            f"💰 Invoice          {invoice_status}",
+            f"💰 Инвойс           {invoice_status}",
         ]
 
         if missing_fields:
@@ -151,9 +151,9 @@ class ProfileHandlers:
                 f"• Счёт: {self.format_field(bank_fields['account_number'])}",
                 f"• IBAN: {self.format_field(bank_fields['iban'])}",
                 f"• BIC: {self.format_field(bank_fields['bic'])}",
-                f"• Bank email sender: {self.format_field(bank_fields['bank_confirmation_email_sender'])}",
-                f"• Bank email recipient: {self.format_field(bank_fields['bank_confirmation_email_recipient'])}",
-                f"• Bank email subject contains: {self.format_field(bank_fields['bank_confirmation_email_subject_contains'])}",
+                f"• Email отправителя: {self.format_field(bank_fields['bank_confirmation_email_sender'])}",
+                f"• Email получателя: {self.format_field(bank_fields['bank_confirmation_email_recipient'])}",
+                f"• Тема письма содержит: {self.format_field(bank_fields['bank_confirmation_email_subject_contains'])}",
                 "",
                 "💳 Платёж",
                 f"• Номер платежа: {self.format_field(payment_fields['payment_number'])}",
@@ -163,7 +163,7 @@ class ProfileHandlers:
                 "✍️ Подпись",
                 f"• {self.format_signature_state(signature_ready)}",
                 "",
-                "💰 Invoice",
+                "💰 Инвойс",
                 f"• {self.format_invoice_amount(user_config.invoice_amount_eur if user_config is not None else None)}",
             ]
         )

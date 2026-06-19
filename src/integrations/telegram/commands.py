@@ -1,7 +1,6 @@
 from enum import StrEnum
 
 from src.integrations.telegram.messages import CommonMessages
-from src.storage.orm.system.audit_log import AuditLog
 
 
 class Cmd(StrEnum):
@@ -44,14 +43,6 @@ def format_chatid(telegram_id: int | None) -> str:
     """Форматирует идентификатор текущего чата."""
 
     return f"Chat ID: {telegram_id}"
-
-
-def format_last_action(action: AuditLog) -> str:
-    """Форматирует последнюю запись аудитлога."""
-
-    return (
-        f"📝 Last action\n\nUser: {action.user_name}\nCommand: {action.command}\nStatus: {action.status}\nTime: {action.created_at:%Y-%m-%d %H:%M:%S}"
-    )
 
 
 def format_stats(

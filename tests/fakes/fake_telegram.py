@@ -29,3 +29,9 @@ class FakeTelegramClient:
 
     def healthcheck(self) -> None:
         return None
+
+    def answer_callback_query(self, callback_query_id: str) -> None:
+        pass
+
+    def delete_message(self, chat_id: int, message_id: int) -> None:
+        pass

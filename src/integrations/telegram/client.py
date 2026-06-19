@@ -80,6 +80,24 @@ class TelegramClient:
 
         return self.http.get(f"{self.file_base_url}/{file_path}", timeout=30).content
 
+    def answer_callback_query(self, callback_query_id: str) -> None:
+        """Снимает индикатор загрузки с инлайн-кнопки после её нажатия."""
+
+        self.http.post(
+            f"{self.base_url}/answerCallbackQuery",
+            json={"callback_query_id": callback_query_id},
+            timeout=10,
+        )
+
+    def delete_message(self, chat_id: int, message_id: int) -> None:
+        """Удаляет сообщение из чата."""
+
+        self.http.post(
+            f"{self.base_url}/deleteMessage",
+            json={"chat_id": chat_id, "message_id": message_id},
+            timeout=10,
+        )
+
     def get_updates(self, offset: int | None = None) -> dict:
         """Получает входящие Telegram updates."""
 
