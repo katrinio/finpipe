@@ -57,8 +57,7 @@ def send_invoice_email(telegram_id: int) -> None:
     account_holder = bank_details.account_holder if bank_details else ""
 
     # TODO: заменить на email компании из профиля или отдельного поля настроек
-    to_email = "company@example.com"
-
+    to_email = EnvVar.get_required_env("EMAIL_DRY_RUN_RECIPIENT")
     pdf_path = _current_invoice_pdf_path()
 
     try:
