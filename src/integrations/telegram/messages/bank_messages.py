@@ -12,10 +12,10 @@ class BankMessages:
         SIGNATURE_REQUIRED = "✍️ Нужна подпись.\nСначала загрузите подпись в разделе «Подпись»."
         PROFILE_REQUIRED = "🏢 Профиль заполнен не полностью.\nСначала загрузите профиль и банковские реквизиты."
         NOT_PDF = "📄 Пришлите PDF-файл."
-        NO_AMOUNT = "❌ Не удалось определить сумму в PDF."
+        NO_AMOUNT = MsgIcon.error("Не удалось определить сумму в PDF.")
         GMAIL_NOT_CONNECTED = "📧 Gmail не подключён.\nПодключите Gmail в разделе «Интеграции»."
-        BANK_EMAIL_NOT_CONFIGURED = (
-            "⚠️ Настройки поиска письма банка не заполнены.\n"
+        BANK_EMAIL_NOT_CONFIGURED = MsgIcon.warning(
+            "Настройки поиска письма банка не заполнены.\n"
             "Заполните bank_confirmation_email.sender, bank_confirmation_email.recipient и bank_confirmation_email.subject_contains."
         )
 
@@ -32,11 +32,11 @@ class BankMessages:
 
     class BankDay:
         IN_PROGRESS = MsgIcon.waiting("Банковский день: ищу письмо банка...")
-        EMAIL_RECEIVED = "✅ Письмо банка получено. Сумма: {} EUR"
-        CONFIRMATION_READY = "✅ Подтверждение для банка готово."
-        CONVERSION_READY = "✅ Запрос на конвертацию готов."
-        INVOICE_READY = "✅ Инвойс за прошлый месяц готов."
-        DONE = "✅ Банковский день завершён. Сумма: {} EUR. Отправлено 3 документа."
+        EMAIL_RECEIVED = MsgIcon.success("Письмо банка получено. Сумма: {} EUR")
+        CONFIRMATION_READY = MsgIcon.success("Подтверждение для банка готово.")
+        CONVERSION_READY = MsgIcon.success("Запрос на конвертацию готов.")
+        INVOICE_READY = MsgIcon.success("Инвойс за прошлый месяц готов.")
+        DONE = MsgIcon.success("Банковский день завершён. Сумма: {} EUR. Отправлено 3 документа.")
         REPLY_PROMPT = (
             "Отправить ответ банку на {}?\n\n"
             "Будут приложены: подтверждение, запрос на конвертацию и инвойс за прошлый период.\n\n"
@@ -45,4 +45,4 @@ class BankMessages:
         REPLY_SENDING = MsgIcon.waiting("Отправляю ответ банку...")
         REPLY_SENT = MsgIcon.success("Ответ банку отправлен.")
         REPLY_SKIPPED = "Хорошо. Документы в чате."
-        REPLY_NO_PENDING = "⚠️ Нет данных для ответа. Запустите банковский день заново."
+        REPLY_NO_PENDING = MsgIcon.warning("Нет данных для ответа. Запустите банковский день заново.")
