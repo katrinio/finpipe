@@ -145,7 +145,6 @@ class CommandRouter:
             BankDayButtons.CB_SKIP: lambda context: self.document_handler.bank_day_skip_reply(context.telegram_id),
             # invoice (inline callback_data)
             InvoiceMenuButtons.CB_SET_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
-            InvoiceMenuButtons.CB_GET_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
             InvoiceMenuButtons.CB_GENERATE: lambda context: self.document_handler.invoice(context.telegram_id),
             InvoiceMenuButtons.CB_BACK: lambda context: self.menu_handler.document_menu(context.telegram_id),
             InvoiceMenuButtons.CB_SEND_TO_COMPANY: lambda context: self.document_handler.invoice_send_to_company(context.telegram_id),

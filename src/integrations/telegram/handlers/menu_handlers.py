@@ -19,6 +19,13 @@ from src.storage.orm import AllowedUser
 from src.storage.orm.user.user_config import UserConfig
 
 
+def _invoice_menu_title(telegram_id: int) -> str:
+    config = UserConfig.get_by_owner(telegram_id)
+    amount = config.invoice_amount_eur if config else None
+    amount_line = f"💶 Текущая сумма: {amount} EUR" if amount is not None else "💶 Сумма не задана"
+    return f"{DocumentsMenuButtons.SALARY_INVOICE}\n\n{amount_line}"
+
+
 class MenuHandler:
     """Отправляет экраны и меню Telegram-бота."""
 
@@ -96,7 +103,7 @@ class MenuHandler:
 
         self.telegram.send_message(
             telegram_id,
-            DocumentsMenuButtons.SALARY_INVOICE,
+            _invoice_menu_title(telegram_id),
             reply_markup=build_invoice_menu(),
         )
 

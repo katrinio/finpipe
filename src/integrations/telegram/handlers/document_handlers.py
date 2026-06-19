@@ -98,18 +98,6 @@ class DocumentHandlers:
         discard_invoice_pdf()
         self.telegram.send_message(telegram_id, InvoiceMessages.Generation.SENT, reply_markup=build_invoice_menu())
 
-    def get_invoice_amount(self, telegram_id: int) -> None:
-        current_amount = UserConfig.get_by_owner(telegram_id)
-        if current_amount is None or current_amount.invoice_amount_eur is None:
-            self.telegram.send_message(telegram_id, InvoiceMessages.Validation.NO_INVOICE_AMOUNT, reply_markup=build_invoice_menu())
-            return
-
-        self.telegram.send_message(
-            telegram_id,
-            f"💶 Текущая сумма инвойса: {current_amount.invoice_amount_eur} EUR",
-            reply_markup=build_invoice_menu(),
-        )
-
     def bank_day_info(self, telegram_id: int) -> None:
         status = SystemStatusService.get_status(telegram_id)
         lines = [

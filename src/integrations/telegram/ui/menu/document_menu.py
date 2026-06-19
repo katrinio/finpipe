@@ -58,7 +58,6 @@ def build_invoice_menu() -> dict:
         "inline_keyboard": [
             [
                 {"text": InvoiceMenuButtons.SET_INVOICE_AMOUNT, "callback_data": InvoiceMenuButtons.CB_SET_AMOUNT},
-                {"text": InvoiceMenuButtons.GET_INVOICE_AMOUNT, "callback_data": InvoiceMenuButtons.CB_GET_AMOUNT},
             ],
             [
                 {"text": InvoiceMenuButtons.GENERATE_INVOICE, "callback_data": InvoiceMenuButtons.CB_GENERATE},

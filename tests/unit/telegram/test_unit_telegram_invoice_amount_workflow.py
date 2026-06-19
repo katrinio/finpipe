@@ -85,14 +85,15 @@ def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path
     assert "❌" in telegram_client.sent_messages[1]
 
 
-def test_get_invoice_amount_reports_missing_value(tmp_path: Path) -> None:
+def test_invoice_menu_shows_amount_not_set_when_no_config(tmp_path: Path) -> None:
     storage = build_storage_dependencies()
     AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
     bot = TelegramBot(storage, telegram=telegram_client)
 
-    bot.handlers.document_handler.get_invoice_amount(123)
+    bot.handlers.menu_handler.invoice_menu(123)
 
     assert len(telegram_client.sent_messages) == 1
-    assert "💰" in telegram_client.sent_messages[0]
+    assert "💶" in telegram_client.sent_messages[0]
+    assert "не задана" in telegram_client.sent_messages[0]
     assert telegram_client.sent_message_payloads[0][2] == build_invoice_menu()
