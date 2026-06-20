@@ -207,9 +207,9 @@ def test_bank_day_sends_three_documents(tmp_path: Path, monkeypatch) -> None:
 
     assert len(telegram_client.sent_documents) == 3
     sent_paths = [path for _chat_id, path in telegram_client.sent_documents]
-    assert str(original_pdf) in sent_paths
     assert str(filled_pdf) in sent_paths
     assert str(conversion_pdf) in sent_paths
+    assert str(invoice_pdf) in sent_paths
 
 
 def test_bank_day_saves_extracted_amount_to_user_config(tmp_path: Path, monkeypatch) -> None:

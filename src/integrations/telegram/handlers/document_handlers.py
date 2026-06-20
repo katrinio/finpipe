@@ -211,10 +211,10 @@ class DocumentHandlers:
             invoice_pdf_path = generate_invoice_pdf(telegram_id=telegram_id, invoice_date=prev_month_20)
             self.telegram.send_message(telegram_id, BankMessages.BankDay.INVOICE_READY)
 
-            # Шаг 6: отправить все три документа в Telegram
-            self.telegram.send_document(telegram_id, bank_pdf_path)
+            # Шаг 6: отправить три документа в Telegram
             self.telegram.send_document(telegram_id, bank_confirmation_path)
             self.telegram.send_document(telegram_id, conversion_order_path)
+            self.telegram.send_document(telegram_id, invoice_pdf_path)
 
         except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError, InvoiceError) as error:
             LOGGER.warning("Bank day workflow failed for Telegram user %s: %s", telegram_id, error)
