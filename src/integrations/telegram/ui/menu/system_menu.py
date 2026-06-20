@@ -5,7 +5,7 @@ def build_system_menu(is_owner: bool = False) -> dict:
     keyboard = [
         [
             {"text": SystemButtons.EASY_START},
-            {"text": SystemButtons.WHOAMI},
+            {"text": SystemButtons.READINESS},
         ],
         [
             {"text": NavigationButtons.HOME},

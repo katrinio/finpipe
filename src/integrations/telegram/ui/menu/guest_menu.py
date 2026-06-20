@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import NavigationButtons, SystemButtons
+from src.integrations.telegram.ui.buttons import SystemButtons
 
 
 def build_guest_menu() -> dict:
@@ -6,7 +6,6 @@ def build_guest_menu() -> dict:
         "keyboard": [
             [
                 {"text": SystemButtons.WHOAMI},
-                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,

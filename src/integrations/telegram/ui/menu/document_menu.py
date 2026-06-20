@@ -68,8 +68,10 @@ def build_invoice_menu() -> dict:
                 {"text": InvoiceMenuButtons.GET_INVOICE_AMOUNT},
             ],
             [
-                {"text": NavigationButtons.HOME},
                 {"text": InvoiceMenuButtons.GENERATE_INVOICE},
+            ],
+            [
+                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,

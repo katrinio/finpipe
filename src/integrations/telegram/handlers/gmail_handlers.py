@@ -6,7 +6,7 @@ from src.integrations.gmail.gmail_oauth import GmailOAuth
 from src.integrations.gmail.settings import GmailOAuthSettings
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.ui.buttons import GmailButtons, NavigationButtons
-from src.integrations.telegram.ui.menu.integration_menu import build_gmail_menu
+from src.integrations.telegram.ui.menu.integration_menu import build_gmail_clear_history_confirm_menu, build_gmail_menu
 from src.integrations.telegram.ui.messages import GmailMessages
 from src.storage.orm.system.processed_message import ProcessedMessage
 
@@ -79,7 +79,16 @@ class GmailHandlers:
         self.telegram.send_message(telegram_id, GmailMessages.Connect.DISCONNECTED, reply_markup=build_gmail_menu())
 
     def gmail_clear_history(self, telegram_id: int) -> None:
-        """Сбрасывает историю обработанных писем банка."""
+        """Показывает промпт подтверждения перед сбросом истории."""
+
+        self.telegram.send_message(
+            telegram_id,
+            GmailMessages.History.CLEAR_PROMPT,
+            reply_markup=build_gmail_clear_history_confirm_menu(),
+        )
+
+    def gmail_clear_history_confirm(self, telegram_id: int) -> None:
+        """Сбрасывает историю обработанных писем банка после подтверждения."""
 
         ProcessedMessage.clear_processed_message()
         LOGGER.info("Processed bank email history cleared by Telegram user %s", telegram_id)

@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import NavigationButtons, ProfileButtons, SignatureButtons
+from src.integrations.telegram.ui.buttons import NavigationButtons, ProfileButtons, SignatureButtons, SystemButtons
 
 
 def build_profile_menu() -> dict:
@@ -6,6 +6,7 @@ def build_profile_menu() -> dict:
         "keyboard": [
             [
                 {"text": ProfileButtons.MY_PROFILE},
+                {"text": SystemButtons.WHOAMI},
             ],
             [
                 {"text": ProfileButtons.DOWNLOAD_TEMPLATE},

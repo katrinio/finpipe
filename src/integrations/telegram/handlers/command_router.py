@@ -158,10 +158,12 @@ class CommandRouter:
             GmailButtons.GMAIL_DISCONNECT: lambda context: self.gmail_handler.gmail_disconnect(context.telegram_id),
             GmailButtons.GMAIL_STATUS: lambda context: self.gmail_handler.gmail_status(context.telegram_id),
             GmailButtons.GMAIL_CLEAR_HISTORY: lambda context: self.gmail_handler.gmail_clear_history(context.telegram_id),
+            GmailButtons.GMAIL_CLEAR_HISTORY_CONFIRM: lambda context: self.gmail_handler.gmail_clear_history_confirm(context.telegram_id),
             # system
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
             SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
             SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
+            SystemButtons.READINESS: lambda context: self.system_handler.readiness(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
             OwnerButtons.ADD_USER: lambda context: (
