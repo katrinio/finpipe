@@ -1,6 +1,6 @@
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import format_chatid, format_last_action, format_whoami
-from src.integrations.telegram.messages import AuditLogMessages, MenuMessages
+from src.integrations.telegram.commands import format_chatid, format_whoami
+from src.integrations.telegram.messages import MenuMessages
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.storage.orm import AllowedUser
@@ -32,19 +32,4 @@ class SystemHandlers:
             return
         self.telegram.send_message(
             telegram_id, format_chatid(telegram_id), reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id))
-        )
-
-    def last_action(self, telegram_id: int) -> None:
-        actions = self.audit_log.list_recent(1)
-        if not actions:
-            self.telegram.send_message(
-                telegram_id,
-                AuditLogMessages.Status.IS_EMPTY,
-                reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
-            )
-            return
-        self.telegram.send_message(
-            telegram_id,
-            format_last_action(actions[0]),
-            reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
         )

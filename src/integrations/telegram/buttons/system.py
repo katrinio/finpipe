@@ -4,7 +4,7 @@ from src.integrations.telegram.buttons.navigation import NavigationButtons
 class SystemButtons:
     WHOAMI = "👤 Кто я"
     CHATID = "/chatid"
-    EASY_START = "🚀 Начало работы"
+    EASY_START = "❓ Как начать"
 
 
 PUBLIC_COMMANDS = {

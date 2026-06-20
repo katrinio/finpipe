@@ -1,8 +1,8 @@
 class DocumentsMenuButtons:
-    SALARY_INVOICE = "🧾 Salary Invoice"
+    SALARY_INVOICE = "🧾 Инвойс"
     BANK_DAY = "🏦 Банковский день"
 
 
 class BankDayButtons:
+    START = "▶️ Запустить"
     REPLY_TO_BANK = "📤 Ответить банку"
-    SKIP_REPLY = "Не сейчас"

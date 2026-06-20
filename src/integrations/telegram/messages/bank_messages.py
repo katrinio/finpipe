@@ -2,43 +2,47 @@ from src.integrations.telegram.messages.common_messages import MsgIcon
 
 
 class BankMessages:
-    class Menu:
-        TITLE = "🏦 Подтверждение для банка"
-        UPLOAD = "📤 Загрузите PDF для заполнения."
-        CHECK = "🔎 Проверить наличие письма от банка"
-        PROCESS = "📥 Найти письмо, скачать оригинал и отправить оба варианта."
-
     class Validation:
         SIGNATURE_REQUIRED = "✍️ Нужна подпись.\nСначала загрузите подпись в разделе «Подпись»."
         PROFILE_REQUIRED = "🏢 Профиль заполнен не полностью.\nСначала загрузите профиль и банковские реквизиты."
-        NOT_PDF = "📄 Пришлите PDF-файл."
-        NO_AMOUNT = "❌ Не удалось определить сумму в PDF."
         GMAIL_NOT_CONNECTED = "📧 Gmail не подключён.\nПодключите Gmail в разделе «Интеграции»."
-        BANK_EMAIL_NOT_CONFIGURED = (
-            "⚠️ Настройки поиска письма банка не заполнены.\n"
+        BANK_EMAIL_NOT_CONFIGURED = MsgIcon.warning(
+            "Настройки поиска письма банка не заполнены.\n"
             "Заполните bank_confirmation_email.sender, bank_confirmation_email.recipient и bank_confirmation_email.subject_contains."
         )
 
     class Generation:
         IN_PROGRESS = MsgIcon.waiting("Формируется подтверждение для банка...")
         SENT = MsgIcon.success("Подтверждение для банка отправлено.")
-        FILLED = MsgIcon.success("Подтверждение для банка заполнено.")
-        ORIGINAL_AND_FILLED = MsgIcon.success("Письмо банка обработано и отправлено.")
 
     class Search:
-        CHECKING = MsgIcon.waiting("Проверяю письмо из банка...")
-        FOUND = MsgIcon.success("Письмо из банка найдено.")
         NOT_FOUND = MsgIcon.warning("Письмо из банка не найдено.")
 
     class BankDay:
+        INFO = (
+            "🏦 Банковский день\n\n"
+            "Бот найдёт последнее письмо банка в Gmail и автоматически:\n"
+            "• извлечёт сумму платежа\n"
+            "• заполнит Bank Confirmation\n"
+            "• сгенерирует Conversion Order\n"
+            "• сгенерирует инвойс за прошлый месяц\n"
+            "• пришлёт все три документа\n"
+            "• предложит отправить ответ банку\n\n"
+            "Необходимые условия:\n"
+            "{status_lines}"
+        )
         IN_PROGRESS = MsgIcon.waiting("Банковский день: ищу письмо банка...")
-        EMAIL_RECEIVED = "✅ Письмо банка получено. Сумма: {} EUR"
-        CONFIRMATION_READY = "✅ Подтверждение для банка готово."
-        CONVERSION_READY = "✅ Запрос на конвертацию готов."
-        INVOICE_READY = "✅ Инвойс за прошлый месяц готов."
-        DONE = "✅ Банковский день завершён. Сумма: {} EUR. Отправлено 3 документа."
-        REPLY_PROMPT = "Отправить ответ банку на {}?\n\nБудут приложены: подтверждение, запрос на конвертацию и инвойс за прошлый период."
+        EMAIL_RECEIVED = MsgIcon.success("Письмо банка получено. Сумма: {} EUR")
+        CONFIRMATION_READY = MsgIcon.success("Подтверждение для банка готово.")
+        CONVERSION_READY = MsgIcon.success("Запрос на конвертацию готов.")
+        INVOICE_READY = MsgIcon.success("Инвойс за прошлый месяц готов.")
+        DONE = MsgIcon.success("Банковский день завершён. Сумма: {} EUR. Отправлено 3 документа.")
+        REPLY_PROMPT = (
+            "Отправить ответ банку на {}?\n\n"
+            "Будут приложены: подтверждение, запрос на конвертацию и инвойс за прошлый период.\n\n"
+            "«Не отправлять» — письмо не уйдёт, документы будут удалены."
+        )
         REPLY_SENDING = MsgIcon.waiting("Отправляю ответ банку...")
         REPLY_SENT = MsgIcon.success("Ответ банку отправлен.")
-        REPLY_SKIPPED = "Хорошо. Документы в чате."
-        REPLY_NO_PENDING = "⚠️ Нет данных для ответа. Запустите банковский день заново."
+        REPLY_SKIPPED = "Хорошо. Письмо можно обработать позже через «Банковский день»."
+        REPLY_NO_PENDING = MsgIcon.warning("Нет данных для ответа. Запустите банковский день заново.")

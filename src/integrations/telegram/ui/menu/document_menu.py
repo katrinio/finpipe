@@ -11,7 +11,7 @@ def build_invoice_send_prompt_menu() -> dict:
         "keyboard": [
             [
                 {"text": InvoiceMenuButtons.SEND_TO_COMPANY},
-                {"text": InvoiceMenuButtons.SKIP_SEND},
+                {"text": NavigationButtons.SKIP},
             ],
         ],
         "resize_keyboard": True,
@@ -24,7 +24,20 @@ def build_bank_day_reply_prompt_menu() -> dict:
         "keyboard": [
             [
                 {"text": BankDayButtons.REPLY_TO_BANK},
-                {"text": BankDayButtons.SKIP_REPLY},
+                {"text": NavigationButtons.SKIP},
+            ],
+        ],
+        "resize_keyboard": True,
+        "one_time_keyboard": True,
+    }
+
+
+def build_bank_day_start_menu() -> dict:
+    return {
+        "keyboard": [
+            [
+                {"text": BankDayButtons.START},
+                {"text": NavigationButtons.HOME},
             ],
         ],
         "resize_keyboard": True,

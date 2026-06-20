@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.messages.invoice_messages import InvoiceMessages
-from src.integrations.telegram.ui.buttons import InvoiceMenuButtons
+from src.integrations.telegram.ui.buttons import InvoiceMenuButtons, NavigationButtons
 from src.integrations.telegram.ui.menu.document_menu import build_invoice_menu
 from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import AllowedUser
@@ -64,7 +64,7 @@ def test_skip_send_discards_pdf_and_shows_sent_message(tmp_path: Path) -> None:
     discarded: list[bool] = []
 
     with patch(f"{_HANDLERS_MODULE}.discard_invoice_pdf", lambda: discarded.append(True)):
-        _press(bot, InvoiceMenuButtons.SKIP_SEND)
+        _press(bot, NavigationButtons.SKIP)
 
     assert discarded == [True]
     assert InvoiceMessages.Generation.SENT in telegram_client.sent_messages

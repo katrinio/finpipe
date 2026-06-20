@@ -8,6 +8,7 @@ from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.document_menu import (
     build_bank_day_reply_prompt_menu,
+    build_bank_day_start_menu,
     build_document_menu,
     build_invoice_menu,
     build_invoice_send_prompt_menu,
@@ -22,6 +23,7 @@ from src.services.monitoring.event_logger import EventLogger
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm import UserConfig
 from src.storage.orm.system.app_events import EventSeverity, EventType
+from src.storage.orm.system.processed_message import ProcessedMessage
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.storage.orm.user.pending_bank_reply import PendingBankReply
@@ -109,6 +111,23 @@ class DocumentHandlers:
             f"💶 Текущая сумма Salary Invoice: {current_amount.invoice_amount_eur} EUR",
             reply_markup=build_invoice_menu(),
         )
+
+    def bank_day_info(self, telegram_id: int) -> None:
+        status = SystemStatusService.get_status(telegram_id)
+        lines = [
+            f"{'✅' if status.company and status.bank_details else '❌'} Профиль (компания + реквизиты)",
+            f"{'✅' if status.signature else '❌'} Подпись",
+            f"{'✅' if status.gmail else '❌'} Gmail",
+        ]
+        text = BankMessages.BankDay.INFO.format(status_lines="\n".join(lines))
+        self.telegram.send_message(telegram_id, text, reply_markup=build_bank_day_start_menu())
+
+    def handle_skip(self, telegram_id: int) -> None:
+        """Обрабатывает «✖️ Не отправлять» — банковский ответ или инвойс."""
+        if PendingBankReply.get(telegram_id) is not None:
+            self.bank_day_skip_reply(telegram_id)
+        else:
+            self.invoice_skip_send(telegram_id)
 
     def bank_confirmation(self, telegram_id: int) -> None:
         LOGGER.info("Bank confirmation generation requested by Telegram user %s", telegram_id)
@@ -279,6 +298,7 @@ class DocumentHandlers:
             delete_file(Path(pending.bank_confirmation_path), LOGGER)
             delete_file(Path(pending.conversion_order_path), LOGGER)
             delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
+            ProcessedMessage.unmark(pending.message_id)
             PendingBankReply.clear(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
 

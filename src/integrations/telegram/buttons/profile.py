@@ -1,4 +1,4 @@
 class ProfileButtons:
-    DOWNLOAD_TEMPLATE = "📥 Шаблон профиля"
+    DOWNLOAD_TEMPLATE = "📥 Скачать шаблон"
     UPLOAD_TEMPLATE = "📤 Обновить профиль"
     MY_PROFILE = "👤 Мой профиль"

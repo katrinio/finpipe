@@ -1,16 +1,4 @@
-from src.integrations.telegram.ui.buttons import GmailButtons, IntegrationsButtons, NavigationButtons
-
-
-def build_integration_menu() -> dict:
-    return {
-        "keyboard": [
-            [
-                {"text": NavigationButtons.HOME},
-                {"text": IntegrationsButtons.GMAIL},
-            ],
-        ],
-        "resize_keyboard": True,
-    }
+from src.integrations.telegram.ui.buttons import GmailButtons, NavigationButtons
 
 
 def build_gmail_menu() -> dict:
