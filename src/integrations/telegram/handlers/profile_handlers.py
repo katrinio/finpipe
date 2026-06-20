@@ -174,14 +174,14 @@ class ProfileHandlers:
     def get_section_status(fields: Mapping[str, object | None]) -> str:
         filled_count = sum(1 for value in fields.values() if ProfileHandlers.is_present(value))
         if filled_count == 0:
-            return "⭕"
+            return "❗"
         if filled_count == len(fields):
             return "✔️"
         return "➖"
 
     @staticmethod
     def get_binary_status(is_ready: bool) -> str:
-        return "✔️" if is_ready else "⭕"
+        return "✔️" if is_ready else "❗"
 
     @staticmethod
     def collect_missing_fields(fields: Mapping[str, object | None]) -> list[str]:

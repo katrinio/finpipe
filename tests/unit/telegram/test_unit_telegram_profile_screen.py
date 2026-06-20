@@ -79,5 +79,5 @@ def test_profile_screen_marks_signature_unusable_when_file_is_missing(tmp_path: 
 
     handlers.show_profile(123)
 
-    assert "✍️ Подпись          ⭕" in telegram_client.sent_messages[0]
+    assert "✍️ Подпись          ❗" in telegram_client.sent_messages[0]
     assert "• Не загружена" in telegram_client.sent_messages[0]
