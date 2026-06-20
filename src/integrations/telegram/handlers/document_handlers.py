@@ -13,7 +13,7 @@ from src.integrations.telegram.ui.menu.document_menu import (
     build_invoice_menu,
     build_invoice_send_prompt_menu,
 )
-from src.integrations.telegram.ui.messages import BankMessages, InvoiceMessages
+from src.integrations.telegram.ui.messages import BankMessages, InvoiceMessages, MsgIcon
 from src.services.bank.bank_confirmation import generate_bank_confirmation_pdf
 from src.services.bank.bank_extract import extract_amount
 from src.services.bank.exceptions import BankPdfError
@@ -115,9 +115,9 @@ class DocumentHandlers:
     def bank_day_info(self, telegram_id: int) -> None:
         status = SystemStatusService.get_status(telegram_id)
         lines = [
-            f"{'✅' if status.company and status.bank_details else '❌'} Профиль (компания + реквизиты)",
-            f"{'✅' if status.signature else '❌'} Подпись",
-            f"{'✅' if status.gmail else '❌'} Gmail",
+            f"{MsgIcon.status(status.company and status.bank_details)} Профиль (компания + реквизиты)",
+            f"{MsgIcon.status(status.signature)} Подпись",
+            f"{MsgIcon.status(status.gmail)} Gmail",
         ]
         text = BankMessages.BankDay.INFO.format(status_lines="\n".join(lines))
         self.telegram.send_message(telegram_id, text, reply_markup=build_bank_day_start_menu())

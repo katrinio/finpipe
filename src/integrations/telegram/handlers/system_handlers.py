@@ -1,6 +1,6 @@
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_chatid, format_whoami
-from src.integrations.telegram.messages import MenuMessages
+from src.integrations.telegram.messages import MenuMessages, MsgIcon
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.services.system_status.system_status_service import SystemStatusService
@@ -31,12 +31,11 @@ class SystemHandlers:
     def readiness(self, telegram_id: int) -> None:
         status = SystemStatusService.get_status(telegram_id)
         lines = [
-            f"{'✅' if status.company and status.bank_details else '❌'} Профиль (компания + реквизиты)",
-            f"{'✅' if status.signature else '❌'} Подпись",
-            f"{'✅' if status.gmail else '❌'} Gmail",
-            f"{'✅' if status.invoice_available else '❌'} Инвойс (профиль + подпись)",
-            f"{'✅' if status.bank_confirmation_available and status.signature and status.gmail else '❌'} "
-            f"Банковский день (профиль + подпись + Gmail)",
+            f"{MsgIcon.status(status.company and status.bank_details)} Профиль (компания + реквизиты)",
+            f"{MsgIcon.status(status.signature)} Подпись",
+            f"{MsgIcon.status(status.gmail)} Gmail",
+            f"{MsgIcon.status(status.invoice_available)} Инвойс (профиль + подпись)",
+            f"{MsgIcon.status(status.bank_confirmation_available and status.signature and status.gmail)} Банковский день (профиль + подпись + Gmail)",
         ]
         text = "✅ Готовность к работе\n\n" + "\n".join(lines)
         self.telegram.send_message(
