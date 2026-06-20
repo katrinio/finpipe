@@ -24,7 +24,8 @@ class MonitoringHandler:
         "/errors — последние 10 ошибок\n"
         "/stats — статистика событий и документов\n"
         "/logs [N] — последние N строк из контейнера (по умолчанию 50)\n"
-        "/chatid — ID этого чата"
+        "/chatid — ID этого чата\n"
+        "/help — список команд"
     )
 
     def handle_message(self, text: str | None, chat_id: int | None, telegram_id: int | None, username: str | None) -> bool:

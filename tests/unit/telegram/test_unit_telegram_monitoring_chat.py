@@ -10,7 +10,7 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
-def test_monitoring_chat_message_is_ignored(monkeypatch) -> None:
+def test_monitoring_chat_unknown_command_shows_help(monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
 
     telegram_client = FakeTelegramClient()
@@ -28,8 +28,31 @@ def test_monitoring_chat_message_is_ignored(monkeypatch) -> None:
         }
     )
 
+    assert len(telegram_client.sent_messages) == 1
+    assert "❓" in telegram_client.sent_messages[0]
+    assert "/help" in telegram_client.sent_messages[0]
+    assert bot.update_storage.processed == [31]
+
+
+def test_monitoring_chat_plain_text_is_ignored(monkeypatch) -> None:
+    monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
+
+    telegram_client = FakeTelegramClient()
+    bot = TelegramBot(cast(StorageDependencies, FakeStorage({123})), telegram=cast(TelegramClient, telegram_client))
+    bot.update_storage = FakeTelegramUpdateStorage()
+
+    bot.process_update(
+        {
+            "update_id": 31,
+            "message": {
+                "text": "просто текст",
+                "chat": {"id": -100123, "type": "group"},
+                "from": {"id": 123, "username": "alice"},
+            },
+        }
+    )
+
     assert telegram_client.sent_messages == []
-    assert telegram_client.sent_messages_with_chat_ids == []
     assert bot.update_storage.processed == [31]
 
 
