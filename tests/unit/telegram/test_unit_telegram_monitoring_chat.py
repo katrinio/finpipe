@@ -33,7 +33,7 @@ def test_monitoring_chat_message_is_ignored(monkeypatch) -> None:
     assert bot.update_storage.processed == [31]
 
 
-def test_monitoring_chat_status_command_stays_in_monitoring_flow(monkeypatch) -> None:
+def test_monitoring_chat_health_command_stays_in_monitoring_flow(monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
 
     telegram_client = FakeTelegramClient()
@@ -44,7 +44,7 @@ def test_monitoring_chat_status_command_stays_in_monitoring_flow(monkeypatch) ->
         {
             "update_id": 32,
             "message": {
-                "text": "/status",
+                "text": "/health",
                 "chat": {"id": -100123, "type": "group"},
                 "from": {"id": 249517409, "username": "owner"},
             },
@@ -52,7 +52,7 @@ def test_monitoring_chat_status_command_stays_in_monitoring_flow(monkeypatch) ->
     )
 
     assert telegram_client.sent_messages_with_chat_ids[-1][0] == -100123
-    assert telegram_client.sent_messages_with_chat_ids[-1][1].startswith("📊 Finpipe status")
+    assert telegram_client.sent_messages_with_chat_ids[-1][1].startswith("🏥 Health")
     assert telegram_client.sent_messages[-1] != "🫥 Неизвестная команда."
     assert bot.update_storage.processed == [32]
 

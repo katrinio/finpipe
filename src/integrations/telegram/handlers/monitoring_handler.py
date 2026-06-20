@@ -1,11 +1,13 @@
 import subprocess
+from datetime import UTC, datetime
 
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_chatid, format_recent_errors, format_recent_events, format_stats
 from src.integrations.telegram.settings import TelegramSettings
 from src.integrations.telegram.ui.messages import CommonMessages
 from src.services.monitoring.event_analytics import EventAnalytics
-from src.services.system_status.system_status_service import SystemStatusService
+from src.storage.orm.system.telegram_update import TelegramUpdate
+from src.storage.orm.user.allowed_user import AllowedUser
 from src.utils.credentials import LOGGER, EnvVar
 
 
@@ -15,8 +17,18 @@ class MonitoringHandler:
     def __init__(self, telegram: TelegramClient) -> None:
         self.telegram = telegram
 
+    _HELP = (
+        "📖 Доступные команды:\n\n"
+        "/health — Telegram API, БД, последняя активность\n"
+        "/events — последние 10 событий\n"
+        "/errors — последние 10 ошибок\n"
+        "/stats — статистика событий и документов\n"
+        "/logs [N] — последние N строк из контейнера (по умолчанию 50)\n"
+        "/chatid — ID этого чата"
+    )
+
     def handle_message(self, text: str | None, chat_id: int | None, telegram_id: int | None, username: str | None) -> bool:
-        """Обрабатывает /status, /health, /events, /errors, /stats и /chatid только в monitoring chat."""
+        """Обрабатывает команды мониторингового чата."""
 
         monitoring_chat_id = TelegramSettings.get_monitoring_chat_id()
         if monitoring_chat_id is None or chat_id != monitoring_chat_id or text is None:
@@ -24,9 +36,6 @@ class MonitoringHandler:
 
         try:
             command = self._normalize_command(text)
-            if command == "/status":
-                self._status(chat_id)
-                return True
             if command == "/health":
                 self._health(chat_id)
                 return True
@@ -45,34 +54,17 @@ class MonitoringHandler:
             if command.startswith("/logs"):
                 self._logs(chat_id, text)
                 return True
+            if command == "/help":
+                self.telegram.send_message(chat_id, self._HELP)
+                return True
 
-            LOGGER.info("Ignoring unknown monitoring command %r in chat %s", text, chat_id)
+            if text.startswith("/"):
+                self.telegram.send_message(chat_id, f"❓ Неизвестная команда.\n\n{self._HELP}")
             return True
         except Exception:
             LOGGER.exception("Monitoring command failed in chat %s", chat_id)
             self.telegram.send_message(chat_id, CommonMessages.Errors.SYSTEM_ERROR)
             return True
-
-    def _status(self, chat_id: int) -> None:
-        status = SystemStatusService.get_status(chat_id)
-
-        def icon(value: bool) -> str:
-            return "✅" if value else "❌"
-
-        message = (
-            "📊 Finpipe status\n\n"
-            "Profile:\n"
-            f"{icon(status.company)} Company\n"
-            f"{icon(status.bank_details)} Bank details\n"
-            f"{icon(status.signature)} Signature\n\n"
-            "Integrations:\n"
-            f"{icon(status.gmail)} Gmail\n\n"
-            "Documents:\n"
-            f"{icon(status.bank_confirmation_available)} Bank Confirmation\n"
-            f"{icon(status.invoice_available)} Salary Invoice\n"
-            f"{icon(status.conversion_order_available)} Conversion Order"
-        )
-        self.telegram.send_message(chat_id, message)
 
     def _logs(self, chat_id: int, text: str) -> None:
         parts = text.strip().split()
@@ -110,8 +102,35 @@ class MonitoringHandler:
         self.telegram.send_message(chat_id, f"{header}{body}")
 
     def _health(self, chat_id: int) -> None:
-        self.telegram.healthcheck()
-        self.telegram.send_message(chat_id, "✅ Telegram API is available")
+        lines = ["🏥 Health"]
+
+        # Telegram API
+        try:
+            self.telegram.healthcheck()
+            lines.append("✅ Telegram API")
+        except Exception:
+            lines.append("❌ Telegram API")
+
+        # DB — через AllowedUser.count()
+        try:
+            user_count = AllowedUser.count()
+            lines.append(f"✅ База данных  ({user_count} польз.)")
+        except Exception:
+            lines.append("❌ База данных")
+
+        # Последняя активность бота
+        try:
+            last_at = TelegramUpdate.get_last_processed_at()
+            if last_at is not None:
+                lines.append(f"📨 Последняя активность: {last_at.strftime('%Y-%m-%d %H:%M UTC')}")
+            else:
+                lines.append("📨 Активности ещё не было")
+        except Exception:
+            lines.append("⚠️ Не удалось получить время последней активности")
+
+        now = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+        lines.append(f"\n🕐 {now}")
+        self.telegram.send_message(chat_id, "\n".join(lines))
 
     def _events(self, chat_id: int) -> None:
         analytics = EventAnalytics()
