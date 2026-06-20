@@ -163,6 +163,7 @@ class CommandRouter:
             SystemButtons.WHOAMI: lambda context: self.system_handler.whoami(context.telegram_id, context.username),
             SystemButtons.CHATID: lambda context: self.system_handler.chatid(context.telegram_id),
             SystemButtons.EASY_START: lambda context: self.system_handler.easy_start(context.telegram_id),
+            SystemButtons.READINESS: lambda context: self.system_handler.readiness(context.telegram_id),
             # admin
             OwnerButtons.USERS: lambda context: self.menu_handler.user_menu(context.telegram_id),
             OwnerButtons.ADD_USER: lambda context: (
