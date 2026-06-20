@@ -6,14 +6,16 @@ def build_profile_menu() -> dict:
         "keyboard": [
             [
                 {"text": ProfileButtons.MY_PROFILE},
+            ],
+            [
                 {"text": ProfileButtons.DOWNLOAD_TEMPLATE},
-            ],
-            [
                 {"text": ProfileButtons.UPLOAD_TEMPLATE},
-                {"text": SignatureButtons.SIGNATURE_UPLOAD},
             ],
             [
+                {"text": SignatureButtons.SIGNATURE_UPLOAD},
                 {"text": SignatureButtons.SIGNATURE_DELETE},
+            ],
+            [
                 {"text": NavigationButtons.HOME},
             ],
         ],
