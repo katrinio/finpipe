@@ -1,9 +1,8 @@
 class InvoiceMenuButtons:
-    SET_INVOICE_AMOUNT = "💰 Указать сумму Invoice"
-    GET_INVOICE_AMOUNT = "💶 Текущая сумма Invoice"
-    GENERATE_INVOICE = "📄 Сгенерировать Salary Invoice"
+    SET_INVOICE_AMOUNT = "💰 Указать сумму"
+    GET_INVOICE_AMOUNT = "💶 Текущая сумма"
+    GENERATE_INVOICE = "📄 Создать инвойс"
     SEND_TO_COMPANY = "📤 Отправить компании"
-    SKIP_SEND = "Не сейчас"
 
 
 class InvoiceButtons(InvoiceMenuButtons):

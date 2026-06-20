@@ -7,4 +7,4 @@ class GmailButtons:
     GMAIL_CONNECT = "🔗 Подключить"
     GMAIL_CONNECT_INLINE = "🔗 Подключить Gmail"
     GMAIL_DISCONNECT = "❌ Отключить"
-    GMAIL_CLEAR_HISTORY = "🗑 Сбросить историю писем"
+    GMAIL_CLEAR_HISTORY = "🗑 Сбросить историю"

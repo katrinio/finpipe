@@ -60,6 +60,13 @@ class ProcessedMessage(BaseModel):
             session.commit()
 
     @classmethod
+    def unmark(cls, message_id: str) -> None:
+        """Снимает отметку обработанного письма, чтобы оно могло быть обработано снова."""
+        with cls.session() as session:
+            session.query(cls).filter(cls.message_id == message_id).delete()
+            session.commit()
+
+    @classmethod
     def clear_processed_message(cls) -> None:
         with cls.session() as session:
             session.query(cls).delete()
