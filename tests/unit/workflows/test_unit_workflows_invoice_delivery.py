@@ -21,27 +21,30 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 # ---------------------------------------------------------------------------
 
 
-def test_invoice_email_subject_format() -> None:
-    result = _invoice_email_subject("KATRIN TORSUNOVA", month=date(2026, 6, 1))
-    assert result == "Invoice jun'26 — Katrin Torsunova"
+@pytest.mark.parametrize(
+    ("name", "month", "expected"),
+    [
+        ("KATRIN TORSUNOVA", date(2026, 6, 1), "Invoice jun'26 — Katrin Torsunova"),
+        ("JOHN DOE", date(2026, 5, 15), "Invoice may'26 — John Doe"),
+    ],
+)
+def test_invoice_email_subject_format(name: str, month: date, expected: str) -> None:
+    assert _invoice_email_subject(name, month=month) == expected
 
 
-def test_invoice_email_subject_may() -> None:
-    result = _invoice_email_subject("JOHN DOE", month=date(2026, 5, 15))
-    assert result == "Invoice may'26 — John Doe"
-
-
-def test_invoice_email_body_contains_month_name_and_signature() -> None:
-    result = _invoice_email_body("KATRIN TORSUNOVA", "katrin@example.com", month=date(2026, 6, 1))
-    assert "июнь" in result
-    assert "Katrin Torsunova" in result
+@pytest.mark.parametrize(
+    ("name", "email", "month", "month_ru"),
+    [
+        ("KATRIN TORSUNOVA", "katrin@example.com", date(2026, 6, 1), "июнь"),
+        ("JOHN DOE", "john@example.com", date(2026, 5, 15), "май"),
+    ],
+)
+def test_invoice_email_body_contains_month_and_signature(name: str, email: str, month: date, month_ru: str) -> None:
+    result = _invoice_email_body(name, email, month=month)
+    assert month_ru in result
+    assert name.title() in result
     assert "С уважением" in result
-    assert "katrin@example.com" in result
-
-
-def test_invoice_email_body_may() -> None:
-    result = _invoice_email_body("JOHN DOE", "john@example.com", month=date(2026, 5, 15))
-    assert "май" in result
+    assert email in result
 
 
 # ---------------------------------------------------------------------------
