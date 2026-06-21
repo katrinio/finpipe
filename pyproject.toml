@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "invoice-automation"
-version = "0.1.0"
+version = "1.0.0"
 description = "Monthly salary invoice and bank PDF automation."
 authors = ["Katrin"]
 readme = "README.md"
