@@ -107,12 +107,13 @@ def test_send_bank_email_reply_body_thread_and_three_attachments(tmp_path: Path,
     monkeypatch.setattr(
         run_bank_request,
         "send_reply",
-        lambda telegram_id, thread_id, to_email, subject, body, attachments: GmailSender(telegram_id=telegram_id, service=service).send_reply(
+        lambda telegram_id, thread_id, to_email, subject, body, attachments, cc="": GmailSender(telegram_id=telegram_id, service=service).send_reply(
             thread_id=thread_id,
             to_email=to_email,
             subject=subject,
             body=body,
             attachments=attachments,
+            cc=cc,
         ),
     )
 
