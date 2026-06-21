@@ -4,20 +4,6 @@ from src.integrations.telegram.ui.buttons import (
 )
 
 
-def build_admin_menu() -> dict:
-    return {
-        "keyboard": [
-            [
-                {"text": OwnerButtons.USERS},
-            ],
-            [
-                {"text": NavigationButtons.HOME},
-            ],
-        ],
-        "resize_keyboard": True,
-    }
-
-
 def build_users_menu() -> dict:
     return {
         "keyboard": [

@@ -132,7 +132,7 @@ class CommandRouter:
             MainMenuButtons.INTEGRATIONS: lambda context: self.menu_handler.gmail_menu(context.telegram_id),
             MainMenuButtons.PROFILE: lambda context: self.menu_handler.settings_menu(context.telegram_id),
             MainMenuButtons.SYSTEM: lambda context: self.menu_handler.system_menu(context.telegram_id),
-            OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.admin_menu(context.telegram_id),
+            OwnerButtons.ADMIN_PANEL: lambda context: self.menu_handler.user_menu(context.telegram_id),
             NavigationButtons.HOME: lambda context: self.menu_handler.main_menu(context.telegram_id),
             MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents

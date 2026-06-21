@@ -6,7 +6,7 @@ from src.integrations.telegram.ui.buttons import (
     NavigationButtons,
     OwnerButtons,
 )
-from src.integrations.telegram.ui.menu.admin_menu import build_admin_menu, build_users_menu
+from src.integrations.telegram.ui.menu.admin_menu import build_users_menu
 from src.integrations.telegram.ui.menu.document_menu import (
     build_document_menu,
     build_invoice_menu,
@@ -98,15 +98,6 @@ class MenuHandler:
             telegram_id,
             DocumentsMenuButtons.SALARY_INVOICE,
             reply_markup=build_invoice_menu(),
-        )
-
-    def admin_menu(self, telegram_id: int) -> None:
-        """Открывает раздел админа (доступен только овнеру)."""
-
-        self.telegram.send_message(
-            telegram_id,
-            OwnerButtons.ADMIN_PANEL,
-            reply_markup=build_admin_menu(),
         )
 
     def user_menu(self, telegram_id: int) -> None:
