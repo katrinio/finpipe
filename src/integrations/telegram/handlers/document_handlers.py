@@ -78,7 +78,9 @@ class DocumentHandlers:
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_invoice_menu())
             return
         LOGGER.info("Salary invoice generated for Telegram user %s", telegram_id)
-        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
+        company_profile = CompanyProfile.get_by_owner(telegram_id)
+        company_email = company_profile.company_email if company_profile and company_profile.company_email else None
+        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", company_email or "")
         self.telegram.send_message(
             telegram_id, InvoiceMessages.Generation.SEND_PROMPT.format(to_email), reply_markup=build_invoice_send_prompt_menu()
         )
