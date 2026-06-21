@@ -66,6 +66,38 @@ class ProcessedMessage(BaseModel):
             session.query(cls).filter(cls.message_id == message_id).delete()
             session.commit()
 
+    # --- Двухуровневая система статусов ---
+    # delivered:{tid}:{msgid} — крон уведомил пользователя (больше не беспокоить)
+    # processed:{msgid}       — банковский день обработал письмо (не запускать повторно)
+
+    @classmethod
+    def _delivered_key(cls, telegram_id: int, message_id: str) -> str:
+        return f"delivered:{telegram_id}:{message_id}"
+
+    @classmethod
+    def _processed_key(cls, message_id: str) -> str:
+        return f"processed:{message_id}"
+
+    @classmethod
+    def mark_delivered(cls, telegram_id: int, message_id: str) -> None:
+        cls.mark_as_processed(cls._delivered_key(telegram_id, message_id))
+
+    @classmethod
+    def is_delivered(cls, telegram_id: int, message_id: str) -> bool:
+        return cls.is_processed(cls._delivered_key(telegram_id, message_id))
+
+    @classmethod
+    def mark_bank_day_processed(cls, message_id: str) -> None:
+        cls.mark_as_processed(cls._processed_key(message_id))
+
+    @classmethod
+    def is_bank_day_processed(cls, message_id: str) -> bool:
+        return cls.is_processed(cls._processed_key(message_id))
+
+    @classmethod
+    def unmark_bank_day_processed(cls, message_id: str) -> None:
+        cls.unmark(cls._processed_key(message_id))
+
     @classmethod
     def clear_processed_message(cls) -> None:
         with cls.session() as session:

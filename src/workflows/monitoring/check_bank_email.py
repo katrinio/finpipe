@@ -19,14 +19,6 @@ LOGGER = logging.getLogger(__name__)
 _CHECK_DAY_FROM = 2
 _CHECK_DAY_TO = 6
 
-# Префикс маркера в ProcessedMessage — не конфликтует с реальными message_id банка.
-# Сбрасывается вместе с историей писем через «Сбросить историю писем».
-_NOTIFY_PREFIX = "notify"
-
-
-def _notification_key(telegram_id: int, message_id: str) -> str:
-    return f"{_NOTIFY_PREFIX}:{telegram_id}:{message_id}"
-
 
 def _is_check_period(today: date | None = None) -> bool:
     today = today or date.today()
@@ -49,8 +41,7 @@ def check_user(telegram_id: int, telegram: TelegramClient) -> bool:
         LOGGER.info("Bank email not found for Telegram user %s", telegram_id)
         return False
 
-    notify_key = _notification_key(telegram_id, bank_email.message_id)
-    if ProcessedMessage.is_processed(notify_key):
+    if ProcessedMessage.is_delivered(telegram_id, bank_email.message_id):
         LOGGER.info("Already notified Telegram user %s about bank email %s", telegram_id, bank_email.message_id)
         return False
 
@@ -60,10 +51,10 @@ def check_user(telegram_id: int, telegram: TelegramClient) -> bool:
         f"От: {bank_email.sender}\n"
         f"Тема: {bank_email.subject}\n"
         f"Дата: {bank_email.date}\n\n"
-        "Нажми «Подтверждение для банка» чтобы обработать."
+        "Перейди в 📄 Документы → 🏦 Банковский день чтобы обработать."
     )
     telegram.send_message(telegram_id, message)
-    ProcessedMessage.mark_as_processed(notify_key)
+    ProcessedMessage.mark_delivered(telegram_id, bank_email.message_id)
     return True
 
 

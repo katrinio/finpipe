@@ -17,25 +17,25 @@ fetch_bank_email = importlib.import_module("src.workflows.tasks.fetch_bank_email
 
 
 class FakeProcessedMessage:
-    processed_ids: set[str] = set()
+    bank_day_processed_ids: set[str] = set()
     is_processed_calls: list[str] = []
     mark_calls: list[str] = []
 
     @classmethod
     def reset(cls) -> None:
-        cls.processed_ids = set()
+        cls.bank_day_processed_ids = set()
         cls.is_processed_calls = []
         cls.mark_calls = []
 
     @classmethod
-    def is_processed(cls, message_id: str) -> bool:
+    def is_bank_day_processed(cls, message_id: str) -> bool:
         cls.is_processed_calls.append(message_id)
-        return message_id in cls.processed_ids
+        return message_id in cls.bank_day_processed_ids
 
     @classmethod
-    def mark_as_processed(cls, message_id: str) -> None:
+    def mark_bank_day_processed(cls, message_id: str) -> None:
         cls.mark_calls.append(message_id)
-        cls.processed_ids.add(message_id)
+        cls.bank_day_processed_ids.add(message_id)
 
 
 def build_bank_email(message_id: str = "message-123") -> BankEmail:
@@ -61,7 +61,7 @@ def test_process_bank_email_workflow_returns_when_no_email(monkeypatch: pytest.M
 
     assert result is None
     assert calls == []
-    assert FakeProcessedMessage.is_processed_calls == []
+    assert FakeProcessedMessage.is_processed_calls == []  # no check — email not found
     assert FakeProcessedMessage.mark_calls == []
 
 
@@ -69,7 +69,7 @@ def test_process_bank_email_workflow_skips_processed_email(monkeypatch: pytest.M
     calls: list[str] = []
     bank_email = build_bank_email()
     FakeProcessedMessage.reset()
-    FakeProcessedMessage.processed_ids = {bank_email.message_id}
+    FakeProcessedMessage.bank_day_processed_ids = {bank_email.message_id}
 
     monkeypatch.setattr(fetch_bank_email, "get_gmail_service", lambda _tid: object())
     monkeypatch.setattr(fetch_bank_email, "find_bank_email", lambda _service, **_kwargs: bank_email)
@@ -102,7 +102,6 @@ def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch: 
     assert result == ("attachments/bank-form.pdf", bank_email)
     assert calls == [("download", "message-123")]
     assert "message-123" in FakeProcessedMessage.mark_calls
-    assert any("notify" in key for key in FakeProcessedMessage.mark_calls)
 
 
 def test_process_bank_email_workflow_does_not_mark_without_pdf(monkeypatch: pytest.MonkeyPatch) -> None:

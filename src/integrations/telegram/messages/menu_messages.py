@@ -1,14 +1,7 @@
 class MenuMessages:
     MAIN_MENU = "🏠 Главное меню"
 
-    class Sections:
-        DOCUMENTS = "📄 Документы"
-        SIGNATURE = "✍️ Подпись"
-        GMAIL = "📧 Gmail"
-
     class System:
-        SETTINGS = "⚙️ Настройки"
-        STATUS = "ℹ️ Статус"
         ONBOARDING = (
             "👋 Привет! Это Finpipe — бот для автоматизации документооборота.\n\n"
             "Перед первым использованием нужно один раз заполнить профиль. Это займёт 2–3 минуты.\n\n"

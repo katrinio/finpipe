@@ -55,8 +55,8 @@ def fetch_bank_email_workflow(
         LOGGER.info("No bank emails found")
         return None
 
-    if ProcessedMessage.is_processed(bank_email.message_id):
-        LOGGER.info("Bank email already processed: %s", bank_email.message_id)
+    if ProcessedMessage.is_bank_day_processed(bank_email.message_id):
+        LOGGER.info("Bank email already processed by bank day: %s", bank_email.message_id)
         return None
 
     LOGGER.info("Processing bank email: %s", bank_email.message_id)
@@ -66,14 +66,8 @@ def fetch_bank_email_workflow(
         LOGGER.warning("Skipping processed marker because no PDF attachment was downloaded")
         return None
 
-    ProcessedMessage.mark_as_processed(bank_email.message_id)
-    # Также ставим notify-метку, чтобы мониторинг не присылал повторное уведомление
-    # после того как банковский день уже обработал это письмо.
-    if telegram_id is not None:
-        from src.workflows.monitoring.check_bank_email import _notification_key
-
-        ProcessedMessage.mark_as_processed(_notification_key(telegram_id, bank_email.message_id))
-    LOGGER.info("Marked bank email as processed: %s", bank_email.message_id)
+    ProcessedMessage.mark_bank_day_processed(bank_email.message_id)
+    LOGGER.info("Marked bank email as bank-day-processed: %s", bank_email.message_id)
     return attachment_path, bank_email
 
 
