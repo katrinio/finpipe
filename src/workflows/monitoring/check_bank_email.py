@@ -60,7 +60,7 @@ def check_user(telegram_id: int, telegram: TelegramClient) -> bool:
         f"От: {bank_email.sender}\n"
         f"Тема: {bank_email.subject}\n"
         f"Дата: {bank_email.date}\n\n"
-        "Нажми «Подтверждение для банка» чтобы обработать."
+        "Перейди в 📄 Документы → 🏦 Банковский день чтобы обработать."
     )
     telegram.send_message(telegram_id, message)
     ProcessedMessage.mark_as_processed(notify_key)

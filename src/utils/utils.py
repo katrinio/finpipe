@@ -47,18 +47,6 @@ class Utils:
         return fake.sentence() if fake is not None else "Test sentence."
 
     @staticmethod
-    def generate_iban() -> str:
-        """Генерирует тестовый IBAN."""
-
-        return fake.iban() if fake is not None else "RS35123456789012345678"
-
-    @staticmethod
-    def format_status(value: str) -> str:
-        """Преобразует внутренний статус в текст для отчёта."""
-
-        return "SUCCESS" if value == "success" else "FAILURE"
-
-    @staticmethod
     def parse_iso_date(value: str | datetime.date | None) -> datetime.date | None:
         """Преобразует ISO-дату в datetime.date."""
 
