@@ -26,14 +26,12 @@ Monitoring chat используется для:
        ▼
   EventLogger ──► app_events (PostgreSQL)
        │
-       ▼
-  monitoring handlers
+       ├── WARNING / ERROR ──► Telegram monitoring chat (сразу)
        │
-       ▼
-  Telegram monitoring chat
+       └── INFO ──── только в БД (читается через /events, /stats)
 ```
 
-Таблица `app_events` — единый журнал событий системы.
+Таблица `app_events` — единый журнал всех событий системы.
 
 ---
 
@@ -44,24 +42,23 @@ Monitoring chat используется для:
 | 1 | `MONITORING_CHAT_ID` (если задан) |
 | 2 | `BOT_OWNER_TELEGRAM_ID` (fallback) |
 
+В чат попадают только события с severity **WARNING** и **ERROR**.  
+INFO-события (штатная генерация документов, обновление настроек) хранятся только в БД.
+
+| В чат | Только в БД |
+|---|---|
+| Ошибки обработки команд | Генерация документов |
+| Ошибки генерации документов | Обновление настроек пользователя |
+| Рестарт бота | |
+
 ---
 
 ## 📝 Формат уведомлений
 
-Каждое уведомление содержит:
-
-| Поле | Описание |
-|---|---|
-| `event_type` | Тип события |
-| `severity` | Уровень важности |
-| `details` | Дополнительные детали (если есть) |
-
-Пример:
-
 ```
-⚠️ document_generation_failed
-Severity: error
-Invoice template not found
+Monitoring event: document_generation_failed
+Severity: warning
+Details: {"document_type": "invoice", "error": "template not found"}
 ```
 
 ---
@@ -72,7 +69,7 @@ Invoice template not found
 
 | Команда | Описание |
 |---|---|
-| `/health` | Telegram API ✅/❌, БД + кол-во пользователей, время последней активности бота |
+| `/health` | Telegram API ✔️/❗, БД + кол-во пользователей, время последней активности бота |
 | `/events` | Последние 10 событий из `app_events` с временем и severity |
 | `/errors` | Последние 10 ошибок с временем, категорией, типом и сообщением |
 | `/stats` | Агрегированная статистика по типам событий и документам |
