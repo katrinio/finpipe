@@ -2,7 +2,6 @@ from src.integrations.telegram.messages.common_messages import MsgIcon
 
 
 class GmailMessages:
-    # TODO(vps): уточнить production-сообщения Gmail OAuth с учётом постоянного домена и поддержки пользователя.
     class Status:
         CONNECTED = MsgIcon.success("Gmail подключён.")
         NOT_CONNECTED = "🫥 Gmail не подключён."
