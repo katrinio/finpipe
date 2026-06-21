@@ -96,40 +96,55 @@ def format_stats(
 
 
 def format_recent_errors(errors: list[dict[str, object]]) -> str:
-    lines = ["🚨 Recent Errors", ""]
     if not errors:
         return "🚨 Recent Errors\n\n• no data"
 
+    blocks = ["🚨 Recent Errors"]
     for error in errors:
         created_at = error["created_at"]
         created = created_at.strftime("%Y-%m-%d %H:%M") if hasattr(created_at, "strftime") else str(created_at)
         details = error.get("details")
-        category = None
-        error_type = None
+        category = error_type = error_message = None
         if isinstance(details, dict):
             category = details.get("category")
             error_type = details.get("error_type")
-        lines.append(created)
-        lines.append(str(category or "uncategorized"))
-        lines.append(str(error_type or "UnknownError"))
-        lines.append("")
+            error_message = details.get("error_message")
+        block = "\n".join(
+            [
+                "─" * 20,
+                f"🕐 {created}",
+                f"📂 {category or 'uncategorized'}  •  {error_type or 'UnknownError'}",
+            ]
+        )
+        if error_message:
+            block += f"\n💬 {error_message}"
+        blocks.append(block)
 
-    return "\n".join(lines).rstrip()
+    return "\n".join(blocks)
 
 
 def format_recent_events(events: list[dict[str, object]]) -> str:
-    lines = ["📋 Recent Events", ""]
     if not events:
         return "📋 Recent Events\n\n• no data"
 
+    blocks = ["📋 Recent Events"]
     for event in events:
         created_at = event["created_at"]
         created = created_at.strftime("%Y-%m-%d %H:%M") if hasattr(created_at, "strftime") else str(created_at)
-        lines.append(f"{created}  [{event.get('severity', '')}]  {event.get('event_type', '')}")
+        severity = event.get("severity", "")
+        event_type = event.get("event_type", "")
+        block = "\n".join(
+            [
+                "─" * 20,
+                f"🕐 {created}  [{severity}]",
+                f"• {event_type}",
+            ]
+        )
         if event.get("details"):
-            lines.append(f"  {event['details']}")
+            block += f"\n  {event['details']}"
+        blocks.append(block)
 
-    return "\n".join(lines)
+    return "\n".join(blocks)
 
 
 def _top_items(mapping: dict[str, int], limit: int) -> list[tuple[str, int]]:

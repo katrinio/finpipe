@@ -42,6 +42,12 @@ class TelegramUpdate(BaseModel):
             return session.scalar(statement)
 
     @classmethod
+    def get_last_processed_at(cls) -> datetime | None:
+        with cls.session() as session:
+            statement = select(cls.processed_at).order_by(cls.update_id.desc()).limit(1)
+            return session.scalar(statement)
+
+    @classmethod
     def mark_processed(cls, update_id: int) -> None:
         with cls.session() as session:
             session.add(cls(update_id=update_id))

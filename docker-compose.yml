@@ -23,6 +23,7 @@ services:
   finpipe-bot:
     build: .
     restart: unless-stopped
+    container_name: finpipe-bot
 
     command: python -m src.integrations.telegram.bot
 
@@ -31,10 +32,12 @@ services:
 
     environment:
       DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
+      CONTAINER_NAME: finpipe-bot
 
     volumes:
       - ~/finpipe-secrets/credentials.json:/app/credentials.json:ro
       - ~/finpipe-secrets/token.json:/app/token.json:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
     depends_on:
       postgres:

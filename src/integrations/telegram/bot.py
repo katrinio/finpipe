@@ -430,7 +430,7 @@ def main() -> None:
     bootstrap_primary_admin()
     bot = TelegramBot(storage)
     register_monitoring_notifications(bot.telegram)
-    EventLogger.log(EventType.BOT_STARTED, EventSeverity.INFO, {"component": "telegram_bot"})
+    EventLogger.log(EventType.BOT_STARTED, EventSeverity.WARNING, {"component": "telegram_bot"})
 
     LOGGER.info("Starting Telegram listener loop")
     while True:

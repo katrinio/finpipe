@@ -35,7 +35,7 @@ class MsgIcon:
 
     @staticmethod
     def status(is_ready: bool) -> str:
-        return "✅" if is_ready else "❌"
+        return "✔️" if is_ready else "❗"
 
 
 class CommonMessages:

@@ -50,6 +50,7 @@ def register_monitoring_notifications(telegram: TelegramClient) -> None:
     from src.services.monitoring.event_logger import EventLogger
 
     def handler(event_type: EventType, severity: EventSeverity, details: str | None) -> None:
-        send_monitoring_message(telegram, build_monitoring_message(event_type, severity, details))
+        if severity in (EventSeverity.WARNING, EventSeverity.ERROR):
+            send_monitoring_message(telegram, build_monitoring_message(event_type, severity, details))
 
     EventLogger.register_handler(handler)
