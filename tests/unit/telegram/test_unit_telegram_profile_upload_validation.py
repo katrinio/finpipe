@@ -38,9 +38,11 @@ bic: TESTRSBG
 """,
     )
 
-    assert telegram_client.sent_messages == [
-        "✅ Профиль успешно загружен.\nКомпания: Test Company\nБанк: Test Bank",
-    ]
+    assert len(telegram_client.sent_messages) == 2
+    assert "✅" in telegram_client.sent_messages[0]
+    assert "👤 Профиль" in telegram_client.sent_messages[1]
+    assert "Test Company" in telegram_client.sent_messages[1]
+    assert "Test Bank" in telegram_client.sent_messages[1]
     assert CompanyProfile.get_by_owner(123) is not None
     assert BankDetails.get_by_owner(123) is not None
 

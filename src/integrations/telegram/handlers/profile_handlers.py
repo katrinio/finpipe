@@ -48,19 +48,9 @@ class ProfileHandlers:
             return
 
         self.state_service.clear_state(telegram_id)
-        company_profile = CompanyProfile.get_by_owner(telegram_id)
-        bank_details = BankDetails.get_by_owner(telegram_id)
-        if company_profile is None or bank_details is None:
-            LOGGER.warning("Profile template upload completed without persisted profile for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, ProfileMessages.Upload.UPDATED, reply_markup=build_profile_menu())
-            return
-
         LOGGER.info("Profile template uploaded for Telegram user %s", telegram_id)
-        self.telegram.send_message(
-            telegram_id,
-            ProfileMessages.Upload.UPLOADED.format(company_profile.company_name, bank_details.bank_name),
-            reply_markup=build_profile_menu(),
-        )
+        self.telegram.send_message(telegram_id, ProfileMessages.Upload.UPDATED, reply_markup=build_profile_menu())
+        self.telegram.send_message(telegram_id, self._build_profile_text(telegram_id), reply_markup=build_profile_menu())
 
     def upload_template(self, telegram_id: int) -> None:
         """Переводит пользователя в режим загрузки YAML-профиля."""
@@ -76,10 +66,9 @@ class ProfileHandlers:
         self.telegram.send_document(telegram_id, document_path=Dir.PROFILE_TEMPLATE)
         self.telegram.send_message(telegram_id, ProfileMessages.Upload.TEMPLATE_SENT, reply_markup=build_profile_menu())
 
-    def show_profile(self, telegram_id: int) -> None:
-        """Показывает сводку готовности профиля и его текущие значения."""
+    def _build_profile_text(self, telegram_id: int) -> str:
+        """Строит текст сводки профиля — статус разделов + значения полей."""
 
-        LOGGER.info("Profile screen requested by Telegram user %s", telegram_id)
         company_profile = CompanyProfile.get_by_owner(telegram_id)
         bank_details = BankDetails.get_by_owner(telegram_id)
         user_config = UserConfig.get_by_owner(telegram_id)
@@ -118,7 +107,7 @@ class ProfileHandlers:
             self.collect_missing_fields(company_fields) + self.collect_missing_fields(bank_fields) + self.collect_missing_fields(payment_fields)
         )
 
-        profile_parts = [
+        parts = [
             "👤 Профиль",
             "",
             f"🏢 Компания         {company_status}",
@@ -129,15 +118,9 @@ class ProfileHandlers:
         ]
 
         if missing_fields:
-            profile_parts.extend(
-                [
-                    "",
-                    "Не заполнено:",
-                    *(f"• {field_name}" for field_name in missing_fields),
-                ]
-            )
+            parts.extend(["", "Не заполнено:", *(f"• {f}" for f in missing_fields)])
 
-        profile_parts.extend(
+        parts.extend(
             [
                 "",
                 "🏢 Компания",
@@ -170,7 +153,13 @@ class ProfileHandlers:
             ]
         )
 
-        self.telegram.send_message(telegram_id, "\n".join(profile_parts), reply_markup=build_profile_menu())
+        return "\n".join(parts)
+
+    def show_profile(self, telegram_id: int) -> None:
+        """Показывает сводку готовности профиля и его текущие значения."""
+
+        LOGGER.info("Profile screen requested by Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, self._build_profile_text(telegram_id), reply_markup=build_profile_menu())
 
     @staticmethod
     def get_section_status(fields: Mapping[str, object | None]) -> str:
