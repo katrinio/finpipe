@@ -8,7 +8,6 @@ class ProfileMessages:
         )
         TEMPLATE_SENT = "📥 Шаблон профиля отправлен.\nЗаполните файл и загрузите его обратно."
         UPDATED = MsgIcon.success("Данные пользователя успешно обновлены.")
-        UPLOADED = MsgIcon.success("Профиль успешно загружен.\nКомпания: {0}\nБанк: {1}")
 
     class Validation:
         NOT_YAML = MsgIcon.error("Разрешены только YAML файлы.")

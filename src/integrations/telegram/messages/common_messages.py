@@ -40,27 +40,8 @@ class MsgIcon:
 
 class CommonMessages:
     class General:
-        WELCOME = "👋 Добро пожаловать в Finpipe!\nЛичный сервис для автоматизации документооборота.\n\n"
-
-        ABOUT = (
-            "🤖 Finpipe\n\n"
-            "Личный сервис для автоматизации документооборота.\n\n"
-            "Возможности:\n"
-            "• Генерация документов по шаблонам\n"
-            "• Заполнение банковских форм\n"
-            "• Хранение данных компании и реквизитов\n"
-            "• Шифрование и хранение электронной подписи\n"
-            "• Интеграция с Gmail\n"
-            "• Работа через Telegram\n\n"
-            "Версия: 0.1"
-        )
-
         HELP_HEADER = "📚 Доступные команды"
         WHOAMI_PREFIX = "👤 Информация о пользователе"
-
-    class Status:
-        PROJECT_RUNNING = "🟢 Finpipe работает."
-        TELEGRAM_API_OK = MsgIcon.success("Telegram API работает.")
 
     class Errors:
         ACCESS_DENIED = "⛔ У вас пока нет доступа к Finpipe.\nНажмите «Кто я» и отправьте свой Telegram ID владельцу бота."

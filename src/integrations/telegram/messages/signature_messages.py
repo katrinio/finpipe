@@ -3,7 +3,6 @@ from src.integrations.telegram.messages.common_messages import MsgIcon
 
 class SignatureMessages:
     class Status:
-        FOUND = MsgIcon.success("Подпись загружена.")
         NOT_FOUND = MsgIcon.warning("Подпись не найдена.")
 
     class Upload:

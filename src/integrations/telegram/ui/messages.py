@@ -1,7 +1,6 @@
 """Backward-compatible re-export of Telegram message constants."""
 
 from src.integrations.telegram.messages import (
-    AuditLogMessages,
     BankMessages,
     CommonMessages,
     GmailMessages,
@@ -14,8 +13,6 @@ from src.integrations.telegram.messages import (
 )
 
 __all__ = [
-    "AuditLogMessages",
-    "BankMessages",
     "BankMessages",
     "CommonMessages",
     "GmailMessages",
