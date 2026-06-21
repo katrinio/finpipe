@@ -204,7 +204,6 @@ class GmailOAuth:
                 env_client_id,
             )
 
-        # TODO(vps): хранить OAuth client id/secret в env/secret manager, а credentials.json оставить только для локального fallback.
         credentials_path = EnvVar.get_env_path("GMAIL_CREDENTIALS_PATH")
         try:
             raw_config = json.loads(credentials_path.read_text(encoding="utf-8"))

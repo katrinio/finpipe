@@ -2,36 +2,14 @@ from io import BytesIO
 from pathlib import Path
 
 from PIL import Image
-from pypdf import PdfReader
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from src.infrastructure.document import PdfGetPageSize
 from src.services.signing.context import PdfSignaturePosition
 from src.utils.credentials import LOGGER
 
 
 class PdfSigner:
-    @classmethod
-    def sign(cls, input_pdf: Path, signature: Path, position: PdfSignaturePosition) -> None:
-        reader = PdfReader(str(input_pdf))
-        page = reader.pages[0]
-
-        packet = BytesIO()
-        overlay = canvas.Canvas(packet, pagesize=PdfGetPageSize.get_page_size(page))
-
-        cls.draw_signature(
-            pdf_canvas=overlay,
-            signature=signature,
-            position=position,
-        )
-
-        overlay.save()
-        packet.seek(0)
-
-        # TODO: merge overlay with source PDF
-        # TODO: save result to output_pdf
-
     @classmethod
     def draw_signature(
         cls,

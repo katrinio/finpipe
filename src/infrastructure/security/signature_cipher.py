@@ -16,9 +16,6 @@ class SignatureCipher:
 
     @classmethod
     def _get_cipher(cls) -> Fernet:
-        # TODO(HIGH):
-        # Подпись шифруется корректно, но сам encrypted-артефакт и его путь всё равно нужно проверить перед VPS deployment.
-        # Здесь важно ещё раз пройтись по тому, какие данные сохраняются в БД и какие файлы остаются на диске.
         if cls._cipher is None:
             try:
                 key = EnvVar.get_required_env("SIGNATURE_ENCRYPTION_KEY")

@@ -30,7 +30,6 @@ class GmailAccountService:
     ) -> None:
         """Сохраняет подключение Gmail и шифрует refresh token."""
 
-        # TODO(vps): закрепить SIGNATURE_ENCRYPTION_KEY как постоянный secret и описать процедуру ротации ключа.
         encrypted_token = TokenCipher.encrypt(refresh_token)
 
         GmailAccount.update_gmail_credentials(

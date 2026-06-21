@@ -1,86 +1,84 @@
-# 🚀 Finpipe
+# Finpipe
 
-Finpipe — сервис для автоматизации Salary Invoice, Bank Confirmation, Conversion Order и Gmail-сценариев через Telegram.
-
-Вырос из набора локальных скриптов в единый сервис с PostgreSQL-хранилищем, Telegram-ботом и Gmail-интеграцией.
+Персональный сервис для автоматизации документооборота ИП: генерация Salary Invoice, Bank Confirmation, Conversion Order, интеграция с Gmail и Telegram-бот для управления всем из чата.
 
 ---
 
-## ✨ Возможности
+## Возможности
 
-### 📄 Документы
+### Документы
 
 | Документ | Описание |
 |---|---|
-| Salary Invoice | Генерация счёта на оплату с подстановкой профиля |
-| Bank Confirmation | Подтверждение для банка с подписью |
+| Salary Invoice | Счёт на оплату с подстановкой профиля и подписи |
+| Bank Confirmation | Подтверждение для банка с электронной подписью |
 | Conversion Order | Поручение на конвертацию с подписью |
 
-### 📧 Gmail
+### Банковский день
 
-- Подключение Gmail-аккаунта через OAuth
-- Поиск входящих банковских писем (текущий месяц)
-- Скачивание PDF-вложений
-- Отправка ответных писем через Gmail API
+Один сценарий закрывает весь цикл банковского платежа:
+1. Поиск письма банка в Gmail
+2. Извлечение суммы из PDF
+3. Генерация Bank Confirmation, Conversion Order и Salary Invoice
+4. Отправка документов в Telegram
+5. Ответ банку с документами в копии
 
-### 🤖 Telegram
+### Gmail
 
-- Управление профилем работодателя и реквизитами
-- Загрузка и хранение электронной подписи
-- Генерация документов прямо из чата
-- Подключение и диагностика Gmail
-- Статус системы и аудит
+- OAuth-авторизация
+- Поиск входящих банковских писем
+- Отправка ответов с вложениями через Gmail API
 
----
+### Telegram
 
-## 🗄️ База данных
-
-Finpipe использует PostgreSQL.
-
-```env
-DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
-```
+- Управление профилем работодателя и банковскими реквизитами
+- Загрузка и хранение электронной подписи (зашифрована)
+- Генерация документов из чата
+- Мониторинговый чат с диагностическими командами
 
 ---
 
-## 🐳 Docker
+## Стек
 
-| Режим | Команда |
-|---|---|
-| Локально (с проброшенными портами) | `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d` |
-| Прод | `docker compose up -d` |
-
-Доступные порты при локальном запуске:
-
-| Сервис | Порт |
-|---|---|
-| PostgreSQL | `localhost:5433` |
-| Web (FastAPI) | `localhost:8000` |
+- Python 3.14, Poetry
+- PostgreSQL + SQLAlchemy + Alembic
+- Telegram Bot API (polling)
+- Gmail API (OAuth 2.0)
+- Docker Compose
 
 ---
 
-## ⚡ Quick Start
+## Быстрый старт
 
 ```bash
-# 1. Установить зависимости
 poetry install
-
-# 2. Подготовить .env
 cp .env.dist .env
-
-# 3. Применить миграции и создать owner
+# заполнить .env
 ./scripts/setup_database.sh
-
-# 4. Запустить Telegram-бота
 poetry run python src/integrations/telegram/bot.py
+```
 
-# 5. (Опционально) FastAPI для Gmail OAuth
-poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
+Для Gmail OAuth (локально):
+
+```bash
+./scripts/start_local_oauth_stack.sh
 ```
 
 ---
 
-## 📚 Документация
+## Docker
+
+```bash
+# Прод
+docker compose up -d
+
+# Локально (с проброшенными портами)
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+```
+
+---
+
+## Документация
 
 | Раздел | Файл |
 |---|---|
@@ -88,7 +86,3 @@ poetry run uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
 | Gmail OAuth | [docs/oauth.md](docs/oauth.md) |
 | Хранение данных | [docs/storage.md](docs/storage.md) |
 | Мониторинг | [docs/monitoring.md](docs/monitoring.md) |
-| Telegram UI | [src/integrations/telegram/README.md](src/integrations/telegram/README.md) |
-| Storage ORM | [src/storage/README.md](src/storage/README.md) |
-| Workflows | [src/workflows/README.md](src/workflows/README.md) |
-| Тесты | [tests/README.md](tests/README.md) |

@@ -126,10 +126,6 @@ class ProfileTemplateService:
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
         """Сохраняет профиль компании и банковские реквизиты пользователя."""
 
-        # TODO(HIGH):
-        # Импорт сейчас делает полный upsert целиком.
-        # Для re-import сценариев нужно перейти на обновление только изменённых значений,
-        # чтобы не затирать пользовательские данные.
         with CompanyProfile.session() as session:
             company_profile = session.scalar(select(CompanyProfile).where(CompanyProfile.owner_telegram_id == telegram_id).limit(1))
             if company_profile is None:

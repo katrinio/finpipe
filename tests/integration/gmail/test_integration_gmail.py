@@ -21,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 
 @pytest.mark.skipif(
     os.getenv("RUN_GMAIL_E2E") != "true",
-    reason="Gmail E2E requires manual Google OAuth callback; set RUN_GMAIL_E2E=true to run",
+    reason="Использует реальный Gmail аккаунт и OAuth. Для ручной отладки: RUN_GMAIL_E2E=true pytest tests/integration/gmail/",
 )
 def test_gmail_integration() -> None:
     LOGGER.info("Проверяю настройки Gmail OAuth")

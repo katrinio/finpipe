@@ -160,8 +160,7 @@ def send_bank_email_reply(
         f"{account_holder_email}"
     )
 
-    # TODO: убрать после отладки — заменить на bank_email.sender
-    to_email = EnvVar.get_required_env("EMAIL_DRY_RUN_RECIPIENT")
+    to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", bank_email.sender)
 
     send_reply(
         telegram_id=telegram_id,

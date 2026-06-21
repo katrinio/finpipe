@@ -10,8 +10,6 @@ TUNNEL_TARGET_URL="http://127.0.0.1:${PORT}"
 TUNNEL_LOG="$(mktemp)"
 API_LOG="$(mktemp)"
 
-# TODO(vps): заменить локальный запуск через Cloudflare на systemd/docker-сервисы с постоянным HTTPS-доменом.
-
 cleanup() {
   for pid in "${BOT_PID:-}" "${API_PID:-}" "${CLOUDFLARED_PID:-}"; do
     if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then

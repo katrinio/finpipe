@@ -78,7 +78,9 @@ class DocumentHandlers:
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_invoice_menu())
             return
         LOGGER.info("Salary invoice generated for Telegram user %s", telegram_id)
-        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
+        company_profile = CompanyProfile.get_by_owner(telegram_id)
+        company_email = company_profile.company_email if company_profile and company_profile.company_email else None
+        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", company_email or "")
         self.telegram.send_message(
             telegram_id, InvoiceMessages.Generation.SEND_PROMPT.format(to_email), reply_markup=build_invoice_send_prompt_menu()
         )
@@ -172,7 +174,7 @@ class DocumentHandlers:
 
         LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE.format(f"{amount:.2f}"))
-        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
+        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", bank_email.sender)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_PROMPT.format(to_email), reply_markup=build_bank_day_reply_prompt_menu())
 
     def _fetch_bank_email(self, telegram_id: int) -> tuple[Path, BankEmail] | None:

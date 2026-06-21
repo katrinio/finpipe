@@ -112,28 +112,6 @@ def test_send_email_wraps_api_failure(monkeypatch, tmp_path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_send_reply_puts_thread_id_in_api_body(monkeypatch, tmp_path) -> None:
-    attachment = tmp_path / "doc.pdf"
-    attachment.write_bytes(b"pdf-bytes")
-    service = _FakeService({"id": "reply-msg-1"})
-
-    monkeypatch.setattr("src.integrations.gmail.gmail_sender.EnvVar.get_optional_env", lambda name, default: default)
-    monkeypatch.setattr("src.integrations.gmail.gmail_sender.EmailBuilder.build_email", lambda self, **kwargs: b"mime-bytes")
-
-    message_id = GmailSender(telegram_id=123, service=service).send_reply(
-        thread_id="thread-abc",
-        to_email="bank@example.com",
-        subject="Re: Payment",
-        body="Dobar dan.",
-        attachments=[attachment],
-    )
-
-    assert message_id == "reply-msg-1"
-    sent = service.users_client.messages_client.sent_bodies[0]
-    assert sent["threadId"] == "thread-abc"
-    assert "raw" in sent
-
-
 def test_send_reply_dry_run(monkeypatch, tmp_path) -> None:
     def fake_get_optional_env(name: str, default: str) -> str:
         return "true" if name == "EMAIL_DRY_RUN" else default

@@ -11,6 +11,7 @@ from src.integrations.telegram.client import TelegramClient
 from src.logging_config import configure_logging
 from src.services.invoice.context import build_invoice_period
 from src.storage.orm.user.bank_details import BankDetails
+from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
 from src.utils.files import delete_file
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf
@@ -73,8 +74,9 @@ def send_invoice_email(telegram_id: int) -> None:
     account_holder = bank_details.account_holder if bank_details else ""
     account_holder_email = bank_details.account_holder_email if bank_details else ""
 
-    # TODO: заменить на email компании из профиля или отдельного поля настроек
-    to_email = EnvVar.get_required_env("EMAIL_DRY_RUN_RECIPIENT")
+    company_profile = CompanyProfile.get_by_owner(telegram_id)
+    company_email = company_profile.company_email if company_profile and company_profile.company_email else None
+    to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", company_email or "")
     pdf_path = _current_invoice_pdf_path()
 
     try:

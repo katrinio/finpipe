@@ -17,5 +17,4 @@ class GmailOAuthSettings:
 
     @classmethod
     def get_callback_url(cls) -> str:
-        # TODO(vps): заменить временный Cloudflare callback на постоянный production URL.
         return EnvVar.get_optional_env("GMAIL_OAUTH_CALLBACK_URL", "http://localhost:8000/oauth/gmail/callback")
