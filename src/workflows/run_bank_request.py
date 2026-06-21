@@ -167,6 +167,7 @@ def send_bank_email_reply(
         telegram_id=telegram_id,
         thread_id=bank_email.thread_id,
         to_email=to_email,
+        cc=bank_email.cc,
         subject=f"Re: {bank_email.subject}",
         body=body,
         attachments=[docs.invoice_pdf, docs.bank_confirmation, docs.conversion_order],

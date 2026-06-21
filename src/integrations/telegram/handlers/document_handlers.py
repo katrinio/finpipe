@@ -239,6 +239,7 @@ class DocumentHandlers:
             thread_id=bank_email.thread_id,
             subject=bank_email.subject,
             sender=bank_email.sender,
+            cc=bank_email.cc,
             message_id=bank_email.message_id,
             invoice_pdf_path=str(invoice_pdf_path),
             bank_confirmation_path=str(bank_confirmation_path),
@@ -269,6 +270,7 @@ class DocumentHandlers:
                 date="",
                 message_id=pending.message_id,
                 thread_id=pending.thread_id,
+                cc=pending.cc,
             )
             docs = BankDocuments(
                 invoice_pdf=Path(pending.invoice_pdf_path),

@@ -12,7 +12,7 @@ from .gmail_models import BankEmail
 
 LOGGER = logging.getLogger(__name__)
 USER_ID = "me"
-METADATA_HEADERS = ("Subject", "From", "Date")
+METADATA_HEADERS = ("Subject", "From", "Date", "Cc")
 
 
 def _current_month_start() -> str:
@@ -147,6 +147,7 @@ def build_bank_email_result(message: dict[str, Any]) -> BankEmail:
         date=headers.get("date", ""),
         message_id=message["id"],
         thread_id=message["threadId"],
+        cc=headers.get("cc", ""),
     )
 
 
