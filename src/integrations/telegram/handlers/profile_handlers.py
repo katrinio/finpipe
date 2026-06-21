@@ -88,6 +88,7 @@ class ProfileHandlers:
         company_fields = {
             "company_name": company_profile.company_name if company_profile is not None else None,
             "company_address": company_profile.company_address if company_profile is not None else None,
+            "company_email": company_profile.company_email if company_profile is not None else None,
             "registration_number": company_profile.registration_number if company_profile is not None else None,
             "city": company_profile.city if company_profile is not None else None,
         }
@@ -142,6 +143,7 @@ class ProfileHandlers:
                 "🏢 Компания",
                 f"• {self.format_field(company_fields['company_name'])}",
                 f"• {self.format_field(company_fields['company_address'])}",
+                f"• Email бухгалтерии: {self.format_field(company_fields['company_email'])}",
                 f"• Регистрационный номер: {self.format_field(company_fields['registration_number'])}",
                 f"• Город: {self.format_field(company_fields['city'])}",
                 "",

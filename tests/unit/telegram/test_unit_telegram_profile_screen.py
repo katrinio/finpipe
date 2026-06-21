@@ -25,6 +25,7 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         owner_telegram_id=123,
         company_name="Acme Software LLC",
         company_address="123 Innovation Street, Belgrade, Serbia",
+        company_email="accounting@acme.com",
         registration_number="12345678",
         city="Belgrade",
         payment_number="97",
