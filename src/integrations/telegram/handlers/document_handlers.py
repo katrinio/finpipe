@@ -300,10 +300,7 @@ class DocumentHandlers:
             delete_file(Path(pending.bank_confirmation_path), LOGGER)
             delete_file(Path(pending.conversion_order_path), LOGGER)
             delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
-            from src.workflows.monitoring.check_bank_email import _notification_key
-
-            ProcessedMessage.unmark(pending.message_id)
-            ProcessedMessage.unmark(_notification_key(telegram_id, pending.message_id))
+            ProcessedMessage.unmark_bank_day_processed(pending.message_id)
             PendingBankReply.clear(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
 

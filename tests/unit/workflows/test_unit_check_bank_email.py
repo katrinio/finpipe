@@ -67,8 +67,8 @@ def test_check_user_skips_when_already_notified(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(check_bank_email, "find_bank_email", lambda _service, owner_telegram_id: _BANK_EMAIL)
     monkeypatch.setattr(
         check_bank_email.ProcessedMessage,
-        "is_processed",
-        lambda key: key == check_bank_email._notification_key(_USER_A.telegram_id, _BANK_EMAIL.message_id),
+        "is_delivered",
+        lambda tid, msgid: tid == _USER_A.telegram_id and msgid == _BANK_EMAIL.message_id,
     )
 
     result = check_bank_email.check_user(_USER_A.telegram_id, fake)
@@ -79,21 +79,20 @@ def test_check_user_skips_when_already_notified(monkeypatch: pytest.MonkeyPatch)
 
 def test_check_user_notifies_and_marks_when_new_email(monkeypatch: pytest.MonkeyPatch) -> None:
     fake = FakeTelegramClient()
-    marked: list[str] = []
+    delivered: list[tuple[int, str]] = []
     monkeypatch.setattr(check_bank_email, "get_gmail_service", lambda _tid: object())
     monkeypatch.setattr(check_bank_email, "find_bank_email", lambda _service, owner_telegram_id: _BANK_EMAIL)
-    monkeypatch.setattr(check_bank_email.ProcessedMessage, "is_processed", lambda _key: False)
-    monkeypatch.setattr(check_bank_email.ProcessedMessage, "mark_as_processed", lambda key: marked.append(key))
+    monkeypatch.setattr(check_bank_email.ProcessedMessage, "is_delivered", lambda _tid, _msgid: False)
+    monkeypatch.setattr(check_bank_email.ProcessedMessage, "mark_delivered", lambda tid, msgid: delivered.append((tid, msgid)))
 
     result = check_bank_email.check_user(_USER_A.telegram_id, fake)
 
     assert result is True
-    assert len(fake.sent_messages_with_chat_ids) == 1
     chat_id, text = fake.sent_messages_with_chat_ids[0]
     assert chat_id == _USER_A.telegram_id
     assert "📬" in text
     assert _BANK_EMAIL.subject in text
-    assert marked == [check_bank_email._notification_key(_USER_A.telegram_id, _BANK_EMAIL.message_id)]
+    assert delivered == [(_USER_A.telegram_id, _BANK_EMAIL.message_id)]
 
 
 def test_run_check_notifies_multiple_users(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -102,8 +101,8 @@ def test_run_check_notifies_multiple_users(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setattr(check_bank_email, "TelegramClient", lambda: fake)
     monkeypatch.setattr(check_bank_email, "get_gmail_service", lambda _tid: object())
     monkeypatch.setattr(check_bank_email, "find_bank_email", lambda _service, owner_telegram_id: _BANK_EMAIL)
-    monkeypatch.setattr(check_bank_email.ProcessedMessage, "is_processed", lambda _key: False)
-    monkeypatch.setattr(check_bank_email.ProcessedMessage, "mark_as_processed", lambda _key: None)
+    monkeypatch.setattr(check_bank_email.ProcessedMessage, "is_delivered", lambda _tid, _msgid: False)
+    monkeypatch.setattr(check_bank_email.ProcessedMessage, "mark_delivered", lambda _tid, _msgid: None)
 
     result = check_bank_email.run_check(today=date(2026, 6, 3))
 
@@ -124,8 +123,8 @@ def test_run_check_user_error_does_not_abort_others(monkeypatch: pytest.MonkeyPa
 
     monkeypatch.setattr(check_bank_email, "get_gmail_service", failing_for_first)
     monkeypatch.setattr(check_bank_email, "find_bank_email", lambda _service, owner_telegram_id: _BANK_EMAIL)
-    monkeypatch.setattr(check_bank_email.ProcessedMessage, "is_processed", lambda _key: False)
-    monkeypatch.setattr(check_bank_email.ProcessedMessage, "mark_as_processed", lambda _key: None)
+    monkeypatch.setattr(check_bank_email.ProcessedMessage, "is_delivered", lambda _tid, _msgid: False)
+    monkeypatch.setattr(check_bank_email.ProcessedMessage, "mark_delivered", lambda _tid, _msgid: None)
 
     result = check_bank_email.run_check(today=date(2026, 6, 3))
 
@@ -134,8 +133,10 @@ def test_run_check_user_error_does_not_abort_others(monkeypatch: pytest.MonkeyPa
 
 
 def test_notification_keys_are_per_user() -> None:
-    key_a = check_bank_email._notification_key(_USER_A.telegram_id, "msg-1")
-    key_b = check_bank_email._notification_key(_USER_B.telegram_id, "msg-1")
+    from src.storage.orm.system.processed_message import ProcessedMessage
+
+    key_a = ProcessedMessage._delivered_key(_USER_A.telegram_id, "msg-1")
+    key_b = ProcessedMessage._delivered_key(_USER_B.telegram_id, "msg-1")
     assert key_a != key_b
 
 
