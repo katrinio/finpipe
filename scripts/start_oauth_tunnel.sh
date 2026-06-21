@@ -8,7 +8,6 @@ PORT="${PORT:-8000}"
 TUNNEL_TARGET_URL="http://127.0.0.1:${PORT}"
 LOG_FILE="$(mktemp)"
 
-# TODO(vps): оставить Cloudflare Quick Tunnel только для локальной разработки после появления постоянного домена.
 
 cleanup() {
   if [[ -n "${CLOUDFLARED_PID:-}" ]] && kill -0 "${CLOUDFLARED_PID}" 2>/dev/null; then
