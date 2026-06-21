@@ -108,7 +108,7 @@ class DocumentHandlers:
 
         self.telegram.send_message(
             telegram_id,
-            f"💶 Текущая сумма Salary Invoice: {current_amount.invoice_amount_eur} EUR",
+            f"💶 Текущая сумма инвойса: {current_amount.invoice_amount_eur} EUR",
             reply_markup=build_invoice_menu(),
         )
 
@@ -239,6 +239,7 @@ class DocumentHandlers:
             thread_id=bank_email.thread_id,
             subject=bank_email.subject,
             sender=bank_email.sender,
+            cc=bank_email.cc,
             message_id=bank_email.message_id,
             invoice_pdf_path=str(invoice_pdf_path),
             bank_confirmation_path=str(bank_confirmation_path),
@@ -269,6 +270,7 @@ class DocumentHandlers:
                 date="",
                 message_id=pending.message_id,
                 thread_id=pending.thread_id,
+                cc=pending.cc,
             )
             docs = BankDocuments(
                 invoice_pdf=Path(pending.invoice_pdf_path),
@@ -298,7 +300,10 @@ class DocumentHandlers:
             delete_file(Path(pending.bank_confirmation_path), LOGGER)
             delete_file(Path(pending.conversion_order_path), LOGGER)
             delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
+            from src.workflows.monitoring.check_bank_email import _notification_key
+
             ProcessedMessage.unmark(pending.message_id)
+            ProcessedMessage.unmark(_notification_key(telegram_id, pending.message_id))
             PendingBankReply.clear(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())
 

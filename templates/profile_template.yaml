@@ -1,6 +1,7 @@
 # данные компании (наниматель ИП)
 company_name:
 company_address:
+company_email:
 service_agreement_date:
 registration_number:
 city:
@@ -8,6 +9,7 @@ city:
 # пример
 # company_name: Acme Software LLC
 # company_address: 123 Main Street, London, UK
+# company_email: accounting@acme.com
 # service_agreement_date: 2025-01-01
 # registration_number: 12345678
 # city: London

@@ -16,12 +16,15 @@ class EmailBuilder:
         subject: str,
         body: str,
         attachments: list[Path] | None = None,
+        cc: str = "",
     ) -> bytes:
         """Собирает MIME-письмо с plain text и вложениями."""
 
         message = MIMEMultipart()
         message["To"] = to_email
         message["Subject"] = subject
+        if cc:
+            message["Cc"] = cc
         message.attach(MIMEText(body, "plain", "utf-8"))
 
         for attachment_path in attachments or []:
@@ -46,7 +49,8 @@ def build_email(
     subject: str,
     body: str,
     attachments: list[Path] | None = None,
+    cc: str = "",
 ) -> bytes:
     """Собирает MIME-письмо через стандартный builder."""
 
-    return EmailBuilder().build_email(to_email=to_email, subject=subject, body=body, attachments=attachments)
+    return EmailBuilder().build_email(to_email=to_email, subject=subject, body=body, attachments=attachments, cc=cc)

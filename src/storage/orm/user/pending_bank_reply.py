@@ -18,6 +18,7 @@ class PendingBankReply(BaseModel):
     thread_id: Mapped[str] = mapped_column(String, nullable=False)
     subject: Mapped[str] = mapped_column(String, nullable=False)
     sender: Mapped[str] = mapped_column(String, nullable=False)
+    cc: Mapped[str] = mapped_column(String, nullable=False, server_default="")
     message_id: Mapped[str] = mapped_column(String, nullable=False)
     invoice_pdf_path: Mapped[str] = mapped_column(String, nullable=False)
     bank_confirmation_path: Mapped[str] = mapped_column(String, nullable=False)
@@ -31,6 +32,7 @@ class PendingBankReply(BaseModel):
         thread_id: str,
         subject: str,
         sender: str,
+        cc: str,
         message_id: str,
         invoice_pdf_path: str,
         bank_confirmation_path: str,
@@ -47,6 +49,7 @@ class PendingBankReply(BaseModel):
                     thread_id=thread_id,
                     subject=subject,
                     sender=sender,
+                    cc=cc,
                     message_id=message_id,
                     invoice_pdf_path=invoice_pdf_path,
                     bank_confirmation_path=bank_confirmation_path,

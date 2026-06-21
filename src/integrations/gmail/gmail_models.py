@@ -12,3 +12,4 @@ class BankEmail:
     date: str
     message_id: str
     thread_id: str
+    cc: str = ""

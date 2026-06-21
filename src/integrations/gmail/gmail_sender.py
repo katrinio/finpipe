@@ -85,6 +85,7 @@ class GmailSender:
         subject: str,
         body: str,
         attachments: list[Path] | None = None,
+        cc: str = "",
     ) -> str:
         """Отправляет ответ в существующий тред и возвращает Gmail message id."""
 
@@ -94,6 +95,8 @@ class GmailSender:
 
         LOGGER.info("Sending Gmail reply to thread %s", thread_id)
         LOGGER.info("Attachments count: %s", len(attachment_list))
+        if cc:
+            LOGGER.info("CC: %s", cc)
 
         if dry_run:
             LOGGER.info("EMAIL_DRY_RUN=true, reply will not be sent")
@@ -105,6 +108,7 @@ class GmailSender:
             subject=subject,
             body=body,
             attachments=attachment_list,
+            cc=cc,
         )
         encoded_message = base64.urlsafe_b64encode(raw_message).decode("utf-8")
 
@@ -166,6 +170,7 @@ def send_reply(
     subject: str,
     body: str,
     attachments: list[Path] | None = None,
+    cc: str = "",
 ) -> str:
     """Отправляет ответ в существующий тред через стандартный GmailSender."""
 
@@ -175,4 +180,5 @@ def send_reply(
         subject=subject,
         body=body,
         attachments=attachments,
+        cc=cc,
     )

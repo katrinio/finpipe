@@ -2,6 +2,7 @@ from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.commands import format_chatid, format_whoami
 from src.integrations.telegram.messages import MenuMessages, MsgIcon
 from src.integrations.telegram.ui.menu.guest_menu import build_guest_menu
+from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm import AllowedUser
@@ -25,7 +26,7 @@ class SystemHandlers:
     def whoami(self, telegram_id: int | None, username: str | None) -> None:
         if telegram_id is None:
             return
-        reply_markup = build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)) if AllowedUser.exists(telegram_id) else build_guest_menu()
+        reply_markup = build_profile_menu() if AllowedUser.exists(telegram_id) else build_guest_menu()
         self.telegram.send_message(telegram_id, format_whoami(telegram_id, username), reply_markup=reply_markup)
 
     def readiness(self, telegram_id: int) -> None:

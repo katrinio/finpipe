@@ -67,6 +67,12 @@ def fetch_bank_email_workflow(
         return None
 
     ProcessedMessage.mark_as_processed(bank_email.message_id)
+    # Также ставим notify-метку, чтобы мониторинг не присылал повторное уведомление
+    # после того как банковский день уже обработал это письмо.
+    if telegram_id is not None:
+        from src.workflows.monitoring.check_bank_email import _notification_key
+
+        ProcessedMessage.mark_as_processed(_notification_key(telegram_id, bank_email.message_id))
     LOGGER.info("Marked bank email as processed: %s", bank_email.message_id)
     return attachment_path, bank_email
 

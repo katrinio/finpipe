@@ -18,12 +18,12 @@ DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
 
 | Таблица | Что хранит |
 |---|---|
-| `company_profile` | Работодатель: название, адрес, регистрационный номер, город, дата договора |
+| `company_profile` | Работодатель: название, адрес, email бухгалтерии, регистрационный номер, город, дата договора |
 | `bank_details` | Реквизиты: IBAN, BIC, номер счёта, держатель, email, адрес |
 | `user_config` | Настройки: сумма Invoice, полученная сумма, сумма конвертации |
 | `signature` | Метаданные подписи + зашифрованные байты (`signature_data`) |
 | `gmail_account` | Gmail: зашифрованный refresh token, email, последняя ошибка |
-| `pending_bank_reply` | Отложенный ответ банку: thread_id, subject, sender + пути к 3 документам |
+| `pending_bank_reply` | Отложенный ответ банку: thread_id, subject, sender, cc + пути к 3 документам |
 
 ---
 
