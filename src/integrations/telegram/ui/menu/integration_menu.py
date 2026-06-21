@@ -10,7 +10,6 @@ def build_gmail_clear_history_confirm_menu() -> dict:
             ],
         ],
         "resize_keyboard": True,
-        "one_time_keyboard": True,
     }
 
 

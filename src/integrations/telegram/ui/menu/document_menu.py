@@ -15,7 +15,6 @@ def build_invoice_send_prompt_menu() -> dict:
             ],
         ],
         "resize_keyboard": True,
-        "one_time_keyboard": True,
     }
 
 
@@ -28,7 +27,6 @@ def build_bank_day_reply_prompt_menu() -> dict:
             ],
         ],
         "resize_keyboard": True,
-        "one_time_keyboard": True,
     }
 
 
@@ -41,7 +39,6 @@ def build_bank_day_start_menu() -> dict:
             ],
         ],
         "resize_keyboard": True,
-        "one_time_keyboard": True,
     }
 
 
