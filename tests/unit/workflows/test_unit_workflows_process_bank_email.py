@@ -101,7 +101,8 @@ def test_process_bank_email_workflow_downloads_and_marks_new_email(monkeypatch: 
 
     assert result == ("attachments/bank-form.pdf", bank_email)
     assert calls == [("download", "message-123")]
-    assert FakeProcessedMessage.mark_calls == ["message-123"]
+    assert "message-123" in FakeProcessedMessage.mark_calls
+    assert any("notify" in key for key in FakeProcessedMessage.mark_calls)
 
 
 def test_process_bank_email_workflow_does_not_mark_without_pdf(monkeypatch: pytest.MonkeyPatch) -> None:
