@@ -74,27 +74,29 @@ class ProfileHandlers:
         user_config = UserConfig.get_by_owner(telegram_id)
         signature_ready = Signature.is_usable(telegram_id)
 
+        cp = company_profile
+        bd = bank_details
         company_fields = {
-            "company_name": company_profile.company_name if company_profile is not None else None,
-            "company_address": company_profile.company_address if company_profile is not None else None,
-            "company_email": company_profile.company_email if company_profile is not None else None,
-            "registration_number": company_profile.registration_number if company_profile is not None else None,
-            "city": company_profile.city if company_profile is not None else None,
+            "company_name": getattr(cp, "company_name", None),
+            "company_address": getattr(cp, "company_address", None),
+            "company_email": getattr(cp, "company_email", None),
+            "registration_number": getattr(cp, "registration_number", None),
+            "city": getattr(cp, "city", None),
         }
         bank_fields = {
-            "account_holder": bank_details.account_holder if bank_details is not None else None,
-            "account_number": bank_details.account_number if bank_details is not None else None,
-            "iban": bank_details.iban if bank_details is not None else None,
-            "bic": bank_details.bic if bank_details is not None else None,
-            "bank_name": bank_details.bank_name if bank_details is not None else None,
-            "bank_confirmation_email_sender": bank_details.bank_confirmation_email_sender if bank_details is not None else None,
-            "bank_confirmation_email_recipient": bank_details.bank_confirmation_email_recipient if bank_details is not None else None,
-            "bank_confirmation_email_subject_contains": bank_details.bank_confirmation_email_subject_contains if bank_details is not None else None,
+            "account_holder": getattr(bd, "account_holder", None),
+            "account_number": getattr(bd, "account_number", None),
+            "iban": getattr(bd, "iban", None),
+            "bic": getattr(bd, "bic", None),
+            "bank_name": getattr(bd, "bank_name", None),
+            "bank_confirmation_email_sender": getattr(bd, "bank_confirmation_email_sender", None),
+            "bank_confirmation_email_recipient": getattr(bd, "bank_confirmation_email_recipient", None),
+            "bank_confirmation_email_subject_contains": getattr(bd, "bank_confirmation_email_subject_contains", None),
         }
         payment_fields = {
-            "payment_number": company_profile.payment_number if company_profile is not None else None,
-            "payment_code": company_profile.payment_code if company_profile is not None else None,
-            "payment_description": company_profile.payment_description if company_profile is not None else None,
+            "payment_number": getattr(cp, "payment_number", None),
+            "payment_code": getattr(cp, "payment_code", None),
+            "payment_description": getattr(cp, "payment_description", None),
         }
 
         company_status = self.get_section_status(company_fields)
