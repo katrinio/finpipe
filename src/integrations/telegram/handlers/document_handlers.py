@@ -174,7 +174,7 @@ class DocumentHandlers:
 
         LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE.format(f"{amount:.2f}"))
-        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
+        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", bank_email.sender)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_PROMPT.format(to_email), reply_markup=build_bank_day_reply_prompt_menu())
 
     def _fetch_bank_email(self, telegram_id: int) -> tuple[Path, BankEmail] | None:
