@@ -2,7 +2,7 @@ import logging
 import tempfile
 from pathlib import Path
 
-from src.infrastructure.security.exceptions import SignatureDecryptionError
+from src.integrations.gmail.gmail_models import BankEmail
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
@@ -33,7 +33,6 @@ from src.utils.files import delete_file
 from src.utils.utils import Utils
 from src.workflows.run_bank_request import BankDocuments, fetch_bank_email_workflow, send_bank_email_reply
 from src.workflows.run_invoice_delivery import discard_invoice_pdf, generate_and_send_invoice, send_invoice_email
-from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 
@@ -129,28 +128,6 @@ class DocumentHandlers:
         else:
             self.invoice_skip_send(telegram_id)
 
-    def bank_confirmation(self, telegram_id: int) -> None:
-        LOGGER.info("Bank confirmation generation requested by Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, BankMessages.Generation.IN_PROGRESS)
-
-        try:
-            bank_confirmation_path = generate_bank_confirmation(telegram_id)
-        except FileNotFoundError, SignatureDecryptionError:
-            LOGGER.info("Bank confirmation failed due to missing signature for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, BankMessages.Validation.SIGNATURE_REQUIRED, reply_markup=build_document_menu())
-            return
-        except BankPdfError as error:
-            LOGGER.info("Bank confirmation failed for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
-            return
-
-        LOGGER.info("Bank confirmation generated for Telegram user %s", telegram_id)
-        try:
-            self.telegram.send_document(telegram_id, bank_confirmation_path)
-        finally:
-            delete_file(bank_confirmation_path, LOGGER)
-        self.telegram.send_message(telegram_id, BankMessages.Generation.SENT, reply_markup=build_document_menu())
-
     def bank_day(self, telegram_id: int) -> None:
         """Банковский день: письмо банка → подтверждение + запрос на конвертацию → все три документа."""
 
@@ -163,37 +140,73 @@ class DocumentHandlers:
 
         self.telegram.send_message(telegram_id, BankMessages.BankDay.IN_PROGRESS)
 
-        # Шаг 1: получить оригинальный PDF из письма банка
+        fetch_result = self._fetch_bank_email(telegram_id)
+        if fetch_result is None:
+            return
+
+        bank_pdf_path, bank_email = fetch_result
+        try:
+            docs, amount = self._generate_bank_day_documents(telegram_id, bank_pdf_path)
+        except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError, InvoiceError) as error:
+            LOGGER.warning("Bank day workflow failed for Telegram user %s: %s", telegram_id, error)
+            self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
+            return
+        finally:
+            delete_file(bank_pdf_path, LOGGER)
+
+        self.telegram.send_document(telegram_id, docs.bank_confirmation)
+        self.telegram.send_document(telegram_id, docs.conversion_order)
+        self.telegram.send_document(telegram_id, docs.invoice_pdf)
+
+        PendingBankReply.save(
+            telegram_id=telegram_id,
+            thread_id=bank_email.thread_id,
+            subject=bank_email.subject,
+            sender=bank_email.sender,
+            cc=bank_email.cc,
+            message_id=bank_email.message_id,
+            invoice_pdf_path=str(docs.invoice_pdf),
+            bank_confirmation_path=str(docs.bank_confirmation),
+            conversion_order_path=str(docs.conversion_order),
+        )
+
+        LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE.format(f"{amount:.2f}"))
+        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
+        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_PROMPT.format(to_email), reply_markup=build_bank_day_reply_prompt_menu())
+
+    def _fetch_bank_email(self, telegram_id: int) -> tuple[Path, BankEmail] | None:
+        """Получает PDF письма банка. Возвращает (path, email) или None при ошибке/отсутствии."""
         try:
             fetch_result = fetch_bank_email_workflow(telegram_id=telegram_id)
         except RuntimeError as error:
             LOGGER.warning("Bank day: Gmail not configured for Telegram user %s: %s", telegram_id, error)
             self.telegram.send_message(telegram_id, BankMessages.Validation.BANK_EMAIL_NOT_CONFIGURED, reply_markup=build_document_menu())
-            return
+            return None
 
         if fetch_result is None:
             self.telegram.send_message(telegram_id, BankMessages.Search.NOT_FOUND, reply_markup=build_document_menu())
-            return
+            return None
 
-        bank_pdf_path, bank_email = fetch_result
+        return fetch_result
+
+    def _generate_bank_day_documents(self, telegram_id: int, bank_pdf_path: Path) -> tuple[BankDocuments, float]:
+        """Генерирует подтверждение, запрос конвертации и инвойс. Возвращает (BankDocuments, amount)."""
+        from src.workflows.run_bank_request import BankDocuments
 
         bank_confirmation_path: Path | None = None
         conversion_order_path: Path | None = None
         invoice_pdf_path: Path | None = None
-        amount: float = 0.0
 
         try:
-            # Шаг 2: извлечь сумму и сохранить в конфиге пользователя
             amount = extract_amount(bank_pdf_path)
             UserConfig.upsert(telegram_id=telegram_id, bank_received_amount_eur=amount)
             LOGGER.info("Bank day: extracted amount %.2f EUR for Telegram user %s", amount, telegram_id)
             self.telegram.send_message(telegram_id, BankMessages.BankDay.EMAIL_RECEIVED.format(f"{amount:.2f}"))
 
-            # Шаг 3: заполнить Bank Confirmation
             bank_confirmation_path = self._fill_bank_confirmation_pdf(telegram_id, bank_pdf_path, amount)
             self.telegram.send_message(telegram_id, BankMessages.BankDay.CONFIRMATION_READY)
 
-            # Шаг 4: сгенерировать Conversion Order на ту же сумму
             conversion_order_path = generate_conversion_order_pdf(
                 telegram_id=telegram_id,
                 invoice_amount_eur=None,
@@ -202,7 +215,6 @@ class DocumentHandlers:
             )
             self.telegram.send_message(telegram_id, BankMessages.BankDay.CONVERSION_READY)
 
-            # Шаг 5: сгенерировать инвойс за 20-е предыдущего месяца (для ответного письма)
             prev_month_20 = Utils.today().replace(day=20)
             if prev_month_20.month == 1:
                 prev_month_20 = prev_month_20.replace(year=prev_month_20.year - 1, month=12)
@@ -211,15 +223,7 @@ class DocumentHandlers:
             invoice_pdf_path = generate_invoice_pdf(telegram_id=telegram_id, invoice_date=prev_month_20)
             self.telegram.send_message(telegram_id, BankMessages.BankDay.INVOICE_READY)
 
-            # Шаг 6: отправить три документа в Telegram
-            self.telegram.send_document(telegram_id, bank_confirmation_path)
-            self.telegram.send_document(telegram_id, conversion_order_path)
-            self.telegram.send_document(telegram_id, invoice_pdf_path)
-
-        except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError, InvoiceError) as error:
-            LOGGER.warning("Bank day workflow failed for Telegram user %s: %s", telegram_id, error)
-            self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
-            delete_file(bank_pdf_path, LOGGER)
+        except Exception:
             if bank_confirmation_path is not None:
                 delete_file(bank_confirmation_path, LOGGER)
             if conversion_order_path is not None:
@@ -228,28 +232,13 @@ class DocumentHandlers:
             if invoice_pdf_path is not None:
                 delete_file(invoice_pdf_path, LOGGER)
                 delete_file(invoice_pdf_path.with_suffix(".docx"), LOGGER)
-            return
-        finally:
-            # Оригинальный PDF банка больше не нужен после Telegram-отправки
-            delete_file(bank_pdf_path, LOGGER)
+            raise
 
-        # Шаг 7: сохранить состояние для отложенного ответа банку
-        PendingBankReply.save(
-            telegram_id=telegram_id,
-            thread_id=bank_email.thread_id,
-            subject=bank_email.subject,
-            sender=bank_email.sender,
-            cc=bank_email.cc,
-            message_id=bank_email.message_id,
-            invoice_pdf_path=str(invoice_pdf_path),
-            bank_confirmation_path=str(bank_confirmation_path),
-            conversion_order_path=str(conversion_order_path),
-        )
-
-        LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
-        self.telegram.send_message(telegram_id, BankMessages.BankDay.DONE.format(f"{amount:.2f}"))
-        to_email = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
-        self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_PROMPT.format(to_email), reply_markup=build_bank_day_reply_prompt_menu())
+        return BankDocuments(
+            invoice_pdf=invoice_pdf_path,
+            bank_confirmation=bank_confirmation_path,
+            conversion_order=conversion_order_path,
+        ), amount
 
     def bank_day_reply_to_bank(self, telegram_id: int) -> None:
         LOGGER.info("Bank day reply to bank requested by Telegram user %s", telegram_id)
@@ -340,7 +329,7 @@ class DocumentHandlers:
             input_pdf=input_pdf,
             output_pdf=output_pdf,
             amount=amount,
-            date=Utils.today().isoformat(),
+            date=Utils.today().strftime("%d.%m.%Y"),
             company_profile=company_profile,
             bank_details=bank_details,
             signature=signature,
