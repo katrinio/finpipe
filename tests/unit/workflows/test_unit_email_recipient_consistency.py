@@ -9,29 +9,56 @@ from src.utils.credentials import EnvVar
 from src.workflows import run_bank_request, run_invoice_delivery
 
 
-def test_invoice_send_uses_same_recipient_as_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """send_invoice_email отправляет письмо на тот же email, что показан в промпте."""
-    recipient = "real-company@example.com"
-    monkeypatch.setenv("EMAIL_DRY_RUN_RECIPIENT", recipient)
+def test_invoice_uses_company_email_from_profile(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Без DRY_RUN_RECIPIENT инвойс уходит на company_email из профиля."""
+    monkeypatch.delenv("EMAIL_DRY_RUN_RECIPIENT", raising=False)
 
     fake_pdf = tmp_path / "invoice.pdf"
     fake_pdf.write_bytes(b"%PDF fake")
 
     captured: list[str] = []
 
+    company_email = "accounting@company.com"
+    mock_profile = MagicMock()
+    mock_profile.company_email = company_email
+
     with (
         patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=fake_pdf),
         patch.object(run_invoice_delivery, "BankDetails") as mock_bd,
+        patch.object(run_invoice_delivery, "CompanyProfile") as mock_cp,
         patch.object(run_invoice_delivery, "send_email", lambda **kwargs: captured.append(kwargs["to_email"])),
     ):
         mock_bd.get_by_owner.return_value = MagicMock(account_holder="Alice", account_holder_email="alice@co.com")
+        mock_cp.get_by_owner.return_value = mock_profile
         run_invoice_delivery.send_invoice_email(telegram_id=123)
 
-    assert captured == [recipient], f"Письмо ушло на '{captured}', а в промпте показывается '{recipient}'"
+    assert captured == [company_email], f"Ожидался '{company_email}', отправлено на '{captured}'"
 
-    # Убеждаемся что промпт тоже читает ту же переменную
-    prompt_recipient = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", "")
-    assert prompt_recipient == recipient
+
+def test_invoice_dry_run_recipient_overrides_company_email(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """DRY_RUN_RECIPIENT переопределяет company_email для тестирования."""
+    override = "test@override.com"
+    monkeypatch.setenv("EMAIL_DRY_RUN_RECIPIENT", override)
+
+    fake_pdf = tmp_path / "invoice.pdf"
+    fake_pdf.write_bytes(b"%PDF fake")
+
+    captured: list[str] = []
+
+    mock_profile = MagicMock()
+    mock_profile.company_email = "accounting@company.com"
+
+    with (
+        patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=fake_pdf),
+        patch.object(run_invoice_delivery, "BankDetails") as mock_bd,
+        patch.object(run_invoice_delivery, "CompanyProfile") as mock_cp,
+        patch.object(run_invoice_delivery, "send_email", lambda **kwargs: captured.append(kwargs["to_email"])),
+    ):
+        mock_bd.get_by_owner.return_value = MagicMock(account_holder="Alice", account_holder_email="alice@co.com")
+        mock_cp.get_by_owner.return_value = mock_profile
+        run_invoice_delivery.send_invoice_email(telegram_id=123)
+
+    assert captured == [override]
 
 
 def test_bank_reply_uses_same_recipient_as_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

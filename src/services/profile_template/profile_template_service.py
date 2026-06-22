@@ -59,6 +59,7 @@ class ProfileTemplateService:
         profile_data: dict[str, str | None] = {
             "company_name": None,
             "company_address": None,
+            "company_email": None,
             "registration_number": None,
             "city": None,
             "account_holder": None,
@@ -133,6 +134,7 @@ class ProfileTemplateService:
                     owner_telegram_id=telegram_id,
                     company_name=cls._require_text(profile.company_name),
                     company_address=cls._require_text(profile.company_address),
+                    company_email=profile.company_email,
                     registration_number=profile.registration_number,
                     city=profile.city,
                     service_agreement_date=cls._require_datetime(profile.service_agreement_date),
@@ -144,6 +146,7 @@ class ProfileTemplateService:
             else:
                 company_profile.company_name = cls._require_text(profile.company_name)
                 company_profile.company_address = cls._require_text(profile.company_address)
+                company_profile.company_email = profile.company_email
                 company_profile.registration_number = profile.registration_number
                 company_profile.city = profile.city
                 company_profile.service_agreement_date = cls._require_datetime(profile.service_agreement_date)

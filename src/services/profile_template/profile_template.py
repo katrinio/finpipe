@@ -16,6 +16,7 @@ class ProfileTemplate:
 
     company_name: str | None
     company_address: str | None
+    company_email: str | None
     account_holder: str | None
     account_holder_email: str | None
     account_holder_address: str | None
