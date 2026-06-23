@@ -10,7 +10,7 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
-def test_monitoring_chat_unknown_command_shows_help(monkeypatch) -> None:
+def test_monitoring_chat_unknown_command_is_ignored(monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
 
     telegram_client = FakeTelegramClient()
@@ -28,9 +28,7 @@ def test_monitoring_chat_unknown_command_shows_help(monkeypatch) -> None:
         }
     )
 
-    assert len(telegram_client.sent_messages) == 1
-    assert "❓" in telegram_client.sent_messages[0]
-    assert "/help" in telegram_client.sent_messages[0]
+    assert telegram_client.sent_messages == []
     assert bot.update_storage.processed == [31]
 
 
