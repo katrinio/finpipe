@@ -10,7 +10,7 @@ from tests.fakes.fake_telegram import FakeTelegramClient
 from tests.helpers.database import build_test_database_url, initialize_test_database
 
 
-def test_monitoring_chat_unknown_command_shows_help(monkeypatch) -> None:
+def test_monitoring_chat_unknown_command_is_ignored(monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
 
     telegram_client = FakeTelegramClient()
@@ -28,9 +28,7 @@ def test_monitoring_chat_unknown_command_shows_help(monkeypatch) -> None:
         }
     )
 
-    assert len(telegram_client.sent_messages) == 1
-    assert "❓" in telegram_client.sent_messages[0]
-    assert "/help" in telegram_client.sent_messages[0]
+    assert telegram_client.sent_messages == []
     assert bot.update_storage.processed == [31]
 
 
@@ -56,7 +54,7 @@ def test_monitoring_chat_plain_text_is_ignored(monkeypatch) -> None:
     assert bot.update_storage.processed == [31]
 
 
-def test_monitoring_chat_health_command_stays_in_monitoring_flow(monkeypatch) -> None:
+def test_monitoring_chat_chatid_command_stays_in_monitoring_flow(monkeypatch) -> None:
     monkeypatch.setenv("MONITORING_CHAT_ID", "-100123")
 
     telegram_client = FakeTelegramClient()
@@ -67,7 +65,7 @@ def test_monitoring_chat_health_command_stays_in_monitoring_flow(monkeypatch) ->
         {
             "update_id": 32,
             "message": {
-                "text": "/health",
+                "text": "/chatid",
                 "chat": {"id": -100123, "type": "group"},
                 "from": {"id": 249517409, "username": "owner"},
             },
@@ -75,7 +73,7 @@ def test_monitoring_chat_health_command_stays_in_monitoring_flow(monkeypatch) ->
     )
 
     assert telegram_client.sent_messages_with_chat_ids[-1][0] == -100123
-    assert telegram_client.sent_messages_with_chat_ids[-1][1].startswith("🏥 Health")
+    assert telegram_client.sent_messages_with_chat_ids[-1][1].startswith("Chat ID:")
     assert telegram_client.sent_messages[-1] != "🫥 Неизвестная команда."
     assert bot.update_storage.processed == [32]
 

@@ -92,6 +92,7 @@ class DocumentHandlers:
             send_invoice_email(telegram_id)
         except InvoiceError as error:
             LOGGER.warning("Invoice email sending failed for Telegram user %s", telegram_id)
+            EventLogger.log(EventType.INVOICE_SEND_FAILED, EventSeverity.ERROR, {"telegram_id": telegram_id, "error": str(error)})
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_invoice_menu())
             return
         LOGGER.info("Invoice email sent for Telegram user %s", telegram_id)
@@ -151,6 +152,7 @@ class DocumentHandlers:
             docs, amount = self._generate_bank_day_documents(telegram_id, bank_pdf_path)
         except (BankPdfError, FileNotFoundError, ValueError, TransferRequestError, InvoiceError) as error:
             LOGGER.warning("Bank day workflow failed for Telegram user %s: %s", telegram_id, error)
+            EventLogger.log(EventType.BANK_EMAIL_PROCESSING_FAILED, EventSeverity.ERROR, {"telegram_id": telegram_id, "error": str(error)})
             self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
             return
         finally:

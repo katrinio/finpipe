@@ -44,13 +44,23 @@ def build_monitoring_message(event_type: EventType, severity: EventSeverity, det
     return MonitoringEvent(event_type=event_type, severity=severity, details=details).format_message()
 
 
+# События которые летят в мониторинговый чат.
+# Grafana покрывает uptime и общие метрики — здесь только критические бизнес-события.
+_CHAT_EVENTS = {
+    EventType.INVOICE_SEND_FAILED,
+    EventType.BANK_EMAIL_PROCESSING_FAILED,
+    EventType.BACKUP_FAILED,
+    EventType.GMAIL_CONNECT_FAILED,
+}
+
+
 def register_monitoring_notifications(telegram: TelegramClient) -> None:
     """Подключает отправку мониторинговых уведомлений к EventLogger."""
 
     from src.services.monitoring.event_logger import EventLogger
 
     def handler(event_type: EventType, severity: EventSeverity, details: str | None) -> None:
-        if severity in (EventSeverity.WARNING, EventSeverity.ERROR):
+        if event_type in _CHAT_EVENTS:
             send_monitoring_message(telegram, build_monitoring_message(event_type, severity, details))
 
     EventLogger.register_handler(handler)

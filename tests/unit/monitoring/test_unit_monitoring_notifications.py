@@ -19,7 +19,25 @@ def test_monitoring_chat_id_falls_back_to_owner(monkeypatch) -> None:
     assert get_monitoring_chat_id() == 777
 
 
-def test_bot_started_notification_is_sent_to_monitoring_chat(monkeypatch) -> None:
+def test_backup_failed_is_sent_to_monitoring_chat(monkeypatch) -> None:
+    monkeypatch.delenv("MONITORING_CHAT_ID", raising=False)
+    monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+
+    telegram = FakeTelegramClient()
+    monkeypatch.setattr(EventLogger, "_handlers", [])
+    monkeypatch.setattr(app_events.AppEvent, "create", classmethod(lambda cls, **kwargs: None))
+
+    register_monitoring_notifications(telegram)
+
+    EventLogger.log(EventType.BACKUP_FAILED, EventSeverity.ERROR, {"error": "pg_dump failed"})
+
+    assert len(telegram.sent_messages_with_chat_ids) == 1
+    chat_id, text = telegram.sent_messages_with_chat_ids[0]
+    assert chat_id == 777
+    assert "backup_failed" in text
+
+
+def test_bot_started_is_not_sent_to_monitoring_chat(monkeypatch) -> None:
     monkeypatch.delenv("MONITORING_CHAT_ID", raising=False)
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
 
@@ -31,13 +49,10 @@ def test_bot_started_notification_is_sent_to_monitoring_chat(monkeypatch) -> Non
 
     EventLogger.log(EventType.BOT_STARTED, EventSeverity.WARNING, {"component": "telegram_bot"})
 
-    assert telegram.sent_messages_with_chat_ids[-1] == (
-        777,
-        'Monitoring event: bot_started\nSeverity: warning\nDetails: {"component":"telegram_bot"}',
-    )
+    assert telegram.sent_messages == []
 
 
-def test_info_event_is_not_sent_to_monitoring_chat(monkeypatch) -> None:
+def test_non_critical_events_are_not_sent_to_chat(monkeypatch) -> None:
     monkeypatch.delenv("MONITORING_CHAT_ID", raising=False)
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
 
@@ -47,7 +62,8 @@ def test_info_event_is_not_sent_to_monitoring_chat(monkeypatch) -> None:
 
     register_monitoring_notifications(telegram)
 
-    EventLogger.log(EventType.DOCUMENT_GENERATED, EventSeverity.INFO, None)
+    for event_type in (EventType.DOCUMENT_GENERATED, EventType.DOCUMENT_GENERATION_FAILED, EventType.ERROR):
+        EventLogger.log(event_type, EventSeverity.ERROR, None)
 
     assert telegram.sent_messages == []
 
@@ -70,6 +86,6 @@ def test_monitoring_handler_does_not_recurse_on_send_failure(monkeypatch) -> Non
 
     register_monitoring_notifications(FailingTelegram())  # type: ignore[arg-type]
 
-    EventLogger.log(EventType.BOT_STARTED, EventSeverity.WARNING)
+    EventLogger.log(EventType.BACKUP_FAILED, EventSeverity.ERROR)
 
     assert len(calls) == 1
