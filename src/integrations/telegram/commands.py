@@ -54,47 +54,6 @@ def format_last_action(action: AuditLog) -> str:
     )
 
 
-def format_stats(
-    total_events: int,
-    event_counts: dict[str, int],
-    document_stats: list[dict[str, object]],
-    error_count: int,
-    recent_error_count: int,
-) -> str:
-    lines = [
-        "📊 Finpipe Stats",
-        "",
-        "Events:",
-        f"• Total: {total_events}",
-        "• Top Events:",
-    ]
-
-    for event_type, count in _top_items(event_counts, limit=5):
-        lines.append(f"  - {event_type}: {count}")
-
-    lines.extend(
-        [
-            "",
-            "Documents:",
-        ]
-    )
-    if document_stats:
-        for item in document_stats[:5]:
-            lines.append(f"• {item['document_type']}: {item['count']}")
-    else:
-        lines.append("• no data")
-
-    lines.extend(
-        [
-            "",
-            "Errors:",
-            f"• Last errors: {recent_error_count}",
-            f"• Total: {error_count}",
-        ]
-    )
-    return "\n".join(lines)
-
-
 def format_recent_errors(errors: list[dict[str, object]]) -> str:
     if not errors:
         return "🚨 Recent Errors\n\n• no data"
@@ -121,31 +80,3 @@ def format_recent_errors(errors: list[dict[str, object]]) -> str:
         blocks.append(block)
 
     return "\n".join(blocks)
-
-
-def format_recent_events(events: list[dict[str, object]]) -> str:
-    if not events:
-        return "📋 Recent Events\n\n• no data"
-
-    blocks = ["📋 Recent Events"]
-    for event in events:
-        created_at = event["created_at"]
-        created = created_at.strftime("%Y-%m-%d %H:%M") if hasattr(created_at, "strftime") else str(created_at)
-        severity = event.get("severity", "")
-        event_type = event.get("event_type", "")
-        block = "\n".join(
-            [
-                "─" * 20,
-                f"🕐 {created}  [{severity}]",
-                f"• {event_type}",
-            ]
-        )
-        if event.get("details"):
-            block += f"\n  {event['details']}"
-        blocks.append(block)
-
-    return "\n".join(blocks)
-
-
-def _top_items(mapping: dict[str, int], limit: int) -> list[tuple[str, int]]:
-    return sorted(mapping.items(), key=lambda item: item[1], reverse=True)[:limit]

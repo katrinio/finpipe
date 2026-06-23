@@ -25,11 +25,11 @@ def test_monitoring_chat_health_is_handled_in_monitoring_handler(monkeypatch: py
     telegram = FakeTelegramClient()
     handler = MonitoringHandler(cast(TelegramClient, telegram))
 
-    handled = handler.handle_message("/health", chat_id=-100123, telegram_id=777, username="owner")
+    handled = handler.handle_message("/errors", chat_id=-100123, telegram_id=777, username="owner")
 
     assert handled is True
     assert telegram.sent_message_payloads[-1][0] == -100123
-    assert telegram.sent_message_payloads[-1][1].startswith("🏥 Health")
+    assert telegram.sent_message_payloads[-1][1].startswith("🚨 Recent Errors")
 
 
 def test_monitoring_chat_command_does_not_go_to_user_router(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -46,7 +46,7 @@ def test_monitoring_chat_command_does_not_go_to_user_router(monkeypatch: pytest.
         {
             "update_id": 40,
             "message": {
-                "text": "/health",
+                "text": "/errors",
                 "chat": {"id": -100123, "type": "group"},
                 "from": {"id": 777, "username": "owner"},
             },
@@ -54,7 +54,7 @@ def test_monitoring_chat_command_does_not_go_to_user_router(monkeypatch: pytest.
     )
 
     assert telegram.sent_messages_with_chat_ids[-1][0] == -100123
-    assert telegram.sent_messages_with_chat_ids[-1][1].startswith("🏥 Health")
+    assert telegram.sent_messages_with_chat_ids[-1][1].startswith("🚨 Recent Errors")
     update_storage = cast(Any, bot.update_storage)
     assert update_storage.processed == [40]
 
@@ -83,5 +83,5 @@ def test_user_router_does_not_expose_monitoring_commands(monkeypatch: pytest.Mon
     telegram = FakeTelegramClient()
     router = CommandRouter(telegram=cast(TelegramClient, telegram), audit_log=AuditLog)
 
-    assert router.handle_message("/health", telegram_id=777, username="owner") is True
+    assert router.handle_message("/errors", telegram_id=777, username="owner") is True
     assert telegram.sent_messages[-1] == "🫥 Неизвестная команда."
