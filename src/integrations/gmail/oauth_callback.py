@@ -16,6 +16,8 @@ from src.integrations.gmail.exceptions import (
 )
 from src.integrations.gmail.gmail_oauth import GmailOAuth, GmailOAuthResult
 from src.integrations.gmail.settings import GmailOAuthSettings
+from src.services.monitoring.event_logger import EventLogger
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.system.oauth_session import OAuthSession
 
 LOGGER = logging.getLogger(__name__)
@@ -147,8 +149,11 @@ class GmailOAuthCallbackService:
             return
         if isinstance(error, GmailOAuthTokenExchangeError):
             LOGGER.error("Token exchange failed for telegram_id=%s", telegram_id)
+            EventLogger.log(EventType.GMAIL_CONNECT_FAILED, EventSeverity.ERROR, {"telegram_id": telegram_id, "error": "token_exchange_failed"})
             return
         if isinstance(error, GmailOAuthProviderError):
             LOGGER.error("Callback processing failed for telegram_id=%s: %s", telegram_id, error)
+            EventLogger.log(EventType.GMAIL_CONNECT_FAILED, EventSeverity.ERROR, {"telegram_id": telegram_id, "error": str(error)})
             return
         LOGGER.error("Callback processing failed for telegram_id=%s: %s", telegram_id, error)
+        EventLogger.log(EventType.GMAIL_CONNECT_FAILED, EventSeverity.ERROR, {"telegram_id": telegram_id, "error": str(error)})

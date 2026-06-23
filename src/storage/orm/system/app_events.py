@@ -23,6 +23,7 @@ class EventType(StrEnum):
     DOCUMENT_GENERATION_FAILED = "document_generation_failed"
     INVOICE_SEND_FAILED = "invoice_send_failed"
     BANK_EMAIL_PROCESSING_FAILED = "bank_email_processing_failed"
+    GMAIL_CONNECT_FAILED = "gmail_connect_failed"
 
     # settings
     SETTINGS_UPDATED = "settings_updated"
