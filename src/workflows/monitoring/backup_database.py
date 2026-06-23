@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from src.integrations.telegram.client import TelegramClient
-from src.services.monitoring.notifications import get_monitoring_chat_id
+from src.services.monitoring.event_logger import EventLogger
+from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.utils.credentials import LOGGER, EnvVar
 
 
@@ -56,8 +56,6 @@ def run_backup(now: datetime | None = None) -> Path:
     _cleanup_old_backups(config.backup_dir, config.retention_days)
 
     size_bytes = backup_path.stat().st_size
-    message = f"💾 Database backup completed\nFile: {backup_path.name}\nSize: {_format_size(size_bytes)}\nRetention: {config.retention_days} days"
-    TelegramClient().send_message(get_monitoring_chat_id(), message)
     LOGGER.info("Database backup completed: file=%s size_bytes=%s", backup_path, size_bytes)
     return backup_path
 
@@ -66,12 +64,12 @@ def main() -> int:
     EnvVar.load_dotenv()
     try:
         run_backup()
-    except Exception:
+    except Exception as error:
         LOGGER.exception("Database backup failed.")
         try:
-            TelegramClient().send_message(get_monitoring_chat_id(), "❌ Database backup failed")
+            EventLogger.log(EventType.BACKUP_FAILED, EventSeverity.ERROR, {"error": str(error)})
         except Exception:
-            LOGGER.exception("Failed to send database backup failure notification.")
+            LOGGER.exception("Failed to log backup failure.")
         return 1
     return 0
 

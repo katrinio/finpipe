@@ -8,19 +8,14 @@ from typing import Any
 import pytest
 
 from src.workflows.monitoring import backup_database
-from tests.fakes.fake_telegram import FakeTelegramClient
 
 
-def test_run_backup_sends_monitoring_message_and_creates_gz_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_backup_creates_gz_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     backup_dir = tmp_path / "backups"
     monkeypatch.setattr(backup_database.EnvVar, "PROJECT_ROOT", tmp_path)
     monkeypatch.setenv("BACKUP_DIR", str(backup_dir))
     monkeypatch.setenv("BACKUP_RETENTION_DAYS", "7")
-    monkeypatch.setenv("MONITORING_CHAT_ID", "555")
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe")
-
-    fake_telegram = FakeTelegramClient()
-    monkeypatch.setattr(backup_database, "TelegramClient", lambda: fake_telegram)
 
     def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool) -> SimpleNamespace:
         assert command == ["pg_dump", "--dbname=postgresql://finpipe:finpipe@postgres:5432/finpipe"]
@@ -34,9 +29,6 @@ def test_run_backup_sends_monitoring_message_and_creates_gz_file(monkeypatch: py
     assert path.exists()
     assert path.name == "finpipe_2026-06-17_05-00-00.sql.gz"
     assert path.stat().st_size > 0
-    assert fake_telegram.sent_messages_with_chat_ids[-1][0] == 555
-    assert fake_telegram.sent_messages_with_chat_ids[-1][1].startswith("💾 Database backup completed")
-    assert "Retention: 7 days" in fake_telegram.sent_messages_with_chat_ids[-1][1]
 
 
 def test_run_backup_fails_when_pg_dump_fails(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -44,11 +36,7 @@ def test_run_backup_fails_when_pg_dump_fails(monkeypatch: pytest.MonkeyPatch, tm
     monkeypatch.setattr(backup_database.EnvVar, "PROJECT_ROOT", tmp_path)
     monkeypatch.setenv("BACKUP_DIR", str(backup_dir))
     monkeypatch.setenv("BACKUP_RETENTION_DAYS", "7")
-    monkeypatch.setenv("MONITORING_CHAT_ID", "555")
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe")
-
-    fake_telegram = FakeTelegramClient()
-    monkeypatch.setattr(backup_database, "TelegramClient", lambda: fake_telegram)
 
     def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool) -> SimpleNamespace:
         return SimpleNamespace(returncode=1, stderr=b"pg_dump: error")
@@ -64,11 +52,7 @@ def test_run_backup_fails_on_empty_file(monkeypatch: pytest.MonkeyPatch, tmp_pat
     monkeypatch.setattr(backup_database.EnvVar, "PROJECT_ROOT", tmp_path)
     monkeypatch.setenv("BACKUP_DIR", str(backup_dir))
     monkeypatch.setenv("BACKUP_RETENTION_DAYS", "7")
-    monkeypatch.setenv("MONITORING_CHAT_ID", "555")
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe")
-
-    fake_telegram = FakeTelegramClient()
-    monkeypatch.setattr(backup_database, "TelegramClient", lambda: fake_telegram)
 
     def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool) -> SimpleNamespace:
         return SimpleNamespace(returncode=0, stderr=b"")
@@ -80,14 +64,15 @@ def test_run_backup_fails_on_empty_file(monkeypatch: pytest.MonkeyPatch, tmp_pat
         backup_database.run_backup(now=datetime(2026, 6, 17, 5, 0, 0, tzinfo=UTC))
 
 
-def test_main_returns_one_and_sends_failure_notification(monkeypatch: pytest.MonkeyPatch) -> None:
-    fake_telegram = FakeTelegramClient()
+def test_main_returns_one_and_logs_backup_failed(monkeypatch: pytest.MonkeyPatch) -> None:
+    logged: list[str] = []
     monkeypatch.setattr(backup_database.EnvVar, "load_dotenv", lambda: None)
-    monkeypatch.setattr(backup_database, "TelegramClient", lambda: fake_telegram)
     monkeypatch.setattr(backup_database, "run_backup", lambda now=None: (_ for _ in ()).throw(RuntimeError("boom")))
-    monkeypatch.setenv("MONITORING_CHAT_ID", "555")
-    monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
+    monkeypatch.setattr(
+        backup_database.EventLogger,
+        "log",
+        lambda event_type, severity, details=None: logged.append(event_type.value),
+    )
 
     assert backup_database.main() == 1
-    assert fake_telegram.sent_messages_with_chat_ids[-1][0] == 555
-    assert fake_telegram.sent_messages_with_chat_ids[-1][1] == "❌ Database backup failed"
+    assert "backup_failed" in logged
