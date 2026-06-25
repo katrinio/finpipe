@@ -1,0 +1,11 @@
+services:
+  grafana:
+    networks:
+      - monitoring
+      - finpipe
+
+networks:
+  monitoring:
+  finpipe:
+    external: true
+    name: finpipe_default
