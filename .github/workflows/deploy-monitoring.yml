@@ -1,0 +1,38 @@
+name: 📡 Deploy Monitoring
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'monitoring.compose.yml'
+      - 'docs/monitoring.md'
+      - '.github/workflows/deploy-monitoring.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Monitoring via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -euo pipefail
+            cd ~/projects/the-hub-infra/docker
+
+            git fetch origin
+            git reset --hard origin/main
+
+            docker compose -f monitoring.compose.yml down --remove-orphans
+            docker rm -f node-exporter loki prometheus grafana alloy 2>/dev/null || true
+            docker compose -f monitoring.compose.yml build
+            docker compose -f monitoring.compose.yml up -d
+
+            docker compose -f monitoring.compose.yml ps
+
+            docker image prune -f

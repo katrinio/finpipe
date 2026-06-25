@@ -1,0 +1,48 @@
+name: 🚀 Deploy Finpipe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'migrations/**'
+      - 'tests/**'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'docker-compose.local.yml'
+      - '.github/workflows/deploy-finpipe.yml'
+      - '.env.dist'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Finpipe via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -euo pipefail
+            cd ~/projects/finpipe
+
+            git fetch origin
+            git reset --hard origin/main
+
+            docker compose -f docker-compose.yml down --remove-orphans
+            docker compose -f docker-compose.yml build
+            docker compose -f docker-compose.yml up -d
+
+            docker compose -f docker-compose.yml run --rm finpipe-bot alembic upgrade head
+
+            docker compose -f docker-compose.yml ps
+            docker compose -f docker-compose.yml logs --tail=30 finpipe-bot
+            docker compose -f docker-compose.yml logs --tail=30 finpipe-web
+
+            docker image prune -f

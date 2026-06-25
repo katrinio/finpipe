@@ -1,5 +1,8 @@
 services:
   grafana:
+    volumes:
+      - grafana-data:/var/lib/grafana
+
     networks:
       - monitoring
       - finpipe
@@ -8,4 +11,8 @@ networks:
   monitoring:
   finpipe:
     external: true
-    name: finpipe_default
+    name: finpipe-shared
+
+volumes:
+  grafana-data:
+    name: monitoring_grafana-data

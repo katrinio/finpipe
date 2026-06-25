@@ -69,11 +69,14 @@ poetry run python src/integrations/telegram/bot.py
 ## Docker
 
 ```bash
-# Прод
+# Основной стек Finpipe
 docker compose up -d
 
 # Локально (с проброшенными портами)
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+
+# Стек мониторинга
+docker compose -f monitoring.compose.yml up -d
 ```
 
 ---
