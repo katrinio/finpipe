@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'infra/uptime-kuma/**'
+      - 'uptime-kuma.compose.yml'
       - '.github/workflows/deploy-uptime-kuma.yml'
 
 jobs:
@@ -27,10 +27,8 @@ jobs:
             git fetch origin
             git reset --hard origin/main
 
-            docker compose -f docker-compose.yml down --remove-orphans
-            docker compose -f docker-compose.yml build
-            docker compose -f docker-compose.yml up -d
+            docker compose -f uptime-kuma.compose.yml up -d --remove-orphans
 
-            docker compose -f docker-compose.yml ps
+            docker compose -f uptime-kuma.compose.yml ps
 
             docker image prune -f

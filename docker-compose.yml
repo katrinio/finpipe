@@ -76,6 +76,7 @@ services:
 
 volumes:
   postgres_data:
+    name: finpipe_postgres_data  # Точное имя существующего volume на VPS
 
 networks:
   finpipe:

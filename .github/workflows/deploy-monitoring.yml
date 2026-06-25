@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - 'monitoring.compose.yml'
+      - 'prometheus.yml'
+      - 'alloy-config.alloy'
       - 'docs/monitoring.md'
       - '.github/workflows/deploy-monitoring.yml'
 
@@ -23,16 +25,15 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -euo pipefail
-            cd ~/projects/the-hub-infra/docker
+            cd ~/projects/finpipe
 
             git fetch origin
             git reset --hard origin/main
 
-            docker compose -f monitoring.compose.yml down --remove-orphans
-            docker rm -f node-exporter loki prometheus grafana alloy 2>/dev/null || true
-            docker compose -f monitoring.compose.yml build
-            docker compose -f monitoring.compose.yml up -d
+            docker compose -f monitoring.compose.yml pull --quiet
+            docker compose -f monitoring.compose.yml up -d --remove-orphans
 
             docker compose -f monitoring.compose.yml ps
+            docker compose -f monitoring.compose.yml logs --tail=20 grafana
 
             docker image prune -f
