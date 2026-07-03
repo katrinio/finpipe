@@ -71,6 +71,50 @@ def test_profile_upload_persists_company_profile_and_bank_details(tmp_path: Path
     assert bank_details.bank_confirmation_email_subject_contains == "payment confirmation"
 
 
+def test_profile_upload_keeps_existing_bank_email_search_settings_when_yaml_omits_block(tmp_path: Path) -> None:
+    database = Database(build_test_database_url(tmp_path / "test.db"))
+    initialize_test_database(database)
+
+    ProfileTemplateService.upload(
+        telegram_id=123,
+        file_name="profile.yaml",
+        file_size=len(PROFILE_YAML),
+        file_bytes=PROFILE_YAML,
+    )
+
+    updated_yaml = b"""
+company_name: Test Company
+company_address: Belgrade
+registration_number: "12345678"
+city: Belgrade
+account_holder: Test User
+account_holder_email: test@example.com
+account_holder_address: Serbia
+bank_name: Test Bank
+account_number: "123"
+iban: RS123
+bic: TESTRSBG
+service_agreement_date: "2026-06-10"
+payment_number: "42"
+payment_code: "63"
+payment_description: Salary payment
+"""
+
+    ProfileTemplateService.upload(
+        telegram_id=123,
+        file_name="profile.yaml",
+        file_size=len(updated_yaml),
+        file_bytes=updated_yaml,
+    )
+
+    bank_details = BankDetails.get_by_owner(123)
+
+    assert bank_details is not None
+    assert bank_details.bank_confirmation_email_sender == "bank@example.com"
+    assert bank_details.bank_confirmation_email_recipient == "company@example.com"
+    assert bank_details.bank_confirmation_email_subject_contains == "payment confirmation"
+
+
 @pytest.mark.parametrize(
     ("file_bytes", "missing_fields"),
     [

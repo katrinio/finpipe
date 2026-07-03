@@ -180,9 +180,13 @@ class ProfileTemplateService:
                 bank_details.account_number = cls._require_text(profile.account_number)
                 bank_details.iban = cls._require_text(profile.iban)
                 bank_details.bic = cls._require_text(profile.bic)
-                bank_details.bank_confirmation_email_sender = profile.bank_confirmation_email.sender
-                bank_details.bank_confirmation_email_recipient = profile.bank_confirmation_email.recipient
-                bank_details.bank_confirmation_email_subject_contains = profile.bank_confirmation_email.subject_contains
+                # Не затираем уже сохранённые настройки поиска письма банка пустым/неполным YAML.
+                if profile.bank_confirmation_email.sender is not None:
+                    bank_details.bank_confirmation_email_sender = profile.bank_confirmation_email.sender
+                if profile.bank_confirmation_email.recipient is not None:
+                    bank_details.bank_confirmation_email_recipient = profile.bank_confirmation_email.recipient
+                if profile.bank_confirmation_email.subject_contains is not None:
+                    bank_details.bank_confirmation_email_subject_contains = profile.bank_confirmation_email.subject_contains
 
             session.commit()
         EventLogger.log(
