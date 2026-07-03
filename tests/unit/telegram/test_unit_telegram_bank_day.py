@@ -30,7 +30,7 @@ def _ready_profile(monkeypatch) -> None:
     """Подставляет заглушки, имитирующие полный профиль с подписью."""
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=True),
+        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=True, bank_email_configured=True),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: True)
 
@@ -76,7 +76,7 @@ def test_bank_day_requires_complete_profile(tmp_path: Path, monkeypatch) -> None
 
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=False, bank_details=True, gmail=True),
+        lambda _telegram_id: SimpleNamespace(company=False, bank_details=True, gmail=True, bank_email_configured=True),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: True)
 
@@ -94,7 +94,7 @@ def test_bank_day_requires_signature(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=True),
+        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=True, bank_email_configured=True),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: False)
 
@@ -117,7 +117,7 @@ def test_bank_day_requires_gmail(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(
         "src.integrations.telegram.handlers.document_handlers.SystemStatusService.get_status",
-        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=False),
+        lambda _telegram_id: SimpleNamespace(company=True, bank_details=True, gmail=False, bank_email_configured=True),
     )
     monkeypatch.setattr("src.integrations.telegram.handlers.document_handlers.Signature.is_usable", lambda _telegram_id: True)
 
