@@ -118,6 +118,7 @@ class DocumentHandlers:
         status = SystemStatusService.get_status(telegram_id)
         lines = [
             f"{MsgIcon.status(status.company and status.bank_details)} Профиль (компания + реквизиты)",
+            f"{MsgIcon.status(status.bank_email_configured)} Настройки поиска письма банка",
             f"{MsgIcon.status(status.signature)} Подпись",
             f"{MsgIcon.status(status.gmail)} Gmail",
         ]
@@ -312,6 +313,8 @@ class DocumentHandlers:
             return BankMessages.Validation.GMAIL_NOT_CONNECTED
         if not status.company or not status.bank_details:
             return BankMessages.Validation.PROFILE_REQUIRED
+        if not status.bank_email_configured:
+            return BankMessages.Validation.BANK_EMAIL_NOT_CONFIGURED
         if not Signature.is_usable(telegram_id):
             return BankMessages.Validation.SIGNATURE_REQUIRED
         return None
