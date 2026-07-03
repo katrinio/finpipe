@@ -101,6 +101,29 @@ Grafana читает PostgreSQL Finpipe через общую Docker network `fi
 
 ---
 
+## 🔑 Проверка Gmail-токенов
+
+Gmail OAuth токены периодически истекают. Cron-задача проверяет их для всех подключённых пользователей и пишет напрямую в чат пользователя — не в мониторинговый.
+
+```
+VPS cron (ежедневно, 09:00)
+       │
+       ▼
+src/workflows/monitoring/check_gmail_tokens.py
+       │
+       ├── токен OK → ничего
+       └── RefreshError → сообщение в личный чат пользователя:
+           "⚠️ Gmail отключился — переподключите в разделе «Gmail»"
+```
+
+Добавить в crontab на VPS:
+
+```bash
+0 9 * * * cd ~/projects/finpipe && docker compose exec -T finpipe-bot python -m src.workflows.monitoring.check_gmail_tokens >> ~/logs/gmail-check.log 2>&1
+```
+
+---
+
 ## 📊 Ежедневная сводка
 
 Отдельно от live-алертов работает ежедневный отчёт.
