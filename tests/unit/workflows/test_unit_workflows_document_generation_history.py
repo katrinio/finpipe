@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -41,9 +42,10 @@ def test_generate_conversion_order_records_failed_attempt(tmp_path: Path) -> Non
             output_dir=tmp_path,
         )
 
-    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.CONVERSION_ORDER, "TR-2026-06")
+    expected_number = f"TR-{date.today().strftime('%Y-%m')}"
+    history_entry = DocumentGenerationHistory.get_last_attempt(DocumentType.CONVERSION_ORDER, expected_number)
     assert history_entry is not None
     assert history_entry.document_type == DocumentType.CONVERSION_ORDER
-    assert history_entry.document_number == "TR-2026-06"
+    assert history_entry.document_number == expected_number
     assert history_entry.telegram_id == 123
     assert history_entry.status == DocumentGenerationStatus.FAILED
