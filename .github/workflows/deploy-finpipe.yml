@@ -16,6 +16,10 @@ on:
       - 'pyproject.toml'
       - 'poetry.lock'
 
+concurrency:
+  group: deploy-finpipe
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

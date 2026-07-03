@@ -91,6 +91,14 @@ class GmailAccount(BaseModel):
             session.commit()
 
     @classmethod
+    def get_all_connected(cls) -> list["GmailAccount"]:
+        """Возвращает все аккаунты с активным refresh token."""
+
+        with cls.session() as session:
+            statement = select(cls).where(cls.gmail_refresh_token.is_not(None))
+            return list(session.scalars(statement))
+
+    @classmethod
     def count(cls) -> int:
         with cls.session() as session:
             statement = select(func.count()).select_from(cls)

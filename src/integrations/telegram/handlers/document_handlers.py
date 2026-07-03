@@ -2,6 +2,7 @@ import logging
 import tempfile
 from pathlib import Path
 
+from src.integrations.gmail.exceptions import GmailOAuthError
 from src.integrations.gmail.gmail_models import BankEmail
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.state_service import UserStateService
@@ -184,8 +185,12 @@ class DocumentHandlers:
         """Получает PDF письма банка. Возвращает (path, email) или None при ошибке/отсутствии."""
         try:
             fetch_result = fetch_bank_email_workflow(telegram_id=telegram_id)
+        except GmailOAuthError as error:
+            LOGGER.warning("Bank day: Gmail OAuth error for Telegram user %s: %s", telegram_id, error)
+            self.telegram.send_message(telegram_id, BankMessages.Validation.GMAIL_NOT_CONNECTED, reply_markup=build_document_menu())
+            return None
         except RuntimeError as error:
-            LOGGER.warning("Bank day: Gmail not configured for Telegram user %s: %s", telegram_id, error)
+            LOGGER.warning("Bank day: bank email search config missing for Telegram user %s: %s", telegram_id, error)
             self.telegram.send_message(telegram_id, BankMessages.Validation.BANK_EMAIL_NOT_CONFIGURED, reply_markup=build_document_menu())
             return None
 
