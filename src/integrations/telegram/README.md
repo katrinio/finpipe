@@ -1,25 +1,25 @@
 # Telegram Integration
 
-Основной пользовательский интерфейс Finpipe. Reply keyboard для навигации, one-time keyboard для действий внутри сценария.
+The main user interface for Finpipe. Reply keyboard for navigation, one-time keyboard for in-flow actions.
 
 ---
 
-## Архитектура
+## Architecture
 
 ```
 Telegram Update
       │
       ▼
-  TelegramBot          ← получение updates, авторизация, состояния
+  TelegramBot          ← receives updates, handles authorization and state
       │
       ▼
-  CommandRouter        ← маршрутизация по тексту кнопки/команды, аудит
+  CommandRouter        ← routes by button text / command, writes audit log
       │
       ▼
-  Domain Handler       ← Telegram-специфичная логика
+  Domain Handler       ← Telegram-specific logic
       │
       ▼
-  Service / Workflow   ← бизнес-логика
+  Service / Workflow   ← business logic
       │
       ▼
   Storage              ← PostgreSQL
@@ -27,73 +27,73 @@ Telegram Update
 
 ---
 
-## Структура меню
+## Menu structure
 
 ```
-/start → Главное меню
-├── 📄 Документы
-│   ├── 🧾 Инвойс
-│   │   ├── 💰 Указать сумму
-│   │   ├── 💶 Текущая сумма
-│   │   └── 📄 Создать инвойс → [📤 Отправить компании | ✖️ Не отправлять]
-│   └── 🏦 Банковский день → инфо-экран [▶️ Запустить | 🏠 Домой]
-│       └── ▶️ Запустить → workflow → [📤 Ответить банку | ✖️ Не отправлять]
-├── 📧 Интеграции → Gmail
-│   ├── 🔗 Подключить / ❌ Отключить
-│   ├── 📊 Статус
-│   ├── 🏠 Домой
-│   └── 🗑 Сбросить историю → [🗑 Да, сбросить | ✖️ Не отправлять]
-├── 👤 Мой профиль
-│   ├── 👁 Посмотреть профиль / 👤 Кто я
-│   ├── 📥 Скачать шаблон / 📤 Обновить профиль
-│   ├── ✍️ Загрузить подпись / 🗑 Удалить подпись
-│   └── 🏠 Домой
-└── 📖 Справка
-    ├── ❓ Как начать / ✅ Готовность
-    └── 🏠 Домой
+/start → Main menu
+├── 📄 Documents
+│   ├── 🧾 Invoice
+│   │   ├── 💰 Set amount
+│   │   ├── 💶 Current amount
+│   │   └── 📄 Generate → [📤 Send to company | ✖️ Skip]
+│   └── 🏦 Bank day → info screen [▶️ Run | 🏠 Home]
+│       └── ▶️ Run → workflow → [📤 Reply to bank | ✖️ Skip]
+├── 📧 Integrations → Gmail
+│   ├── 🔗 Connect / ❌ Disconnect
+│   ├── 📊 Status
+│   ├── 🏠 Home
+│   └── 🗑 Reset history → [🗑 Yes, reset | ✖️ Cancel]
+├── 👤 My profile
+│   ├── 👁 View profile / 👤 Who am I
+│   ├── 📥 Download template / 📤 Update profile
+│   ├── ✍️ Upload signature / 🗑 Delete signature
+│   └── 🏠 Home
+└── 📖 Help
+    ├── ❓ How to start / ✅ Readiness
+    └── 🏠 Home
 ```
 
-Для Owner — дополнительно `🛠️ Админка` в главном меню → меню пользователей.
+Owner also gets `🛠️ Admin` in the main menu, with a user management submenu.
 
 ---
 
-## Принцип разделения кнопок
+## Button types
 
-- **Reply keyboard** — навигация между разделами (остаётся видимой)
-- **One-time reply keyboard** — выбор внутри одного действия (отправить / пропустить)
+- **Reply keyboard** — navigation between sections (stays visible)
+- **One-time reply keyboard** — single-action choices (send / skip)
 
 ---
 
-## Роли
+## Roles
 
-| Роль | Доступ |
+| Role | Access |
 |---|---|
-| Guest | Только `👤 Кто я` |
-| User | Профиль, документы, Gmail |
-| Owner | Всё + управление пользователями |
+| Guest | `👤 Who am I` only |
+| User | Profile, documents, Gmail |
+| Owner | Everything + user management |
 
 ---
 
 ## Handlers
 
-| Handler | Назначение |
+| Handler | Purpose |
 |---|---|
-| `command_router.py` | Маршрутизация всех команд, аудит |
-| `menu_handlers.py` | Навигация по меню |
-| `profile_handlers.py` | Профиль, шаблон, просмотр |
-| `signature_handlers.py` | Загрузка и удаление подписи |
-| `gmail_handlers.py` | Gmail connect/disconnect/status/history |
-| `document_handlers.py` | Инвойс, банковский день |
-| `owner_handler.py` | Управление пользователями |
-| `system_handlers.py` | Справка, готовность, whoami |
-| `monitoring_handler.py` | Команды мониторинг-чата |
+| `command_router.py` | Routes all commands, writes audit log |
+| `menu_handlers.py` | Menu navigation |
+| `profile_handlers.py` | Profile, template, view |
+| `signature_handlers.py` | Upload and delete signature |
+| `gmail_handlers.py` | Gmail connect / disconnect / status / history |
+| `document_handlers.py` | Invoice, bank day |
+| `owner_handler.py` | User management |
+| `system_handlers.py` | Help, readiness, whoami |
+| `monitoring_handler.py` | Monitoring chat commands |
 
 ---
 
-## Добавить новую команду
+## Adding a new command
 
-1. Добавить константу в `ui/buttons/`
-2. Добавить в меню если нужно
-3. Реализовать метод в хендлере
-4. Зарегистрировать в `CommandRouter._build_command_handlers()`
-5. Написать тест
+1. Add a constant to `ui/buttons/`
+2. Add it to the menu if needed
+3. Implement the method in a handler
+4. Register in `CommandRouter._build_command_handlers()`
+5. Write a test

@@ -1,19 +1,19 @@
-# 🗄️ Storage
+# Storage
 
-Storage отвечает за долговременное хранение данных Finpipe.
+Handles all persistent data for Finpipe.
 
-Все пользовательские настройки, профили, состояния Telegram, Gmail-аккаунты и системные данные хранятся в PostgreSQL и переживают перезапуск приложения.
+User settings, profiles, Telegram states, Gmail accounts, and system data are stored in PostgreSQL and survive application restarts.
 
-Подробная схема хранения: [docs/storage.md](../../docs/storage.md)
+For the full schema: [docs/storage.md](../../docs/storage.md)
 
 ---
 
-## 📁 Структура
+## Structure
 
 ```
 storage/
-├── orm/                         ORM-модели
-│   ├── user/                    Пользовательские данные
+├── orm/                         ORM models
+│   ├── user/                    User data
 │   │   ├── allowed_user.py
 │   │   ├── known_user.py
 │   │   ├── company_profile.py
@@ -21,7 +21,7 @@ storage/
 │   │   ├── user_config.py
 │   │   ├── signature.py
 │   │   └── gmail_account.py
-│   └── system/                  Системные данные
+│   └── system/                  System data
 │       ├── audit_log.py
 │       ├── user_state_storage.py
 │       ├── telegram_update.py
@@ -29,54 +29,54 @@ storage/
 │       ├── oauth_session.py
 │       ├── document_generation_history.py
 │       └── app_events.py
-├── dependencies.py              Сборка зависимостей
-└── bootstrap_allowed_users.py  Первичная инициализация owner
+├── dependencies.py              Dependency wiring
+└── bootstrap_allowed_users.py  Initial owner setup
 ```
 
 ---
 
-## 👤 Пользовательские модели
+## User models
 
-| Модель | Таблица | Назначение |
+| Model | Table | Purpose |
 |---|---|---|
-| `AllowedUser` | `allowed_user` | Авторизованные пользователи + роли |
-| `KnownUser` | `known_user` | Пользователи, открывавшие бота |
-| `CompanyProfile` | `company_profile` | Данные работодателя |
-| `BankDetails` | `bank_details` | Банковские реквизиты |
-| `UserConfig` | `user_config` | Настройки (суммы Invoice и конвертации) |
-| `Signature` | `signature` | Подпись: метаданные + зашифрованные байты |
-| `GmailAccount` | `gmail_account` | Gmail: refresh token (зашифрован), email, ошибка |
+| `AllowedUser` | `allowed_user` | Authorized users and their roles |
+| `KnownUser` | `known_user` | Anyone who has ever opened the bot |
+| `CompanyProfile` | `company_profile` | Employer data |
+| `BankDetails` | `bank_details` | Bank account details |
+| `UserConfig` | `user_config` | Settings: invoice and conversion amounts |
+| `Signature` | `signature` | Signature metadata + encrypted bytes |
+| `GmailAccount` | `gmail_account` | Gmail: encrypted refresh token, email, last error |
 
 ---
 
-## ⚙️ Системные модели
+## System models
 
-| Модель | Таблица | Назначение |
+| Model | Table | Purpose |
 |---|---|---|
-| `AuditLog` | `audit_log` | Журнал всех команд и OAuth-событий |
-| `UserStateStorage` | `user_state_storage` | Текущее состояние Telegram workflow |
-| `TelegramUpdate` | `telegram_update` | Обработанные updates (защита от дублей) |
-| `ProcessedMessage` | `processed_message` | Обработанные банковские письма |
-| `OAuthSession` | `oauth_sessions` | Временные сессии Gmail OAuth |
-| `DocumentGenerationHistory` | `document_generation_history` | История попыток генерации |
-| `AppEvent` | `app_events` | Системные события для мониторинга |
+| `AuditLog` | `audit_log` | Log of all commands and OAuth events |
+| `UserStateStorage` | `user_state_storage` | Current Telegram workflow state |
+| `TelegramUpdate` | `telegram_update` | Processed updates (prevents duplicates) |
+| `ProcessedMessage` | `processed_message` | Processed bank emails and notification markers |
+| `OAuthSession` | `oauth_sessions` | Temporary Gmail OAuth sessions |
+| `DocumentGenerationHistory` | `document_generation_history` | History of generation attempts |
+| `AppEvent` | `app_events` | System events for monitoring |
 
 ---
 
-## 🔒 Безопасность
+## Security
 
-| Данные | Защита |
+| Data | Protection |
 |---|---|
-| Gmail refresh token | Зашифрован через `TokenCipher` |
-| Подпись пользователя | Зашифрована через `SignatureCipher` |
-| Чувствительные поля | Не должны попадать в логи |
+| Gmail refresh token | Encrypted via `TokenCipher` |
+| User signature | Encrypted via `SignatureCipher` |
+| Sensitive fields | Must not appear in logs |
 
 ---
 
-## 🛠️ Добавить новую ORM-модель
+## Adding a new ORM model
 
-1. Добавить файл в `src/storage/orm/user/` или `src/storage/orm/system/`
-2. Экспортировать через `__init__.py`
-3. Создать Alembic-миграцию: `poetry run alembic revision --autogenerate -m "description"`
-4. Добавить тесты
-5. Обновить [docs/storage.md](../../docs/storage.md)
+1. Add the file to `src/storage/orm/user/` or `src/storage/orm/system/`
+2. Export it via `__init__.py`
+3. Create an Alembic migration: `poetry run alembic revision --autogenerate -m "description"`
+4. Add tests
+5. Update [docs/storage.md](../../docs/storage.md)

@@ -1,99 +1,97 @@
-# 🧪 Tests
+# Tests
 
-Тесты Finpipe разделены по уровню проверки и зависимости от внешних систем.
+Tests are split by isolation level and dependency on external systems.
 
 ---
 
-## 📁 Структура
+## Structure
 
 ```
 tests/
-├── unit/            Быстрые изолированные тесты
-├── integration/     Тесты нескольких компонентов вместе
-├── external/        Тесты с реальными внешними сервисами
-├── fixtures/        Общие pytest fixtures
-├── fakes/           Тестовые реализации зависимостей
-└── resources/       Тестовые артефакты (PDF, DOCX, изображения)
+├── unit/            Fast, isolated tests
+├── integration/     Tests covering multiple components together
+├── external/        Tests against real external services
+├── fixtures/        Shared pytest fixtures
+├── fakes/           Test implementations of dependencies
+└── resources/       Test artifacts (PDFs, DOCX files, images)
 ```
 
 ---
 
-## 🔬 Уровни тестов
+## Test levels
 
 ### unit
 
-Быстрые изолированные тесты без сети, файловой системы и внешних сервисов.
+Fast, isolated tests — no network, no filesystem, no external services.
 
-Покрывают:
-
-| Область | Примеры |
+| Area | Examples |
 |---|---|
-| Бизнес-логика | Генерация Invoice, расчёт сумм |
-| ORM-модели | Создание, чтение, обновление |
-| Telegram handlers | Роутинг команд, обработка состояний |
-| Gmail-сервисы | OAuth flow, поиск писем |
-| Валидация | Профиль, реквизиты |
+| Business logic | Invoice generation, amount calculations |
+| ORM models | Create, read, update |
+| Telegram handlers | Command routing, state handling |
+| Gmail services | OAuth flow, email search |
+| Validation | Profile, bank details |
 
 ---
 
 ### integration
 
-Тесты нескольких компонентов вместе. Допустимы: локальная PostgreSQL, файловая система, шаблоны документов.
+Tests covering multiple components together. Local PostgreSQL, filesystem, and document templates are allowed.
 
-| Область | Примеры |
+| Area | Examples |
 |---|---|
-| ORM + PostgreSQL | Импорт профиля в базу |
-| Документы | Генерация PDF целиком |
-| Telegram workflow | Полный сценарий команды |
-| DOCX → PDF | Конвертация LibreOffice |
+| ORM + PostgreSQL | Profile import to database |
+| Documents | Full PDF generation |
+| Telegram workflow | End-to-end command flow |
+| DOCX → PDF | LibreOffice conversion |
 
 ---
 
 ### external
 
-Тесты с реальными внешними интеграциями (Telegram API, Gmail API, OAuth). По умолчанию не запускаются в CI.
+Tests against real external integrations (Telegram API, Gmail API, OAuth). Not run in CI by default.
 
 ---
 
 ### fixtures
 
-Общие pytest fixtures. Размещать здесь только те, что используются несколькими модулями — иначе рядом с тестом.
+Shared pytest fixtures. Only put things here if they're used across multiple modules — otherwise keep them next to the test.
 
 ---
 
 ### fakes
 
-Тестовые реализации внешних зависимостей. Предпочтительнее Mock.
+Test implementations of external dependencies. Preferred over mocks.
 
-| Fake | Заменяет |
+| Fake | Replaces |
 |---|---|
 | `FakeTelegram` | `TelegramClient` |
 | `FakeGmail` | Gmail API |
-| `FakeStorage` | PostgreSQL-репозитории |
+| `FakeStorage` | PostgreSQL repositories |
 
 ---
 
 ### resources
 
-Тестовые артефакты: PDF-шаблоны, DOCX-шаблоны, изображения, примеры документов.
+Test artifacts: PDF templates, DOCX templates, images, sample documents.
 
 ---
 
-## 🏛️ Философия
+## Philosophy
 
-| Принцип | Смысл |
+| Principle | What it means |
 |---|---|
-| Unit-тесты быстрые | Без IO, без сети |
-| Тесты независимы | Порядок запуска не влияет на результат |
-| Fake > Mock | Fake проще читать и отлаживать |
-| Одно поведение — один тест | Не проверять несколько вещей в одном тесте |
-| Тест понятен без реализации | Читаемое название + ясный arrange/act/assert |
+| Unit tests are fast | No IO, no network |
+| Tests are independent | Run order doesn't affect results |
+| Fake > Mock | Fakes are easier to read and debug |
+| One behavior per test | Don't assert multiple things in one test |
+| Test is readable on its own | Clear name + clear arrange/act/assert |
 
 ---
 
-## 📝 Именование
+## Naming
 
-Формат: `test_<feature>.py`
+Format: `test_<feature>.py`
 
 ```
 test_unit_invoice_generator.py
@@ -102,26 +100,26 @@ test_integration_profile_template_import.py
 test_external_telegram.py
 ```
 
-Название теста описывает проверяемое **поведение**, не реализацию.
+Test names describe the **behavior** being tested, not the implementation.
 
 ---
 
-## ▶️ Запуск
+## Running tests
 
-| Команда | Что запускает |
+| Command | What it runs |
 |---|---|
-| `pytest` | Все тесты |
-| `pytest tests/unit` | Только unit |
-| `pytest tests/integration` | Только integration |
-| `pytest tests/external` | Только external |
-| `pytest -q` | Компактный вывод |
+| `pytest` | All tests |
+| `pytest tests/unit` | Unit only |
+| `pytest tests/integration` | Integration only |
+| `pytest tests/external` | External only |
+| `pytest -q` | Compact output |
 
 ---
 
-## 🔁 CI
+## CI
 
-В CI запускаются только `unit` и `integration` тесты — быстрые и детерминированные.
+CI runs only `unit` and `integration` tests — fast and deterministic.
 
-`external` тесты не запускаются автоматически — только для ручной проверки интеграций.
+`external` tests are not run automatically — use them for manual integration checks.
 
-Перед открытием PR: `pytest` локально, все тесты должны проходить.
+Before opening a PR: run `pytest` locally, all tests must pass.
