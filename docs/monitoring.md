@@ -99,6 +99,22 @@ Grafana reads the Finpipe PostgreSQL database through the shared Docker network 
 | `notifications.py` — `_CHAT_EVENTS` | Allowlist of events for Telegram |
 | `register_monitoring_notifications()` | Subscribes to EventLogger on bot startup |
 
+### Infrastructure config
+
+Grafana, Prometheus, Loki, and Alloy are defined in `infra/`:
+
+| File | Purpose |
+|---|---|
+| `infra/monitoring.compose.yml` | Docker Compose for the monitoring stack |
+| `infra/prometheus.yml` | Prometheus scrape config |
+| `infra/alloy-config.alloy` | Alloy config — Docker log collection → Loki |
+
+Start the monitoring stack:
+
+```bash
+docker compose -f infra/monitoring.compose.yml up -d
+```
+
 ---
 
 ## Gmail token check

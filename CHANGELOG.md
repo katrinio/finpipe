@@ -2,44 +2,44 @@
 
 ## v1.0.0 — 2026-06-21
 
-Первый стабильный релиз.
+First stable release.
 
-### Ключевые сценарии
+### Core workflows
 
-- **Банковский день** — полный цикл: поиск письма банка в Gmail → извлечение суммы → генерация Bank Confirmation, Conversion Order и Salary Invoice → отправка документов в Telegram → ответ банку с вложениями (To + CC, тема Re: оригинала)
-- **Salary Invoice** — генерация по профилю, отправка на email бухгалтерии компании
-- **Мониторинг банковской почты** — крон каждые 5 минут (2–6 числа месяца), уведомление в Telegram при получении письма
+- **Bank day** — full cycle: find bank email in Gmail → extract amount → generate Bank Confirmation, Conversion Order, and Salary Invoice → send documents to Telegram → reply to the bank with attachments (To + CC, subject Re: original)
+- **Salary Invoice** — generated from profile, sent to the company's accounting email
+- **Bank email monitoring** — cron every 5 minutes (days 2–6 of each month), Telegram notification on new email
 
 ### Telegram UI
 
-- Reply keyboard для навигации, one-time keyboard для действий
-- Инфо-экран перед запуском банковского дня со статусом готовности (✔️/❗)
-- Подтверждение перед деструктивными действиями (сброс истории Gmail)
-- Полный просмотр профиля с автоматическим выводом после загрузки шаблона
-- Экран «✅ Готовность» — быстрый чекап всех зависимостей
+- Reply keyboard for navigation, one-time keyboard for in-flow actions
+- Info screen before bank day with readiness status (✔️ / ❗)
+- Confirmation before destructive actions (Gmail history reset)
+- Full profile view with automatic display after template upload
+- "✅ Readiness" screen — quick check of all dependencies
 
-### Профиль
+### Profile
 
-- YAML-шаблон с данными компании, реквизитами, настройками банковской почты
-- Поле `company_email` — email бухгалтерии для отправки инвойса
-- Электронная подпись — зашифрована, встраивается в PDF автоматически
+- YAML template with company data, bank details, and email search config
+- `company_email` field — accounting email for invoice delivery
+- Digital signature — encrypted, embedded in PDF automatically
 
 ### Gmail
 
-- OAuth 2.0 авторизация
-- CC из оригинального письма банка сохраняется при ответе
-- Двухуровневая система статусов писем: `delivered` (уведомлен) / `processed` (обработан банковским днём)
+- OAuth 2.0 authorization
+- CC from the original bank email is preserved in the reply
+- Two-level email status system: `delivered` (notified) / `processed` (handled by bank day)
 
-### Мониторинговый чат
+### Monitoring chat
 
-- `/health` — Telegram API, БД, время последней активности
-- `/events`, `/errors`, `/stats` — журнал событий
-- `/logs [N]` — последние строки из Docker-контейнера
-- `/help` — список команд
-- Уведомления только при WARNING и ERROR (без шума от INFO)
+- `/health` — Telegram API, database, last activity timestamp
+- `/events`, `/errors`, `/stats` — event log
+- `/logs [N]` — last lines from the Docker container
+- `/help` — command list
+- Notifications only on WARNING and ERROR — no noise from INFO
 
-### Инфраструктура
+### Infrastructure
 
-- Docker Compose, PostgreSQL, Alembic-миграции
-- Автозапуск через `docker compose up -d`
-- Шифрование токенов и подписи через Fernet
+- Docker Compose, PostgreSQL, Alembic migrations
+- Auto-start via `docker compose up -d`
+- Token and signature encryption via Fernet
