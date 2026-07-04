@@ -4,7 +4,7 @@ about: Suggest something new or an improvement
 labels: enhancement
 ---
 
-## What problem does this solve
+## Problem
 
 <!-- Describe the context. What's inconvenient or missing? -->
 
