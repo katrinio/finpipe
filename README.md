@@ -1,52 +1,52 @@
 # Finpipe
-Если вы ИП и каждый месяц вручную заполняете одни и те же документы для банка — это сделано для вас.
 
-Finpipe — Telegram-бот, который берёт на себя рутину вокруг зарплатного платежа. Пришло письмо от банка — бот найдёт его в Gmail, вытащит сумму, заполнит три документа с подписью и пришлёт вам в чат. Всё это можно запустить с телефона, не открывая ноутбук.
+If you're a sole proprietor who fills in the same bank documents every month — this is for you.
+
+Finpipe is a Telegram bot that handles the paperwork around salary payments. When the bank sends a notification, the bot finds it in Gmail, extracts the amount, fills in three signed documents, and sends them to your chat. You can run the whole thing from your phone.
 
 ![](docs/header.svg)
 
-
 ---
 
-## Что умеет
+## What it does
 
-### Банковский день
+### Bank day
 
-Один сценарий — весь цикл банковского платежа:
+One command covers the full payment cycle:
 
-1. Находит письмо банка в Gmail
-2. Извлекает сумму из PDF
-3. Генерирует Bank Confirmation, Conversion Order и Salary Invoice с подписью
-4. Отправляет документы в Telegram
-5. Предлагает отправить ответ банку с документами в приложении
+1. Finds the bank's email in Gmail
+2. Extracts the amount from the PDF attachment
+3. Generates Bank Confirmation, Conversion Order, and Salary Invoice — all signed
+4. Sends the documents to Telegram
+5. Offers to reply to the bank with the documents attached
 
-Запустить можно с телефона — компьютер не нужен.
+No laptop needed.
 
-### Документы
+### Documents
 
-| Документ | Описание |
+| Document | Description |
 |---|---|
-| Salary Invoice | Счёт на оплату с подстановкой профиля и подписи |
-| Bank Confirmation | Подтверждение для банка с электронной подписью |
-| Conversion Order | Поручение на конвертацию с подписью |
+| Salary Invoice | Payment invoice with profile data and signature |
+| Bank Confirmation | Signed confirmation for the bank |
+| Conversion Order | Signed currency conversion request |
 
 ### Gmail
 
-- OAuth-авторизация
-- Поиск входящих писем банка
-- Отправка ответов с вложениями через Gmail API
-- Уведомление в чат, если токен истёк и нужно переподключиться
+- OAuth authorization
+- Searches incoming bank emails
+- Sends replies with attachments via Gmail API
+- Notifies you in chat if the token expires and reconnection is needed
 
 ### Telegram
 
-- Управление профилем работодателя и банковскими реквизитами
-- Загрузка и хранение электронной подписи (зашифрована)
-- Генерация документов из чата
-- Мониторинговый чат для алертов
+- Manage company profile and bank details
+- Upload and store your signature (encrypted at rest)
+- Generate documents from chat
+- Monitoring chat for critical alerts
 
 ---
 
-## Стек
+## Stack
 
 - Python 3.14, Poetry
 - PostgreSQL + SQLAlchemy + Alembic
@@ -56,17 +56,17 @@ Finpipe — Telegram-бот, который берёт на себя рутин�
 
 ---
 
-## Быстрый старт
+## Quick start
 
 ```bash
 poetry install
 cp .env.dist .env
-# заполнить .env
+# fill in .env
 ./scripts/setup_database.sh
 poetry run python src/integrations/telegram/bot.py
 ```
 
-Для Gmail OAuth (локально):
+For Gmail OAuth (local development):
 
 ```bash
 ./scripts/start_local_oauth_stack.sh
@@ -77,23 +77,23 @@ poetry run python src/integrations/telegram/bot.py
 ## Docker
 
 ```bash
-# Основной стек Finpipe
+# Main stack
 docker compose up -d
 
-# Локально (с проброшенными портами)
+# Local (with exposed ports)
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
 
-# Стек мониторинга
+# Monitoring stack
 docker compose -f monitoring.compose.yml up -d
 ```
 
 ---
 
-## Документация
+## Docs
 
-| Раздел | Файл |
+| Topic | File |
 |---|---|
-| Разработка и отладка | [docs/development.md](docs/development.md) |
+| Development & debugging | [docs/development.md](docs/development.md) |
 | Gmail OAuth | [docs/oauth.md](docs/oauth.md) |
-| Хранение данных | [docs/storage.md](docs/storage.md) |
-| Мониторинг | [docs/monitoring.md](docs/monitoring.md) |
+| Storage | [docs/storage.md](docs/storage.md) |
+| Monitoring | [docs/monitoring.md](docs/monitoring.md) |

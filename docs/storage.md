@@ -1,12 +1,10 @@
-# 🗄️ Storage
+# Storage
 
-Storage отвечает за долговременное хранение данных Finpipe.
-
-Все профили, реквизиты, состояния и данные интеграций хранятся в PostgreSQL и переживают перезапуск приложения.
+All profiles, bank details, states, and integration data are stored in PostgreSQL and survive application restarts.
 
 ---
 
-## 🔌 Подключение
+## Connection
 
 ```env
 DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
@@ -14,44 +12,44 @@ DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/finpipe
 
 ---
 
-## 👤 Пользовательские данные
+## User data
 
-| Таблица | Что хранит |
+| Table | What's stored |
 |---|---|
-| `company_profile` | Работодатель: название, адрес, email бухгалтерии, регистрационный номер, город, дата договора |
-| `bank_details` | Реквизиты: IBAN, BIC, номер счёта, держатель, email, адрес |
-| `user_config` | Настройки: сумма Invoice, полученная сумма, сумма конвертации |
-| `signature` | Метаданные подписи + зашифрованные байты (`signature_data`) |
-| `gmail_account` | Gmail: зашифрованный refresh token, email, последняя ошибка |
-| `pending_bank_reply` | Отложенный ответ банку: thread_id, subject, sender, cc + пути к 3 документам |
+| `company_profile` | Employer: name, address, accounting email, registration number, city, contract date |
+| `bank_details` | Bank account: IBAN, BIC, account number, holder name, email, address |
+| `user_config` | Settings: invoice amount, received amount, conversion amount |
+| `signature` | Signature metadata + encrypted bytes (`signature_data`) |
+| `gmail_account` | Gmail: encrypted refresh token, email, last error |
+| `pending_bank_reply` | Pending bank reply: thread_id, subject, sender, cc, paths to 3 documents |
 
 ---
 
-## ⚙️ Системные данные
+## System data
 
-| Таблица | Что хранит |
+| Table | What's stored |
 |---|---|
-| `allowed_user` | Авторизованные пользователи + роли |
-| `known_user` | Пользователи, когда-либо открывавшие бота |
-| `user_state_storage` | Текущее состояние Telegram workflow |
-| `telegram_update` | Обработанные updates (защита от дублей после рестарта) |
-| `oauth_session` | Временные OAuth-сессии Gmail |
-| `processed_message` | Обработанные банковские письма + маркеры нотификаций `notify:{tid}:{msg_id}` |
-| `document_generation_history` | История всех попыток генерации документов |
-| `audit_log` | Журнал всех действий пользователей и OAuth-событий |
-| `app_events` | Системные события для мониторинга |
+| `allowed_user` | Authorized users and their roles |
+| `known_user` | Anyone who has ever opened the bot |
+| `user_state_storage` | Current Telegram workflow state |
+| `telegram_update` | Processed updates (prevents duplicates after restart) |
+| `oauth_session` | Temporary Gmail OAuth sessions |
+| `processed_message` | Processed bank emails + notification markers `notify:{tid}:{msg_id}` |
+| `document_generation_history` | History of all document generation attempts |
+| `audit_log` | Log of all user actions and OAuth events |
+| `app_events` | System events for monitoring |
 
 ---
 
-## 🔐 Модель доступа
+## Access model
 
-Finpipe использует две отдельные сущности для Telegram-доступа.
+Finpipe uses two separate entities for Telegram access.
 
 ### KnownUser
 
-Любой, кто когда-либо написал боту. Не означает наличие доступа.
+Anyone who has ever messaged the bot. Does not imply access.
 
-| Поле | Тип |
+| Field | Type |
 |---|---|
 | `telegram_id` | bigint |
 | `username` | text |
@@ -61,9 +59,9 @@ Finpipe использует две отдельные сущности для T
 
 ### AllowedUser
 
-Пользователь, которому владелец выдал доступ. Единственный источник прав.
+A user the owner has granted access to. The only source of permissions.
 
-| Поле | Тип |
+| Field | Type |
 |---|---|
 | `telegram_id` | bigint |
 | `username` | text |
@@ -72,85 +70,85 @@ Finpipe использует две отдельные сущности для T
 
 ---
 
-## 📋 История генерации документов
+## Document generation history
 
-Таблица `document_generation_history` — журнал попыток, не признак существования документа.
+`document_generation_history` is a log of attempts, not a record of existing files.
 
-| Поле | Описание |
+| Field | Description |
 |---|---|
 | `document_type` | `salary_invoice` / `bank_confirmation` / `conversion_order` |
-| `document_number` | Номер документа |
-| `telegram_id` | Инициатор |
-| `status` | Успех / ошибка |
-| `error_message` | Текст ошибки (при неуспехе) |
-| `created_at` | Время попытки |
+| `document_number` | Document number |
+| `telegram_id` | Who triggered it |
+| `status` | Success or failure |
+| `error_message` | Error text (on failure) |
+| `created_at` | Attempt timestamp |
 
-Повторная генерация одного документа разрешена. PDF и DOCX не хранятся постоянно.
+Regenerating the same document is allowed. PDFs and DOCX files are not stored permanently.
 
 ---
 
-## 🔒 Безопасность
+## Security
 
-| Данные | Защита |
+| Data | Protection |
 |---|---|
-| Gmail refresh token | Зашифрован через `TokenCipher` перед сохранением |
-| Подпись пользователя | Зашифрована через `SignatureCipher`, байты хранятся в `signature_data` |
-| Чувствительные поля | Не должны попадать в логи (IBAN, токены, email, адрес) |
+| Gmail refresh token | Encrypted via `TokenCipher` before saving |
+| User signature | Encrypted via `SignatureCipher`, bytes stored in `signature_data` |
+| Sensitive fields | Must not appear in logs (IBAN, tokens, email, address) |
 
 ---
 
-## 🕐 Формат времени
+## Timestamps
 
-Все временные метки хранятся без микросекунд:
+All timestamps are stored without microseconds:
 
 ```
 YYYY-MM-DD HH:MM:SS
 ```
 
-Для автоматических меток используется `CURRENT_TIMESTAMP`. Если время задаётся из Python — нормализуется до секунд перед записью.
+Automatic timestamps use `CURRENT_TIMESTAMP`. Timestamps set from Python are truncated to seconds before writing.
 
 ---
 
-## 📦 Миграции
+## Migrations
 
-Схема создаётся и обновляется через Alembic.
+Schema is created and updated through Alembic.
 
 ```bash
-# Применить все миграции
+# Apply all migrations
 poetry run alembic upgrade head
 
-# Создать новую миграцию
+# Create a new migration
 poetry run alembic revision --autogenerate -m "description"
 ```
 
-При деплое `alembic upgrade head` запускается автоматически через `docker compose run --rm`.
+On deploy, `alembic upgrade head` runs automatically via `docker compose run --rm`.
 
 ---
 
-## 🛠️ Добавление новой ORM-модели
+## Adding a new ORM model
 
-1. Добавить модель в `src/storage/orm/`
-2. Экспортировать через `__init__.py`
-3. Создать Alembic-миграцию
-4. Добавить тесты
-5. Обновить этот файл, если изменилась структура
+1. Add the model to `src/storage/orm/`
+2. Export it via `__init__.py`
+3. Create an Alembic migration
+4. Add tests
+5. Update this file if the structure changed
 
 ---
 
-## 🔁 Резервное копирование и восстановление
+## Backup and restore
 
-| Действие | Инструмент |
+| Action | Tool |
 |---|---|
-| Резервная копия | `pg_dump` |
-| Восстановление | `pg_restore` или `psql` |
+| Backup | `pg_dump` |
+| Restore | `pg_restore` or `psql` |
 
-После восстановления достаточно перезапустить приложение.
+After restore, restart the application.
 
 ---
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
-| Симптом | Что проверить |
+| Symptom | What to check |
 |---|---|
-| Данные пропали после рестарта | `DATABASE_URL` указывает на правильную БД; volume не был удалён |
-| Ошибки после обновления | Запустить `alembic upgrade head`; проверить что схема соответствует коду |
+| Data missing after restart | `DATABASE_URL` points to the right DB; volume was not removed |
+| Errors after update | Run `alembic upgrade head`; check that schema matches the code |

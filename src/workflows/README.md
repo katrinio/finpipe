@@ -1,142 +1,142 @@
-# ⚙️ Workflows
+# Workflows
 
-Workflows — высокоуровневые пользовательские сценарии, объединяющие несколько tasks в один законченный процесс.
+Workflows are high-level user scenarios that combine several tasks into a single end-to-end process.
 
 ---
 
-## 🔄 Workflows
+## Workflows
 
 ### `generate_invoice_and_send`
 
-Подготовка Salary Invoice и отправка в Telegram с последующим выбором — отправить письмо компании или нет.
+Generates a Salary Invoice and sends it to Telegram, then asks whether to email it to the company.
 
-| Шаг | Действие |
+| Step | Action |
 |---|---|
-| 1 | Генерация Salary Invoice за текущий период |
-| 2 | Создание PDF и DOCX |
-| 3 | Сохранение попытки в `document_generation_history` |
-| 4 | Отправка PDF в Telegram |
-| 5 | Удаление DOCX; PDF остаётся до решения пользователя |
-| 6a | «Отправить компании»: `send_invoice_email` → письмо → удаление PDF |
-| 6b | «Не сейчас»: `discard_invoice_pdf` → удаление PDF |
+| 1 | Generate Salary Invoice for the current period |
+| 2 | Create PDF and DOCX |
+| 3 | Record attempt in `document_generation_history` |
+| 4 | Send PDF to Telegram |
+| 5 | Delete DOCX; PDF stays until the user decides |
+| 6a | "Send to company": `send_invoice_email` → email → delete PDF |
+| 6b | "Skip": `discard_invoice_pdf` → delete PDF |
 
-**Env для тестирования отправки письма:**
+**Email env variables:**
 
-| Переменная | Назначение |
+| Variable | Purpose |
 |---|---|
-| `EMAIL_DRY_RUN` | `true` — письмо не отправляется, только логируется |
-| `EMAIL_DRY_RUN_RECIPIENT` | Подменяет адрес получателя (актуально при `false`) |
+| `EMAIL_DRY_RUN` | `true` — email is not sent, only logged |
+| `EMAIL_DRY_RUN_RECIPIENT` | Overrides the recipient address (when `false`) |
 
 ---
 
 ### `process_bank_request`
 
-Основной банковский сценарий — запускается по cron в банковский день.
+The main bank day workflow — runs on cron.
 
-| Шаг | Действие |
+| Step | Action |
 |---|---|
-| 1 | Поиск нового письма банка, загрузка PDF-вложения |
-| 2 | Извлечение суммы из PDF, сохранение в `user_config` |
-| 3 | Генерация Bank Confirmation с подписью |
-| 4 | Генерация Conversion Order |
-| 5 | Генерация Salary Invoice (перегенерация за текущий месяц) |
-| 6 | Отправка трёх документов в Telegram |
-| 7 | Ответ на письмо банка в том же треде с тремя вложениями |
+| 1 | Find new bank email, download PDF attachment |
+| 2 | Extract amount from PDF, save to `user_config` |
+| 3 | Generate signed Bank Confirmation |
+| 4 | Generate Conversion Order |
+| 5 | Generate Salary Invoice (regenerate for current month) |
+| 6 | Send three documents to Telegram |
+| 7 | Reply to the bank's email in the same thread with all three attachments |
 
-Ответное письмо отправляется через `send_bank_email_reply`:
-- получатель — `bank_email.sender`
-- тред — `bank_email.thread_id` (письмо попадает в тот же тред в Gmail банка)
-- тема — `Re: {оригинальная тема}`
-- вложения — инвойс, bank confirmation, conversion order
+The reply is sent via `send_bank_email_reply`:
+- recipient — `bank_email.sender`
+- thread — `bank_email.thread_id` (reply appears in the same thread in the bank's Gmail)
+- subject — `Re: {original subject}`
+- attachments — invoice, bank confirmation, conversion order
 
-`fetch_bank_email_workflow` возвращает `(Path, BankEmail) | None`.
-В Telegram-хендлере (`document_handlers.py`) `BankEmail` не используется — ответное письмо там не отправляется.
+`fetch_bank_email_workflow` returns `(Path, BankEmail) | None`.  
+In the Telegram handler (`document_handlers.py`), `BankEmail` is not used — no reply is sent there.
 
 ---
 
 ### `daily_monitoring_summary`
 
-Ежедневная сводка по реальным production-данным.
+Daily digest from production data.
 
 ```
 GitHub Actions (cron: 05:00 UTC)
-       │  SSH
-       ▼
-      VPS: docker compose exec finpipe-bot
-                  │
-                  ▼
-       src/workflows/monitoring/daily_report
-                  │  читает app_events за 24ч
-                  ▼
-         Telegram monitoring chat
+      │  SSH
+      ▼
+     VPS: docker compose exec finpipe-bot
+               │
+               ▼
+    src/workflows/monitoring/daily_report
+               │  reads app_events from last 24h
+               ▼
+      Telegram monitoring chat
 ```
 
-**Secrets GitHub Actions:**
+**GitHub Actions secrets:**
 
-| Secret | Назначение |
+| Secret | Purpose |
 |---|---|
-| `VPS_HOST` | Адрес VPS |
-| `VPS_USER` | SSH-пользователь |
-| `VPS_PORT` | SSH-порт |
-| `VPS_SSH_KEY` | Приватный ключ |
+| `VPS_HOST` | VPS address |
+| `VPS_USER` | SSH user |
+| `VPS_PORT` | SSH port |
+| `VPS_SSH_KEY` | Private key |
 
-> ⚠️ `cron` работает в UTC. `05:00 UTC` = `07:00` по Белграду (без учёта DST).
+> ⚠️ Cron runs in UTC. `05:00 UTC` = `07:00` Belgrade time (DST not accounted for).
 
 ---
 
 ### `check_bank_email`
 
-Мониторинг входящего письма банка о зачислении. Запускается по cron с 2 по 6 число каждого месяца.
+Monitors incoming bank payment notifications. Runs on cron on days 2–6 of each month.
 
-| Шаг | Действие |
+| Step | Action |
 |---|---|
-| 1 | Проверяет что сегодня 2–6 число месяца |
-| 2 | Итерирует всех `AllowedUser` |
-| 3 | Для каждого: ищет новое письмо через `find_bank_email(telegram_id)` |
-| 4 | Если найдено и уведомление ещё не отправлялось — пишет пользователю в Telegram |
-| 5 | Сохраняет маркер `notify:{telegram_id}:{message_id}` в `ProcessedMessage` |
+| 1 | Check that today is between the 2nd and 6th |
+| 2 | Iterate over all `AllowedUser` records |
+| 3 | For each: search for a new bank email via `find_bank_email(telegram_id)` |
+| 4 | If found and not yet notified — send a Telegram message to that user |
+| 5 | Save marker `notify:{telegram_id}:{message_id}` in `ProcessedMessage` |
 
-- Не скачивает вложения, не помечает письмо как обработанное
-- Повторный запуск безопасен — дубль не отправится
-- Маркер сбрасывается вместе с «🗑 Сбросить историю писем»
-- При отсутствии Gmail у пользователя — молча пропускает, продолжает для других
+- Does not download attachments or mark the email as processed
+- Safe to run multiple times — no duplicate notifications
+- Marker is cleared when the user resets email history
+- If a user has no Gmail connected — silently skipped, continues for others
 
 ---
 
 ### `backup_database`
 
-Резервное копирование production PostgreSQL.
+Backs up production PostgreSQL.
 
-| Шаг | Действие |
+| Step | Action |
 |---|---|
-| 1 | Читает настройки: `BACKUP_DIR`, `BACKUP_RETENTION_DAYS` |
-| 2 | Создаёт папку `backups`, если нет |
-| 3 | Запускает `pg_dump` внутри postgres-контейнера |
-| 4 | Сжимает в gzip |
-| 5 | Проверяет что архив создан и не пустой |
-| 6 | Удаляет бэкапы старше `BACKUP_RETENTION_DAYS` |
-| 7 | Отправляет статус в monitoring chat |
+| 1 | Read config: `BACKUP_DIR`, `BACKUP_RETENTION_DAYS` |
+| 2 | Create `backups` folder if missing |
+| 3 | Run `pg_dump` inside the postgres container |
+| 4 | Compress with gzip |
+| 5 | Verify the archive exists and is not empty |
+| 6 | Delete backups older than `BACKUP_RETENTION_DAYS` |
+| 7 | Send status to monitoring chat |
 
-**Ключевые env:**
+**Key env variables:**
 
-| Переменная | Назначение |
+| Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Строка подключения |
-| `BACKUP_DIR` | Папка для бэкапов |
-| `BACKUP_RETENTION_DAYS` | Срок хранения |
-| `BACKUP_POSTGRES_SERVICE` | Имя postgres-сервиса в compose |
-| `MONITORING_CHAT_ID` | Куда слать статус |
+| `DATABASE_URL` | Connection string |
+| `BACKUP_DIR` | Backup directory |
+| `BACKUP_RETENTION_DAYS` | Retention period |
+| `BACKUP_POSTGRES_SERVICE` | Postgres service name in compose |
+| `MONITORING_CHAT_ID` | Where to send status |
 
 ---
 
-## 🔩 Tasks
+## Tasks
 
-Tasks — низкоуровневые операции, используемые внутри workflows и при отладке.
+Tasks are low-level operations used inside workflows and for debugging.
 
-| Task | Назначение |
+| Task | Purpose |
 |---|---|
-| `generate_invoice` | Генерация Salary Invoice (PDF + DOCX, история в БД) |
-| `generate_conversion_order` | Генерация Conversion Order с подписью |
-| `generate_bank_confirmation` | Генерация Bank Confirmation с подписью |
-| `fetch_bank_email` | Поиск письма банка + загрузка вложений |
-| `clear_processed_history` | Сброс истории обработанных писем |
+| `generate_invoice` | Generate Salary Invoice (PDF + DOCX, history recorded) |
+| `generate_conversion_order` | Generate signed Conversion Order |
+| `generate_bank_confirmation` | Generate signed Bank Confirmation |
+| `fetch_bank_email` | Find bank email and download attachments |
+| `clear_processed_history` | Reset processed email history |
