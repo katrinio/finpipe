@@ -66,6 +66,7 @@ class ProfileTemplateService:
             "account_holder_email": None,
             "account_holder_address": None,
             "bank_name": None,
+            "bank_slug": None,
             "account_number": None,
             "iban": None,
             "bic": None,
@@ -74,7 +75,7 @@ class ProfileTemplateService:
             "payment_code": None,
             "payment_description": None,
         }
-        bank_confirmation_email = BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None)
+        bank_confirmation_email = BankConfirmationEmailTemplate(recipient=None, subject_contains=None)
         if isinstance(data, dict):
             for key in profile_data:
                 profile_data[key] = cls._normalize_profile_value(data.get(key), key)
@@ -114,10 +115,9 @@ class ProfileTemplateService:
     @staticmethod
     def _parse_bank_confirmation_email(value: object) -> BankConfirmationEmailTemplate:
         if not isinstance(value, dict):
-            return BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None)
+            return BankConfirmationEmailTemplate(recipient=None, subject_contains=None)
 
         return BankConfirmationEmailTemplate(
-            sender=ProfileTemplateService._normalize_profile_value(value.get("sender"), "sender"),
             recipient=ProfileTemplateService._normalize_profile_value(value.get("recipient"), "recipient"),
             # Тема письма может содержать дату, номер или сумму, поэтому используем contains-match.
             subject_contains=ProfileTemplateService._normalize_profile_value(value.get("subject_contains"), "subject_contains"),
@@ -163,10 +163,10 @@ class ProfileTemplateService:
                     account_holder_address=profile.account_holder_address,
                     amount=None,
                     bank_name=cls._require_text(profile.bank_name),
+                    bank_slug=profile.bank_slug,
                     account_number=cls._require_text(profile.account_number),
                     iban=cls._require_text(profile.iban),
                     bic=cls._require_text(profile.bic),
-                    bank_confirmation_email_sender=profile.bank_confirmation_email.sender,
                     bank_confirmation_email_recipient=profile.bank_confirmation_email.recipient,
                     bank_confirmation_email_subject_contains=profile.bank_confirmation_email.subject_contains,
                 )
@@ -177,12 +177,12 @@ class ProfileTemplateService:
                 bank_details.account_holder_address = profile.account_holder_address
                 bank_details.amount = None
                 bank_details.bank_name = cls._require_text(profile.bank_name)
+                if profile.bank_slug is not None:
+                    bank_details.bank_slug = profile.bank_slug
                 bank_details.account_number = cls._require_text(profile.account_number)
                 bank_details.iban = cls._require_text(profile.iban)
                 bank_details.bic = cls._require_text(profile.bic)
                 # Не затираем уже сохранённые настройки поиска письма банка пустым/неполным YAML.
-                if profile.bank_confirmation_email.sender is not None:
-                    bank_details.bank_confirmation_email_sender = profile.bank_confirmation_email.sender
                 if profile.bank_confirmation_email.recipient is not None:
                     bank_details.bank_confirmation_email_recipient = profile.bank_confirmation_email.recipient
                 if profile.bank_confirmation_email.subject_contains is not None:

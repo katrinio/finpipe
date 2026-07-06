@@ -15,4 +15,3 @@ class SystemStatus:
 
     bank_confirmation_available: bool
     invoice_available: bool
-    conversion_order_available: bool

@@ -1,4 +1,4 @@
-# данные компании (наниматель ИП)
+# company data (employer)
 company_name:
 company_address:
 company_email:
@@ -6,7 +6,7 @@ service_agreement_date:
 registration_number:
 city:
 
-# пример
+# example
 # company_name: Acme Software LLC
 # company_address: 123 Main Street, London, UK
 # company_email: accounting@acme.com
@@ -15,7 +15,7 @@ city:
 # city: London
 
 
-# данные банковского счета (ИП)
+# bank account data
 account_holder:
 bic:
 iban:
@@ -23,7 +23,7 @@ account_number:
 account_holder_email:
 account_holder_address:
 
-# пример
+# example
 # account_holder: Ivan Ivanov PR Consulting
 # bic: ABCDRSBG
 # iban: RS35105008123123123123
@@ -32,43 +32,37 @@ account_holder_address:
 # account_holder_address: Knez Mihailova 1, Belgrade, Serbia
 
 
-# данные банка
+# bank (used in invoice PDF)
 bank_name:
 
-# пример
-# bank_name: Example Bank Serbia
+# example
+# bank_name: Alta Banka AD Beograd
+
+
+# bank slug — selects the bank's email config (reply address, conversion request address)
+# supported: altabanka
+bank_slug:
+
+# example
+# bank_slug: altabanka
 
 
 # bank notification email — used to find the incoming payment confirmation
 bank_confirmation_email:
-  sender: ""
   recipient: ""
   subject_contains: ""
-  reply_cc: ""
 
 # example
-# sender: devizniprilivi.obavestenja@altabanka.rs
 # recipient: your@email.com
 # subject_contains: obaveštenje o deviznom prilivu
-# reply_cc: devprilivi@altabanka.rs
 
 
-# conversion request email — used to send the Conversion Order after EUR arrives
-conversion_request_email:
-  to: ""
-  cc: ""
-
-# example
-# to: otkup@altabanka.rs
-# cc: treasury@altabanka.rs
-
-
-# данные платежа
+# payment data
 payment_number:
 payment_code:
 payment_description:
 
-# пример
+# example
 # payment_number: 97
 # payment_code: 289
 # payment_description: Consulting services for May 2026

@@ -51,7 +51,7 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
         account_number="123",
         iban="RS123",
         bic="TESTRSBG",
-        bank_confirmation_email_sender="bank@example.com",
+        bank_slug="altabanka",
         bank_confirmation_email_recipient="company@example.com",
         bank_confirmation_email_subject_contains="payment confirmation",
     )
@@ -70,7 +70,7 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
         account_number=None,
         iban="RS999",
         bic=None,
-        bank_confirmation_email_sender=None,
+        bank_slug=None,
         bank_confirmation_email_recipient=None,
         bank_confirmation_email_subject_contains=None,
     )
@@ -86,6 +86,6 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
     assert updated.account_number == "123"
     assert updated.iban == "RS999"
     assert updated.bic == "TESTRSBG"
-    assert updated.bank_confirmation_email_sender == "bank@example.com"
+    assert updated.bank_slug == "altabanka"
     assert updated.bank_confirmation_email_recipient == "company@example.com"
     assert updated.bank_confirmation_email_subject_contains == "payment confirmation"

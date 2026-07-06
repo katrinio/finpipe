@@ -5,7 +5,6 @@ from dataclasses import dataclass
 class BankConfirmationEmailTemplate:
     """Параметры поиска письма банка в профиле."""
 
-    sender: str | None
     recipient: str | None
     subject_contains: str | None
 
@@ -21,6 +20,7 @@ class ProfileTemplate:
     account_holder_email: str | None
     account_holder_address: str | None
     bank_name: str | None
+    bank_slug: str | None
     registration_number: str | None
     city: str | None
     account_number: str | None

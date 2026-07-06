@@ -22,7 +22,6 @@ class PendingBankReply(BaseModel):
     message_id: Mapped[str] = mapped_column(String, nullable=False)
     invoice_pdf_path: Mapped[str] = mapped_column(String, nullable=False)
     bank_confirmation_path: Mapped[str] = mapped_column(String, nullable=False)
-    conversion_order_path: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, server_default=func.current_timestamp())
 
     @classmethod
@@ -36,7 +35,6 @@ class PendingBankReply(BaseModel):
         message_id: str,
         invoice_pdf_path: str,
         bank_confirmation_path: str,
-        conversion_order_path: str,
     ) -> None:
         with cls.session() as session:
             existing = session.scalar(select(cls).where(cls.telegram_id == telegram_id).limit(1))
@@ -53,7 +51,6 @@ class PendingBankReply(BaseModel):
                     message_id=message_id,
                     invoice_pdf_path=invoice_pdf_path,
                     bank_confirmation_path=bank_confirmation_path,
-                    conversion_order_path=conversion_order_path,
                 )
             )
             session.commit()

@@ -70,6 +70,7 @@ def test_send_email_successful_send(monkeypatch, tmp_path) -> None:
             "subject": "Invoice",
             "body": "Body",
             "attachments": [attachment],
+            "cc": "",
         }
     ]
     assert service.users_client.messages_client.sent_bodies == [{"raw": "bWltZS1ieXRlcw=="}]

@@ -5,9 +5,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'monitoring.compose.yml'
-      - 'prometheus.yml'
-      - 'alloy-config.alloy'
+      - 'infra/monitoring.compose.yml'
+      - 'infra/prometheus.yml'
+      - 'infra/alloy-config.alloy'
       - 'docs/monitoring.md'
       - '.github/workflows/deploy-monitoring.yml'
 
@@ -30,10 +30,10 @@ jobs:
             git fetch origin
             git reset --hard origin/main
 
-            docker compose -f monitoring.compose.yml pull --quiet
-            docker compose -f monitoring.compose.yml up -d --remove-orphans
+            docker compose -f infra/monitoring.compose.yml pull --quiet
+            docker compose -f infra/monitoring.compose.yml up -d --remove-orphans
 
-            docker compose -f monitoring.compose.yml ps
-            docker compose -f monitoring.compose.yml logs --tail=20 grafana
+            docker compose -f infra/monitoring.compose.yml ps
+            docker compose -f infra/monitoring.compose.yml logs --tail=20 grafana
 
             docker image prune -f

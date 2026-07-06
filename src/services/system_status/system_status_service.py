@@ -20,9 +20,12 @@ class SystemStatusService:
         signature = Signature.exists(telegram_id)
         gmail = GmailAccount.has_gmail_connection(telegram_id)
 
+        from src.services.bank.bank_config import get_bank_config
+
+        bank_config = get_bank_config(bd.bank_slug if bd else None)
         bank_email_configured = (
             bd is not None
-            and bool(bd.bank_confirmation_email_sender and bd.bank_confirmation_email_sender.strip())
+            and bank_config is not None
             and bool(bd.bank_confirmation_email_recipient and bd.bank_confirmation_email_recipient.strip())
             and bool(bd.bank_confirmation_email_subject_contains and bd.bank_confirmation_email_subject_contains.strip())
         )
@@ -35,5 +38,4 @@ class SystemStatusService:
             bank_email_configured=bank_email_configured,
             bank_confirmation_available=company and bank_details,
             invoice_available=company and bank_details and signature,
-            conversion_order_available=company and bank_details,
         )
