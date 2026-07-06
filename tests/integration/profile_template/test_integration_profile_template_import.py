@@ -16,8 +16,8 @@ bank_name: Test Bank
 account_number: "123"
 iban: RS123
 bic: TESTRSBG
+bank_slug: altabanka
 bank_confirmation_email:
-  sender: bank@example.com
   recipient: company@example.com
   subject_contains: payment confirmation
 """
@@ -57,7 +57,7 @@ def test_profile_import_happy_path_creates_company_profile_and_bank_details(tmp_
     assert bank_details.account_number == "123"
     assert bank_details.iban == "RS123"
     assert bank_details.bic == "TESTRSBG"
-    assert bank_details.bank_confirmation_email_sender == "bank@example.com"
+    assert bank_details.bank_slug == "altabanka"
     assert bank_details.bank_confirmation_email_recipient == "company@example.com"
     assert bank_details.bank_confirmation_email_subject_contains == "payment confirmation"
 
@@ -80,8 +80,8 @@ bank_name: Updated Bank
 account_number: "999"
 iban: RS999
 bic: UPDTRSBG
+bank_slug: altabanka
 bank_confirmation_email:
-  sender: bank2@example.com
   recipient: company2@example.com
   subject_contains: updated confirmation
 """,
@@ -95,7 +95,7 @@ bank_confirmation_email:
     assert company_profile.company_name == "Updated Company"
     assert company_profile.company_address == "Novi Sad"
     assert bank_details is not None
-    assert bank_details.bank_confirmation_email_sender == "bank2@example.com"
+    assert bank_details.bank_slug == "altabanka"
     assert bank_details.bank_confirmation_email_recipient == "company2@example.com"
     assert bank_details.bank_confirmation_email_subject_contains == "updated confirmation"
 
@@ -119,6 +119,6 @@ def test_legacy_profile_without_bank_confirmation_email_still_imports(tmp_path: 
     bank_details = BankDetails.get_by_owner(123)
 
     assert bank_details is not None
-    assert bank_details.bank_confirmation_email_sender is None
+    assert bank_details.bank_slug is None
     assert bank_details.bank_confirmation_email_recipient is None
     assert bank_details.bank_confirmation_email_subject_contains is None

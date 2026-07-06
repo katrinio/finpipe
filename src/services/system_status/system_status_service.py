@@ -38,5 +38,4 @@ class SystemStatusService:
             bank_email_configured=bank_email_configured,
             bank_confirmation_available=company and bank_details,
             invoice_available=company and bank_details and signature,
-            conversion_order_available=company and bank_details,
         )

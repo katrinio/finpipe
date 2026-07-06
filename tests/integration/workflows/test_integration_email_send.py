@@ -89,15 +89,14 @@ def test_send_invoice_email_subject_body_and_attachment_from_profile(tmp_path: P
     assert not pdf.exists(), "PDF должен быть удалён после отправки"
 
 
-def test_send_bank_email_reply_body_thread_and_three_attachments(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_send_bank_email_reply_body_thread_and_two_attachments(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from src.workflows import run_bank_request
 
     _setup_profile(123)
 
     invoice = tmp_path / "invoice.pdf"
     confirmation = tmp_path / "confirmation.pdf"
-    conversion = tmp_path / "conversion.pdf"
-    for f in (invoice, confirmation, conversion):
+    for f in (invoice, confirmation):
         f.write_bytes(b"%PDF fake")
 
     service = FakeService(response={"id": "msg-bank"})
@@ -124,7 +123,7 @@ def test_send_bank_email_reply_body_thread_and_three_attachments(tmp_path: Path,
         message_id="msg-bank-123",
         thread_id="thread-bank-456",
     )
-    docs = BankDocuments(invoice_pdf=invoice, bank_confirmation=confirmation, conversion_order=conversion)
+    docs = BankDocuments(invoice_pdf=invoice, bank_confirmation=confirmation)
 
     send_bank_email_reply(telegram_id=123, bank_email=bank_email, docs=docs)
 
@@ -141,4 +140,4 @@ def test_send_bank_email_reply_body_thread_and_three_attachments(tmp_path: Path,
     assert "to.katrin.t@gmail.com" in body_text
 
     filenames = [part.get_filename() for part in parsed.walk() if part.get_filename()]
-    assert len(filenames) == 3
+    assert len(filenames) == 2

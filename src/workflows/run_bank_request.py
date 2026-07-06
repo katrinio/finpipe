@@ -80,7 +80,7 @@ def _generate_documents(
     telegram_id: int,
     bank_template_path: Path,
 ) -> BankDocuments:
-    """Генерирует три документа и отправляет статусные сообщения в Telegram."""
+    """Генерирует два документа и отправляет статусные сообщения в Telegram."""
 
     received_amount_eur = extract_amount(bank_template_path)
     UserConfig.upsert(telegram_id=telegram_id, bank_received_amount_eur=received_amount_eur)
