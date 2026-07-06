@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from src.services.monitoring.event_logger import EventLogger
 from src.services.profile_template.exceptions import InvalidProfileTemplateError
-from src.services.profile_template.profile_template import BankConfirmationEmailTemplate, ProfileTemplate
+from src.services.profile_template.profile_template import BankConfirmationEmailTemplate, ConversionRequestEmailTemplate, ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
 from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.user.bank_details import BankDetails
@@ -74,13 +74,15 @@ class ProfileTemplateService:
             "payment_code": None,
             "payment_description": None,
         }
-        bank_confirmation_email = BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None)
+        bank_confirmation_email = BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None, reply_cc=None)
+        conversion_request_email = ConversionRequestEmailTemplate(to=None, cc=None)
         if isinstance(data, dict):
             for key in profile_data:
                 profile_data[key] = cls._normalize_profile_value(data.get(key), key)
             bank_confirmation_email = cls._parse_bank_confirmation_email(data.get("bank_confirmation_email"))
+            conversion_request_email = cls._parse_conversion_request_email(data.get("conversion_request_email"))
 
-        return ProfileTemplate(**profile_data, bank_confirmation_email=bank_confirmation_email)
+        return ProfileTemplate(**profile_data, bank_confirmation_email=bank_confirmation_email, conversion_request_email=conversion_request_email)
 
     @classmethod
     def validate_required_fields(cls, profile: ProfileTemplate) -> None:
@@ -114,13 +116,24 @@ class ProfileTemplateService:
     @staticmethod
     def _parse_bank_confirmation_email(value: object) -> BankConfirmationEmailTemplate:
         if not isinstance(value, dict):
-            return BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None)
+            return BankConfirmationEmailTemplate(sender=None, recipient=None, subject_contains=None, reply_cc=None)
 
         return BankConfirmationEmailTemplate(
             sender=ProfileTemplateService._normalize_profile_value(value.get("sender"), "sender"),
             recipient=ProfileTemplateService._normalize_profile_value(value.get("recipient"), "recipient"),
             # Тема письма может содержать дату, номер или сумму, поэтому используем contains-match.
             subject_contains=ProfileTemplateService._normalize_profile_value(value.get("subject_contains"), "subject_contains"),
+            reply_cc=ProfileTemplateService._normalize_profile_value(value.get("reply_cc"), "reply_cc"),
+        )
+
+    @staticmethod
+    def _parse_conversion_request_email(value: object) -> ConversionRequestEmailTemplate:
+        if not isinstance(value, dict):
+            return ConversionRequestEmailTemplate(to=None, cc=None)
+
+        return ConversionRequestEmailTemplate(
+            to=ProfileTemplateService._normalize_profile_value(value.get("to"), "to"),
+            cc=ProfileTemplateService._normalize_profile_value(value.get("cc"), "cc"),
         )
 
     @classmethod
@@ -169,6 +182,9 @@ class ProfileTemplateService:
                     bank_confirmation_email_sender=profile.bank_confirmation_email.sender,
                     bank_confirmation_email_recipient=profile.bank_confirmation_email.recipient,
                     bank_confirmation_email_subject_contains=profile.bank_confirmation_email.subject_contains,
+                    bank_reply_cc=profile.bank_confirmation_email.reply_cc,
+                    conversion_request_email_to=profile.conversion_request_email.to,
+                    conversion_request_email_cc=profile.conversion_request_email.cc,
                 )
                 session.add(bank_details)
             else:
@@ -187,6 +203,12 @@ class ProfileTemplateService:
                     bank_details.bank_confirmation_email_recipient = profile.bank_confirmation_email.recipient
                 if profile.bank_confirmation_email.subject_contains is not None:
                     bank_details.bank_confirmation_email_subject_contains = profile.bank_confirmation_email.subject_contains
+                if profile.bank_confirmation_email.reply_cc is not None:
+                    bank_details.bank_reply_cc = profile.bank_confirmation_email.reply_cc
+                if profile.conversion_request_email.to is not None:
+                    bank_details.conversion_request_email_to = profile.conversion_request_email.to
+                if profile.conversion_request_email.cc is not None:
+                    bank_details.conversion_request_email_cc = profile.conversion_request_email.cc
 
             session.commit()
         EventLogger.log(

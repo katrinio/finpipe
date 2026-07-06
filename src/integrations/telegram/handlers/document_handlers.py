@@ -34,7 +34,6 @@ from src.utils.files import delete_file
 from src.utils.utils import Utils
 from src.workflows.run_bank_request import BankDocuments, fetch_bank_email_workflow, send_bank_email_reply
 from src.workflows.run_invoice_delivery import discard_invoice_pdf, generate_and_send_invoice, send_invoice_email
-from src.workflows.tasks.generate_conversion_order import generate_conversion_order_pdf
 from src.workflows.tasks.generate_invoice import generate_invoice_pdf
 
 LOGGER = logging.getLogger(__name__)
@@ -161,7 +160,6 @@ class DocumentHandlers:
             delete_file(bank_pdf_path, LOGGER)
 
         self.telegram.send_document(telegram_id, docs.bank_confirmation)
-        self.telegram.send_document(telegram_id, docs.conversion_order)
         self.telegram.send_document(telegram_id, docs.invoice_pdf)
 
         PendingBankReply.save(
@@ -173,7 +171,6 @@ class DocumentHandlers:
             message_id=bank_email.message_id,
             invoice_pdf_path=str(docs.invoice_pdf),
             bank_confirmation_path=str(docs.bank_confirmation),
-            conversion_order_path=str(docs.conversion_order),
         )
 
         LOGGER.info("Bank day workflow completed for Telegram user %s", telegram_id)
@@ -205,7 +202,6 @@ class DocumentHandlers:
         from src.workflows.run_bank_request import BankDocuments
 
         bank_confirmation_path: Path | None = None
-        conversion_order_path: Path | None = None
         invoice_pdf_path: Path | None = None
 
         try:
@@ -216,14 +212,6 @@ class DocumentHandlers:
 
             bank_confirmation_path = self._fill_bank_confirmation_pdf(telegram_id, bank_pdf_path, amount)
             self.telegram.send_message(telegram_id, BankMessages.BankDay.CONFIRMATION_READY)
-
-            conversion_order_path = generate_conversion_order_pdf(
-                telegram_id=telegram_id,
-                invoice_amount_eur=None,
-                bank_received_amount_eur=amount,
-                conversion_amount_eur=amount,
-            )
-            self.telegram.send_message(telegram_id, BankMessages.BankDay.CONVERSION_READY)
 
             prev_month_20 = Utils.today().replace(day=20)
             if prev_month_20.month == 1:
@@ -236,9 +224,6 @@ class DocumentHandlers:
         except Exception:
             if bank_confirmation_path is not None:
                 delete_file(bank_confirmation_path, LOGGER)
-            if conversion_order_path is not None:
-                delete_file(conversion_order_path, LOGGER)
-                delete_file(conversion_order_path.with_suffix(".docx"), LOGGER)
             if invoice_pdf_path is not None:
                 delete_file(invoice_pdf_path, LOGGER)
                 delete_file(invoice_pdf_path.with_suffix(".docx"), LOGGER)
@@ -247,7 +232,6 @@ class DocumentHandlers:
         return BankDocuments(
             invoice_pdf=invoice_pdf_path,
             bank_confirmation=bank_confirmation_path,
-            conversion_order=conversion_order_path,
         ), amount
 
     def bank_day_reply_to_bank(self, telegram_id: int) -> None:
@@ -274,7 +258,6 @@ class DocumentHandlers:
             docs = BankDocuments(
                 invoice_pdf=Path(pending.invoice_pdf_path),
                 bank_confirmation=Path(pending.bank_confirmation_path),
-                conversion_order=Path(pending.conversion_order_path),
             )
             send_bank_email_reply(telegram_id=telegram_id, bank_email=bank_email, docs=docs)
         except Exception as error:
@@ -285,8 +268,6 @@ class DocumentHandlers:
             if pending is not None:
                 delete_file(Path(pending.invoice_pdf_path), LOGGER)
                 delete_file(Path(pending.bank_confirmation_path), LOGGER)
-                delete_file(Path(pending.conversion_order_path), LOGGER)
-                delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
                 PendingBankReply.clear(telegram_id)
 
         LOGGER.info("Bank day reply sent for Telegram user %s", telegram_id)
@@ -297,8 +278,6 @@ class DocumentHandlers:
         if pending is not None:
             delete_file(Path(pending.invoice_pdf_path), LOGGER)
             delete_file(Path(pending.bank_confirmation_path), LOGGER)
-            delete_file(Path(pending.conversion_order_path), LOGGER)
-            delete_file(Path(pending.conversion_order_path).with_suffix(".docx"), LOGGER)
             ProcessedMessage.unmark_bank_day_processed(pending.message_id)
             PendingBankReply.clear(telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SKIPPED, reply_markup=build_document_menu())

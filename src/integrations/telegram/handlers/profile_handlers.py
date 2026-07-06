@@ -92,6 +92,9 @@ class ProfileHandlers:
             "bank_confirmation_email_sender": getattr(bd, "bank_confirmation_email_sender", None),
             "bank_confirmation_email_recipient": getattr(bd, "bank_confirmation_email_recipient", None),
             "bank_confirmation_email_subject_contains": getattr(bd, "bank_confirmation_email_subject_contains", None),
+            "bank_reply_cc": getattr(bd, "bank_reply_cc", None),
+            "conversion_request_email_to": getattr(bd, "conversion_request_email_to", None),
+            "conversion_request_email_cc": getattr(bd, "conversion_request_email_cc", None),
         }
         payment_fields = {
             "payment_number": getattr(cp, "payment_number", None),
@@ -141,6 +144,9 @@ class ProfileHandlers:
                 f"• Bank email sender: {self.format_field(bank_fields['bank_confirmation_email_sender'])}",
                 f"• Bank email recipient: {self.format_field(bank_fields['bank_confirmation_email_recipient'])}",
                 f"• Bank email subject contains: {self.format_field(bank_fields['bank_confirmation_email_subject_contains'])}",
+                f"• Bank reply CC: {self.format_field(bank_fields['bank_reply_cc'])}",
+                f"• Conversion request to: {self.format_field(bank_fields['conversion_request_email_to'])}",
+                f"• Conversion request CC: {self.format_field(bank_fields['conversion_request_email_cc'])}",
                 "",
                 "💳 Платёж",
                 f"• Номер платежа: {self.format_field(payment_fields['payment_number'])}",

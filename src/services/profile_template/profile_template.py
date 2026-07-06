@@ -8,6 +8,15 @@ class BankConfirmationEmailTemplate:
     sender: str | None
     recipient: str | None
     subject_contains: str | None
+    reply_cc: str | None
+
+
+@dataclass(frozen=True)
+class ConversionRequestEmailTemplate:
+    """Адреса для отправки запроса на конвертацию."""
+
+    to: str | None
+    cc: str | None
 
 
 @dataclass(frozen=True)
@@ -31,3 +40,4 @@ class ProfileTemplate:
     payment_code: str | None
     payment_description: str | None
     bank_confirmation_email: BankConfirmationEmailTemplate
+    conversion_request_email: ConversionRequestEmailTemplate
