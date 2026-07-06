@@ -73,11 +73,14 @@ def load_bank_email_search_config(owner_telegram_id: int | None = None) -> BankE
     if owner_telegram_id is not None:
         bank_details = BankDetails.get_by_owner(owner_telegram_id)
         if bank_details is not None:
-            sender = bank_details.bank_confirmation_email_sender
+            from src.services.bank.bank_config import get_bank_config
+
+            bank_config = get_bank_config(bank_details.bank_slug)
+            sender = bank_config.confirmation_email_sender if bank_config else None
             recipient = bank_details.bank_confirmation_email_recipient
             subject_contains = bank_details.bank_confirmation_email_subject_contains
             if sender and recipient and subject_contains:
-                LOGGER.info("Bank confirmation email search config loaded from profile")
+                LOGGER.info("Bank confirmation email search config loaded from profile (bank_slug=%s)", bank_details.bank_slug)
                 return BankEmailSearchConfig(sender=sender, recipient=recipient, subject_contains=subject_contains, source="profile")
 
     sender = EnvVar.get_optional_env("BANK_EMAIL_FROM", "")

@@ -23,12 +23,9 @@ class BankDetails(BaseModel):
     account_number: Mapped[str] = mapped_column(String)
     iban: Mapped[str] = mapped_column(String)
     bic: Mapped[str] = mapped_column(String)
-    bank_confirmation_email_sender: Mapped[str | None] = mapped_column(String, nullable=True)
+    bank_slug: Mapped[str | None] = mapped_column(String, nullable=True)
     bank_confirmation_email_recipient: Mapped[str | None] = mapped_column(String, nullable=True)
     bank_confirmation_email_subject_contains: Mapped[str | None] = mapped_column(String, nullable=True)
-    bank_reply_cc: Mapped[str | None] = mapped_column(String, nullable=True)
-    conversion_request_email_to: Mapped[str | None] = mapped_column(String, nullable=True)
-    conversion_request_email_cc: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
 
     @classmethod

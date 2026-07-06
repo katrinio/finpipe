@@ -131,7 +131,10 @@ def send_bank_email_reply(
     bank_details = BankDetails.get_by_owner(telegram_id)
     account_holder = bank_details.account_holder.title() if bank_details else ""
     account_holder_email = bank_details.account_holder_email or "" if bank_details else ""
-    reply_cc = bank_details.bank_reply_cc or "" if bank_details else ""
+    from src.services.bank.bank_config import get_bank_config
+
+    bank_config = get_bank_config(bank_details.bank_slug if bank_details else None)
+    reply_cc = bank_config.reply_cc if bank_config else ""
 
     body = f"Dobar dan,\n\nU prilogu dostavljam dokumenta koja ste tražili.\n\nS poštovanjem,\n{account_holder}\n{account_holder_email}"
 

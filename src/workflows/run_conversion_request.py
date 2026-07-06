@@ -5,6 +5,7 @@ from pathlib import Path
 
 from src.integrations.gmail.gmail_sender import send_email
 from src.integrations.telegram.client import TelegramClient
+from src.services.bank.bank_config import get_bank_config
 from src.services.conversion_order.exceptions import TransferRequestError
 from src.storage.orm.user.bank_details import BankDetails
 from src.utils.credentials import EnvVar
@@ -24,12 +25,11 @@ def send_conversion_request(telegram_client: TelegramClient, telegram_id: int, a
         msg = "Банковские реквизиты не настроены."
         raise TransferRequestError(msg)
 
-    to_email = bank_details.conversion_request_email_to
-    if not to_email:
-        msg = "Адрес для запроса конвертации не заполнен. Обновите профиль."
+    bank_config = get_bank_config(bank_details.bank_slug)
+    if bank_config is None:
+        msg = "Банк не настроен. Добавьте bank_slug в профиль."
         raise TransferRequestError(msg)
 
-    cc = bank_details.conversion_request_email_cc or ""
     account_holder = bank_details.account_holder.title() if bank_details.account_holder else ""
     account_holder_email = bank_details.account_holder_email or ""
 
@@ -49,14 +49,14 @@ def send_conversion_request(telegram_client: TelegramClient, telegram_id: int, a
             conversion_amount_eur=amount_eur,
         )
 
-        resolved_to = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", to_email)
+        resolved_to = EnvVar.get_optional_env("EMAIL_DRY_RUN_RECIPIENT", bank_config.conversion_to)
         send_email(
             telegram_id=telegram_id,
             to_email=resolved_to,
             subject=CONVERSION_REQUEST_SUBJECT,
             body=body,
             attachments=[conversion_order_path],
-            cc=cc,
+            cc=bank_config.conversion_cc,
         )
         LOGGER.info("Conversion request sent for Telegram user %s, amount=%.2f EUR", telegram_id, amount_eur)
     finally:

@@ -286,8 +286,10 @@ class DocumentHandlers:
             )
             return
 
+        from src.services.bank.bank_config import get_bank_config
+
         bank_details = BankDetails.get_by_owner(telegram_id)
-        if bank_details is None or not bank_details.conversion_request_email_to:
+        if bank_details is None or get_bank_config(bank_details.bank_slug) is None:
             self.telegram.send_message(
                 telegram_id,
                 BankMessages.ConversionRequest.NOT_CONFIGURED,
