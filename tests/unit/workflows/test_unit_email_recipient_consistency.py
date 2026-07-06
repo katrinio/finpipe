@@ -79,7 +79,7 @@ def test_bank_reply_uses_same_recipient_as_prompt(monkeypatch: pytest.MonkeyPatc
         message_id="msg-1",
         thread_id="thread-1",
     )
-    docs = BankDocuments(invoice_pdf=fake_pdf, bank_confirmation=fake_pdf, conversion_order=fake_pdf)
+    docs = BankDocuments(invoice_pdf=fake_pdf, bank_confirmation=fake_pdf)
 
     captured: list[str] = []
 

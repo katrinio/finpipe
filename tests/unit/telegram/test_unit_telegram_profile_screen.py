@@ -37,7 +37,7 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         account_number="123456789",
         iban="RS35123456789012345678",
         bic="EXAMPLERSBG",
-        bank_confirmation_email_sender="bank@example.com",
+        bank_slug="altabanka",
         bank_confirmation_email_recipient="company@example.com",
         bank_confirmation_email_subject_contains="payment confirmation",
     )
@@ -66,7 +66,7 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
     assert "💰 Invoice          ✔️" in message
     assert "• payment_code" in message
     assert "• payment_description" in message
-    assert "• Bank email sender: bank@example.com" in message
+    assert "• Bank slug: altabanka" in message
     assert "• Bank email recipient: company@example.com" in message
     assert "• Bank email subject contains: payment confirmation" in message
 

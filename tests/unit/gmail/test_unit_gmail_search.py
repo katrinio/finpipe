@@ -48,7 +48,7 @@ def test_load_bank_email_search_config_prefers_profile_over_env(tmp_path, monkey
         account_number="123",
         iban="RS123",
         bic="TESTRSBG",
-        bank_confirmation_email_sender="bank@profile.rs",
+        bank_slug="altabanka",
         bank_confirmation_email_recipient="company@profile.rs",
         bank_confirmation_email_subject_contains="profile subject",
     )
@@ -61,7 +61,7 @@ def test_load_bank_email_search_config_prefers_profile_over_env(tmp_path, monkey
     config = search.load_bank_email_search_config(123)
 
     assert config.source == "profile"
-    assert config.sender == "bank@profile.rs"
+    assert config.sender == "devizniprilivi.obavestenja@altabanka.rs"
     assert config.recipient == "company@profile.rs"
     assert config.subject_contains == "profile subject"
 
