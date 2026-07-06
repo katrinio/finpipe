@@ -6,3 +6,4 @@ class DocumentsMenuButtons:
 class BankDayButtons:
     START = "▶️ Запустить"
     REPLY_TO_BANK = "📤 Ответить банку"
+    REQUEST_CONVERSION = "💱 Запросить конвертацию"

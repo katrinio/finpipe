@@ -140,6 +140,7 @@ class CommandRouter:
             DocumentsMenuButtons.BANK_DAY: lambda context: self.document_handler.bank_day_info(context.telegram_id),
             BankDayButtons.START: lambda context: self.document_handler.bank_day(context.telegram_id),
             BankDayButtons.REPLY_TO_BANK: lambda context: self.document_handler.bank_day_reply_to_bank(context.telegram_id),
+            BankDayButtons.REQUEST_CONVERSION: lambda context: self.document_handler.request_conversion(context.telegram_id),
             NavigationButtons.SKIP: lambda context: self.document_handler.handle_skip(context.telegram_id),
             # invoice
             InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),

@@ -50,6 +50,9 @@ def build_document_menu() -> dict:
                 {"text": DocumentsMenuButtons.BANK_DAY},
             ],
             [
+                {"text": BankDayButtons.REQUEST_CONVERSION},
+            ],
+            [
                 {"text": NavigationButtons.HOME},
             ],
         ],

@@ -273,6 +273,44 @@ class DocumentHandlers:
         LOGGER.info("Bank day reply sent for Telegram user %s", telegram_id)
         self.telegram.send_message(telegram_id, BankMessages.BankDay.REPLY_SENT, reply_markup=build_document_menu())
 
+    def request_conversion(self, telegram_id: int) -> None:
+        LOGGER.info("Conversion request started for Telegram user %s", telegram_id)
+
+        user_config = UserConfig.get_by_owner(telegram_id)
+        amount = user_config.bank_received_amount_eur if user_config is not None else None
+        if amount is None:
+            self.telegram.send_message(
+                telegram_id,
+                BankMessages.ConversionRequest.NO_AMOUNT,
+                reply_markup=build_document_menu(),
+            )
+            return
+
+        bank_details = BankDetails.get_by_owner(telegram_id)
+        if bank_details is None or not bank_details.conversion_request_email_to:
+            self.telegram.send_message(
+                telegram_id,
+                BankMessages.ConversionRequest.NOT_CONFIGURED,
+                reply_markup=build_document_menu(),
+            )
+            return
+
+        self.telegram.send_message(telegram_id, BankMessages.ConversionRequest.IN_PROGRESS)
+        try:
+            from src.workflows.run_conversion_request import send_conversion_request
+
+            send_conversion_request(self.telegram, telegram_id, amount)
+        except Exception as error:
+            LOGGER.warning("Conversion request failed for Telegram user %s: %s", telegram_id, error)
+            self.telegram.send_message(telegram_id, str(error), reply_markup=build_document_menu())
+            return
+
+        self.telegram.send_message(
+            telegram_id,
+            BankMessages.ConversionRequest.SENT.format(f"{amount:.2f}"),
+            reply_markup=build_document_menu(),
+        )
+
     def bank_day_skip_reply(self, telegram_id: int) -> None:
         pending = PendingBankReply.get(telegram_id)
         if pending is not None:
