@@ -1,0 +1,41 @@
+tests/unit/test_unit_deploy_workflow.py
+  s_5274dcb8563bf5::t_c2a62b3ad65013 1-8
+tests/unit/workflows/test_unit_workflows_invoice_delivery.py
+  s_5274dcb8563bf5::t_c2a62b3ad65013 3,5,50-83
+src/integrations/telegram/client.py
+  s_5274dcb8563bf5::t_7202f5d618de59 3,47,49,58
+tests/unit/storage/test_unit_email_removal_migration.py
+  s_5274dcb8563bf5::t_f7aeb6ce37d7f0 11
+  s_5274dcb8563bf5::t_fd5f90abd63973 1-10,12-24
+migrations/versions/d4e5f6a7b8c9_remove_email_integration.py
+  s_5274dcb8563bf5::t_7202f5d618de59 77
+src/workflows/run_invoice_delivery.py
+  s_5274dcb8563bf5::t_7202f5d618de59 5-6,21-29
+tests/unit/telegram/test_unit_telegram_polling.py
+  s_5274dcb8563bf5::t_c2a62b3ad65013 1-24
+src/infrastructure/http/http_client.py
+  s_5274dcb8563bf5::t_7202f5d618de59 10,16-19,97-103,105-109
+src/integrations/telegram/bot.py
+  s_5274dcb8563bf5::t_7202f5d618de59 116,324
+tests/unit/test_unit_http_client.py
+  s_5274dcb8563bf5::t_c2a62b3ad65013 1-46
+tests/unit/telegram/test_unit_telegram_document_mime.py
+  s_5274dcb8563bf5::t_5f6beb17301d25 2,21
+  s_5274dcb8563bf5::t_c2a62b3ad65013 1,3-20,22-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "382a578c21ef535f1c7f4a02e2a0f6811d87093d",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
