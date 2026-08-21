@@ -9,10 +9,7 @@ def build_main_menu(is_owner: bool = False) -> dict:
             {"text": MainMenuButtons.DOCUMENTS},
             {"text": MainMenuButtons.PROFILE},
         ],
-        [
-            {"text": MainMenuButtons.INTEGRATIONS},
-            {"text": MainMenuButtons.SYSTEM},
-        ],
+        [{"text": MainMenuButtons.SYSTEM}],
     ]
 
     if is_owner:

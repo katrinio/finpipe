@@ -9,9 +9,6 @@ class InvoiceMessages:
     class Generation:
         IN_PROGRESS = MsgIcon.waiting("Формируется инвойс...")
         SENT = MsgIcon.success("Инвойс отправлен.")
-        SEND_PROMPT = "Отправить инвойс компании на {}?"
-        SENDING = MsgIcon.waiting("Отправляю инвойс компании...")
-        SENT_TO_COMPANY = MsgIcon.success("Инвойс отправлен компании.")
 
     class Validation:
         NOT_INT = MsgIcon.error("Сумма должна содержать только цифры.\nПример: 1500")

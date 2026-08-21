@@ -94,7 +94,6 @@ class TelegramClient:
         active_signatures_count: int,
         generated_invoice_count: int,
         generated_bank_pdf: int,
-        google_account_connected_count: int,
     ) -> None:
         """Отправляет итоговый отчёт по ежедневной проверке проекта."""
 
@@ -108,7 +107,6 @@ class TelegramClient:
             f"Active signatures: {active_signatures_count}\n"
             f"Generated invoices: {generated_invoice_count}\n"
             f"Generated bank PDFs: {generated_bank_pdf}\n"
-            f"Google accounts connected: {google_account_connected_count}\n"
             f"Errors (24h): n/a\n"
             "_\n\n"
             f"Duration: {duration_seconds}s\n"

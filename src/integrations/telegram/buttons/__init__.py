@@ -1,7 +1,6 @@
 """Telegram UI button constants."""
 
-from src.integrations.telegram.buttons.documents import BankDayButtons, DocumentsMenuButtons
-from src.integrations.telegram.buttons.gmail import GmailButtons, IntegrationsButtons
+from src.integrations.telegram.buttons.documents import DocumentsMenuButtons
 from src.integrations.telegram.buttons.invoice import InvoiceButtons, InvoiceMenuButtons
 from src.integrations.telegram.buttons.main_menu import MainMenuButtons
 from src.integrations.telegram.buttons.navigation import NavigationButtons
@@ -12,10 +11,7 @@ from src.integrations.telegram.buttons.system import PUBLIC_COMMANDS, SystemButt
 
 __all__ = [
     "PUBLIC_COMMANDS",
-    "BankDayButtons",
     "DocumentsMenuButtons",
-    "GmailButtons",
-    "IntegrationsButtons",
     "InvoiceButtons",
     "InvoiceMenuButtons",
     "MainMenuButtons",

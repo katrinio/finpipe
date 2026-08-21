@@ -47,10 +47,7 @@ def build_monitoring_message(event_type: EventType, severity: EventSeverity, det
 # События которые летят в мониторинговый чат.
 # Grafana покрывает uptime и общие метрики — здесь только критические бизнес-события.
 _CHAT_EVENTS = {
-    EventType.INVOICE_SEND_FAILED,
-    EventType.BANK_EMAIL_PROCESSING_FAILED,
     EventType.BACKUP_FAILED,
-    EventType.GMAIL_CONNECT_FAILED,
 }
 
 

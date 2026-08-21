@@ -44,16 +44,12 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
     BankDetails.upsert(
         owner_telegram_id=123,
         account_holder="Test User",
-        account_holder_email="test@example.com",
         account_holder_address="Serbia",
         amount=123.45,
         bank_name="Test Bank",
         account_number="123",
         iban="RS123",
         bic="TESTRSBG",
-        bank_slug="altabanka",
-        bank_confirmation_email_recipient="company@example.com",
-        bank_confirmation_email_subject_contains="payment confirmation",
     )
 
     created = BankDetails.get_by_owner(123)
@@ -63,29 +59,21 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
     BankDetails.upsert(
         owner_telegram_id=123,
         account_holder=None,
-        account_holder_email=None,
         account_holder_address="Montenegro",
         amount=None,
         bank_name="Updated Bank",
         account_number=None,
         iban="RS999",
         bic=None,
-        bank_slug=None,
-        bank_confirmation_email_recipient=None,
-        bank_confirmation_email_subject_contains=None,
     )
 
     updated = BankDetails.get_by_owner(123)
     assert updated is not None
     assert updated.id == created_id
     assert updated.account_holder == "Test User"
-    assert updated.account_holder_email == "test@example.com"
     assert updated.account_holder_address == "Montenegro"
     assert updated.amount == 123.45
     assert updated.bank_name == "Updated Bank"
     assert updated.account_number == "123"
     assert updated.iban == "RS999"
     assert updated.bic == "TESTRSBG"
-    assert updated.bank_slug == "altabanka"
-    assert updated.bank_confirmation_email_recipient == "company@example.com"
-    assert updated.bank_confirmation_email_subject_contains == "payment confirmation"

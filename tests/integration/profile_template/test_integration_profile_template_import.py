@@ -10,23 +10,17 @@ PROFILE_YAML = b"""
 company_name: Test Company
 company_address: Belgrade
 account_holder: Test User
-account_holder_email: test@example.com
 account_holder_address: Serbia
 bank_name: Test Bank
 account_number: "123"
 iban: RS123
 bic: TESTRSBG
-bank_slug: altabanka
-bank_confirmation_email:
-  recipient: company@example.com
-  subject_contains: payment confirmation
 """
 
 LEGACY_PROFILE_YAML = b"""
 company_name: Legacy Company
 company_address: Belgrade
 account_holder: Legacy User
-account_holder_email: legacy@example.com
 account_holder_address: Serbia
 bank_name: Legacy Bank
 account_number: "321"
@@ -51,15 +45,11 @@ def test_profile_import_happy_path_creates_company_profile_and_bank_details(tmp_
 
     assert bank_details is not None
     assert bank_details.account_holder == "Test User"
-    assert bank_details.account_holder_email == "test@example.com"
     assert bank_details.account_holder_address == "Serbia"
     assert bank_details.bank_name == "Test Bank"
     assert bank_details.account_number == "123"
     assert bank_details.iban == "RS123"
     assert bank_details.bic == "TESTRSBG"
-    assert bank_details.bank_slug == "altabanka"
-    assert bank_details.bank_confirmation_email_recipient == "company@example.com"
-    assert bank_details.bank_confirmation_email_subject_contains == "payment confirmation"
 
 
 def test_profile_reimport_updates_existing_records(tmp_path: Path) -> None:
@@ -74,16 +64,11 @@ def test_profile_reimport_updates_existing_records(tmp_path: Path) -> None:
 company_name: Updated Company
 company_address: Novi Sad
 account_holder: Updated User
-account_holder_email: updated@example.com
 account_holder_address: Montenegro
 bank_name: Updated Bank
 account_number: "999"
 iban: RS999
 bic: UPDTRSBG
-bank_slug: altabanka
-bank_confirmation_email:
-  recipient: company2@example.com
-  subject_contains: updated confirmation
 """,
     )
     ProfileTemplateService.import_profile(telegram_id=123, profile=second_profile)
@@ -95,13 +80,8 @@ bank_confirmation_email:
     assert company_profile.company_name == "Updated Company"
     assert company_profile.company_address == "Novi Sad"
     assert bank_details is not None
-    assert bank_details.bank_slug == "altabanka"
-    assert bank_details.bank_confirmation_email_recipient == "company2@example.com"
-    assert bank_details.bank_confirmation_email_subject_contains == "updated confirmation"
-
     assert bank_details is not None
     assert bank_details.account_holder == "Updated User"
-    assert bank_details.account_holder_email == "updated@example.com"
     assert bank_details.account_holder_address == "Montenegro"
     assert bank_details.bank_name == "Updated Bank"
     assert bank_details.account_number == "999"
@@ -109,7 +89,7 @@ bank_confirmation_email:
     assert bank_details.bic == "UPDTRSBG"
 
 
-def test_legacy_profile_without_bank_confirmation_email_still_imports(tmp_path: Path) -> None:
+def test_profile_with_minimum_fields_imports(tmp_path: Path) -> None:
     database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
@@ -119,6 +99,3 @@ def test_legacy_profile_without_bank_confirmation_email_still_imports(tmp_path: 
     bank_details = BankDetails.get_by_owner(123)
 
     assert bank_details is not None
-    assert bank_details.bank_slug is None
-    assert bank_details.bank_confirmation_email_recipient is None
-    assert bank_details.bank_confirmation_email_subject_contains is None

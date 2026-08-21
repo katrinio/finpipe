@@ -10,8 +10,4 @@ class SystemStatus:
     company: bool
     bank_details: bool
     signature: bool
-    gmail: bool
-    bank_email_configured: bool
-
-    bank_confirmation_available: bool
     invoice_available: bool

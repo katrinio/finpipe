@@ -34,9 +34,7 @@ class SystemHandlers:
         lines = [
             f"{MsgIcon.status(status.company and status.bank_details)} Профиль (компания + реквизиты)",
             f"{MsgIcon.status(status.signature)} Подпись",
-            f"{MsgIcon.status(status.gmail)} Gmail",
             f"{MsgIcon.status(status.invoice_available)} Инвойс (профиль + подпись)",
-            f"{MsgIcon.status(status.bank_confirmation_available and status.signature and status.gmail)} Банковский день (профиль + подпись + Gmail)",
         ]
         text = "✅ Готовность к работе\n\n" + "\n".join(lines)
         self.telegram.send_message(

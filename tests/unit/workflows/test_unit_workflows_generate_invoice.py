@@ -27,7 +27,6 @@ def test_generate_invoice_pdf_uses_user_config_invoice_amount(tmp_path: Path) ->
     BankDetails.upsert(
         owner_telegram_id=123,
         account_holder="John Doe",
-        account_holder_email="john@example.com",
         account_holder_address="Amsterdam",
         amount=1500,
         bank_name="ABN AMRO",
@@ -65,7 +64,6 @@ def test_generate_invoice_pdf_fails_when_invoice_amount_is_missing(tmp_path: Pat
     BankDetails.upsert(
         owner_telegram_id=123,
         account_holder="John Doe",
-        account_holder_email="john@example.com",
         account_holder_address="Amsterdam",
         amount=1500,
         bank_name="ABN AMRO",
@@ -103,7 +101,6 @@ def test_generate_invoice_pdf_allows_regeneration_for_same_invoice_number(tmp_pa
     BankDetails.upsert(
         owner_telegram_id=123,
         account_holder="John Doe",
-        account_holder_email="john@example.com",
         account_holder_address="Amsterdam",
         amount=1500,
         bank_name="ABN AMRO",

@@ -1,99 +1,70 @@
 # Finpipe
 
-If you're a sole proprietor who fills in the same bank documents every month — this is for you.
+Finpipe is a Telegram bot that generates recurring salary documents from a saved profile. A requested report is generated as a PDF, sent to the requesting Telegram chat as a document, and removed from the server immediately after the delivery attempt.
 
-Finpipe is a Telegram bot that handles the paperwork around salary payments. When the bank sends a notification, the bot finds it in Gmail, extracts the amount, fills in three signed documents, and sends them to your chat. You can run the whole thing from your phone.
-
-![](docs/header.svg)
-
----
+![Finpipe workflow](docs/header.svg)
 
 ## What it does
 
-### Bank day
+- Stores company, bank-account, payment, invoice-amount, and signature data.
+- Generates a Salary Invoice from the current profile and amount.
+- Sends the generated PDF directly to Telegram.
+- Removes generated PDF and intermediate DOCX files after delivery, including failed delivery attempts.
+- Keeps document-generation history and operational audit events in PostgreSQL.
 
-One command covers the full payment cycle:
-
-1. Finds the bank's email in Gmail
-2. Extracts the amount from the PDF attachment
-3. Generates Bank Confirmation, Conversion Order, and Salary Invoice — all signed
-4. Sends the documents to Telegram
-5. Offers to reply to the bank with the documents attached
-
-No laptop needed.
-
-### Documents
-
-| Document | Description |
-|---|---|
-| Salary Invoice | Payment invoice with profile data and signature |
-| Bank Confirmation | Signed confirmation for the bank |
-| Conversion Order | Signed currency conversion request |
-
-### Gmail
-
-- OAuth authorization
-- Searches incoming bank emails
-- Sends replies with attachments via Gmail API
-- Notifies you in chat if the token expires and reconnection is needed
-
-### Telegram
-
-- Manage company profile and bank details
-- Upload and store your signature (encrypted at rest)
-- Generate documents from chat
-- Monitoring chat for critical alerts
-
----
+Finpipe does not connect to or send messages through an electronic-mail provider.
 
 ## Stack
 
-- Python 3.14, Poetry
-- PostgreSQL + SQLAlchemy + Alembic
+- Python 3.14 and Poetry
+- PostgreSQL, SQLAlchemy, and Alembic
 - Telegram Bot API (polling)
-- Gmail API (OAuth 2.0)
 - Docker Compose
-
----
 
 ## Quick start
 
 ```bash
 poetry install
 cp .env.dist .env
-# fill in .env
+# Fill in .env
 ./scripts/setup_database.sh
-poetry run python src/integrations/telegram/bot.py
+poetry run start_bot
 ```
 
-For Gmail OAuth (local development):
+Required application variables are documented in [.env.dist](.env.dist). At minimum, configure the Telegram bot token, owner identity, signature encryption key, and database URL.
 
-```bash
-./scripts/start_local_oauth_stack.sh
-```
+## Telegram flow
 
----
+1. Open `Profile` and download the YAML template.
+2. Fill it in and upload it to the bot.
+3. Upload the signature used by signed document workflows.
+4. Open `Documents` → `Invoice` and set the invoice amount.
+5. Choose `Create invoice`.
+
+The bot generates the PDF, sends it to the same Telegram chat, and deletes its temporary files.
 
 ## Docker
 
 ```bash
-# Main stack
 docker compose up -d
 
-# Local (with exposed ports)
+# Local PostgreSQL port exposure
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
-
-# Monitoring stack
-docker compose -f monitoring.compose.yml up -d
 ```
 
----
+## Quality checks
 
-## Docs
+```bash
+poetry run ruff check .
+poetry run mypy src
+poetry run pytest
+poetry run alembic check
+```
+
+## Documentation
 
 | Topic | File |
 |---|---|
-| Development & debugging | [docs/development.md](docs/development.md) |
-| Gmail OAuth | [docs/oauth.md](docs/oauth.md) |
+| Development and debugging | [docs/development.md](docs/development.md) |
 | Storage | [docs/storage.md](docs/storage.md) |
 | Monitoring | [docs/monitoring.md](docs/monitoring.md) |
