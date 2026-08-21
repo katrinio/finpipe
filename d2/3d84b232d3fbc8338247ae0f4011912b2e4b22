@@ -1,0 +1,65 @@
+tests/README.md
+  s_5274dcb8563bf5::t_63658ed054879a 51
+src/integrations/telegram/ui/menu/menu.py
+  s_5274dcb8563bf5::t_b869527c27b8ad 12
+src/integrations/telegram/README.md
+  s_5274dcb8563bf5::t_0896b5b2541d1c 1,3,5
+src/storage/dependencies.py
+  s_5274dcb8563bf5::t_a666a4f70269b1 6
+tests/integration/profile_template/test_integration_profile_template_import.py
+  s_5274dcb8563bf5::t_116eec67ee8a16 92
+src/workflows/run_invoice_delivery.py
+  s_5274dcb8563bf5::t_5e7caa9be69692 16,22-26
+tests/unit/storage/test_unit_storage_timestamps.py
+  s_5274dcb8563bf5::t_1b6c28f5690018 1
+src/utils/credentials.py
+  s_5274dcb8563bf5::t_a666a4f70269b1 1
+src/workflows/README.md
+  s_5274dcb8563bf5::t_0896b5b2541d1c 3,5
+docs/header.svg
+  s_5274dcb8563bf5::t_63658ed054879a 3,24-25,27,34
+.env.dist
+  s_5274dcb8563bf5::t_94f8661842fa86 9
+tests/unit/workflows/test_unit_workflows_invoice_delivery.py
+  s_5274dcb8563bf5::t_3bc2613218dcc0 1,4,9,13,27-28,31,33,35-36,39-42,44,47
+docs/development.md
+  s_5274dcb8563bf5::t_0896b5b2541d1c 3,5,7,12,15,18-21,24
+docs/monitoring.md
+  s_5274dcb8563bf5::t_0896b5b2541d1c 3,5,7
+src/integrations/telegram/handlers/document_handlers.py
+  s_5274dcb8563bf5::t_5e7caa9be69692 9,15
+migrations/versions/d4e5f6a7b8c9_remove_email_integration.py
+  s_5274dcb8563bf5::t_92c5ec323f057f 1-20,22-43,45,48,50-54,57-61,63,66,70-72,74-80,82
+  s_5274dcb8563bf5::t_ef1cf75e0de6db 21,44,46-47,49,55,62,64-65,67-69,73,81
+  s_5274dcb8563bf5::t_26e4eaa27de125 56
+src/storage/README.md
+  s_5274dcb8563bf5::t_0896b5b2541d1c 1,3,5
+docs/storage.md
+  s_5274dcb8563bf5::t_0896b5b2541d1c 3,5,7,9
+README.md
+  s_5274dcb8563bf5::t_0896b5b2541d1c 3,5,9-13,15,19-20,29,31,34,36,38-44,51,55-62,64,68
+src/services/profile_template/profile_template_service.py
+  s_5274dcb8563bf5::t_a666a4f70269b1 11,79
+src/integrations/telegram/messages/menu_messages.py
+  s_5274dcb8563bf5::t_b869527c27b8ad 15
+src/integrations/telegram/messages/common_messages.py
+  s_5274dcb8563bf5::t_b869527c27b8ad 14
+src/integrations/telegram/buttons/__init__.py
+  s_5274dcb8563bf5::t_b869527c27b8ad 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "d23d84b232d3fbc8338247ae0f4011912b2e4b22",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
