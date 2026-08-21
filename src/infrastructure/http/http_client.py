@@ -7,9 +7,14 @@ from typing import Any
 
 import requests
 from requests import Response
+from requests.exceptions import RequestException
 
 LOGGER = logging.getLogger(__name__)
 TELEGRAM_BOT_URL_PATTERN = re.compile(r"^(https://api\.telegram\.org/(?:file/)?bot)([^/]+)(/.*)?$")
+
+
+class HttpRequestError(RuntimeError):
+    """HTTP-запрос завершился ошибкой без раскрытия чувствительного URL."""
 
 
 class HttpClient:
@@ -89,11 +94,19 @@ class HttpClient:
     ) -> Response:
         """Выполняет запрос и централизованно применяет базовые HTTP-правила."""
 
-        LOGGER.debug("HTTP %s %s", method, self._redact_url(url))
-        response = requests.request(method, url, timeout=timeout or self.DEFAULT_TIMEOUT, **kwargs)
+        safe_url = self._redact_url(url)
+        LOGGER.debug("HTTP %s %s", method, safe_url)
+        try:
+            response = requests.request(method, url, timeout=timeout or self.DEFAULT_TIMEOUT, **kwargs)
+        except RequestException as error:
+            LOGGER.error("HTTP %s %s failed: %s", method, safe_url, type(error).__name__)
+            raise HttpRequestError(f"HTTP {method} request failed for {safe_url}") from None
         if not response.ok:
-            LOGGER.error("HTTP %s %s\nResponse: %s", method, url, response.text)
-        response.raise_for_status()
+            LOGGER.error("HTTP %s %s failed with status %s", method, safe_url, response.status_code)
+        try:
+            response.raise_for_status()
+        except RequestException:
+            raise HttpRequestError(f"HTTP {method} request failed for {safe_url} with status {response.status_code}") from None
         return response
 
     @staticmethod

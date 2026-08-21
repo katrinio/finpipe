@@ -1,5 +1,6 @@
 """Клиент Telegram Bot API для уведомлений workflow."""
 
+import mimetypes
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -43,8 +44,9 @@ class TelegramClient:
         )
 
     def send_document(self, chat_id: int, document_path: Path) -> None:
-        """Отправляет PDF-файл в Telegram как документ."""
+        """Отправляет файл в Telegram как документ с подходящим MIME-типом."""
 
+        mime_type = mimetypes.guess_type(document_path.name)[0] or "application/octet-stream"
         with open(document_path, "rb") as document:
             self.http.post(
                 f"{self.base_url}/sendDocument",
@@ -53,7 +55,7 @@ class TelegramClient:
                     "document": (
                         document_path.name,
                         document,
-                        "application/pdf",
+                        mime_type,
                     )
                 },
                 timeout=30,

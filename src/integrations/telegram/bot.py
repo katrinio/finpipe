@@ -113,6 +113,7 @@ class TelegramBot:
         for update in result:
             try:
                 self.process_update(update)
+                processed_count += 1
             except Exception:
                 update_id = update.get("update_id")
                 LOGGER.exception("Failed to process Telegram update %s", update_id)
@@ -320,6 +321,7 @@ class TelegramBot:
         self._register_known_user(update)
         data = self.extract_message_data(update) or self.extract_callback_data(update)
         if data is None:
+            self.update_storage.mark_processed(update["update_id"])
             return
 
         text, telegram_id, username = data

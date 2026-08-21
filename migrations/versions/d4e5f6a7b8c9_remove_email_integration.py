@@ -74,7 +74,7 @@ def downgrade() -> None:
         sa.Column("thread_id", sa.String(), nullable=False),
         sa.Column("subject", sa.String(), nullable=False),
         sa.Column("sender", sa.String(), nullable=False),
-        sa.Column("cc", sa.String(), nullable=True),
+        sa.Column("cc", sa.String(), nullable=False, server_default=""),
         sa.Column("message_id", sa.String(), nullable=False),
         sa.Column("invoice_pdf_path", sa.String(), nullable=False),
         sa.Column("bank_confirmation_path", sa.String(), nullable=False),
