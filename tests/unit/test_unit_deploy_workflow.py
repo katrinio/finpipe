@@ -44,6 +44,16 @@ def test_production_compose_uses_secret_configuration_and_persistent_backups() -
     assert 'python", "-m", "src.workflows.readiness' in compose
 
 
+def test_production_deploy_retries_only_ssh_transport_failures() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    workflow = (project_root / ".github/workflows/deploy-finpipe.yml").read_text()
+
+    assert "appleboy/ssh-action" not in workflow
+    assert "for attempt in 1 2 3" in workflow
+    assert 'if [ "$exit_code" -ne 255 ]' in workflow
+    assert "timeout 20m ssh" in workflow
+
+
 def test_ci_postgres_health_command_is_a_single_docker_option_value() -> None:
     project_root = Path(__file__).resolve().parents[2]
     workflow = (project_root / ".github/workflows/quality_tests.yml").read_text()

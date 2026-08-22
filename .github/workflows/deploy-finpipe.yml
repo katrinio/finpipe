@@ -28,13 +28,21 @@ jobs:
 
     steps:
       - name: Deploy Finpipe via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          script: |
+        env:
+          FINPIPE_VPS_HOST: ${{ secrets.VPS_HOST }}
+          FINPIPE_VPS_USER: ${{ secrets.VPS_USER }}
+          FINPIPE_VPS_PORT: ${{ secrets.VPS_PORT }}
+          FINPIPE_VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+
+          ssh_key_path="${RUNNER_TEMP}/finpipe-deploy-key"
+          deploy_script_path="${RUNNER_TEMP}/finpipe-deploy.sh"
+          trap 'rm -f "$ssh_key_path" "$deploy_script_path"' EXIT
+
+          printf '%s\n' "$FINPIPE_VPS_SSH_KEY" > "$ssh_key_path"
+          cat > "$deploy_script_path" <<'REMOTE_SCRIPT'
             set -euo pipefail
             cd ~/projects/finpipe
 
@@ -73,3 +81,35 @@ jobs:
             docker compose -f docker-compose.yml logs --tail=30 finpipe-bot
 
             docker image prune -f
+          REMOTE_SCRIPT
+
+          for attempt in 1 2 3; do
+            echo "SSH deploy attempt ${attempt}/3"
+            set +e
+            timeout 20m ssh \
+              -i "$ssh_key_path" \
+              -p "$FINPIPE_VPS_PORT" \
+              -o BatchMode=yes \
+              -o ConnectTimeout=30 \
+              -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              "$FINPIPE_VPS_USER@$FINPIPE_VPS_HOST" \
+              'bash -se' < "$deploy_script_path"
+            exit_code=$?
+            set -e
+
+            if [ "$exit_code" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$exit_code" -ne 255 ]; then
+              echo "Remote deploy failed with exit code ${exit_code}; not retrying."
+              exit "$exit_code"
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "SSH transport failed; retrying in 10 seconds."
+              sleep 10
+            fi
+          done
+
+          echo "SSH transport failed after 3 attempts."
+          exit 255
