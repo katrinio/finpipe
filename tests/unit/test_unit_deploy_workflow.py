@@ -48,6 +48,15 @@ def test_production_compose_uses_secret_configuration_and_persistent_backups() -
     assert 'python", "-m", "src.workflows.readiness' in compose
 
 
+def test_distributed_database_url_uses_the_compose_postgres_service() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    env_dist = (project_root / ".env.dist").read_text()
+
+    database_url = next(line for line in env_dist.splitlines() if line.startswith("DATABASE_URL="))
+    assert "@postgres:5432/" in database_url
+    assert "localhost" not in database_url
+
+
 def test_production_deploy_retries_only_ssh_transport_failures() -> None:
     project_root = Path(__file__).resolve().parents[2]
     workflow = (project_root / ".github/workflows/deploy-finpipe.yml").read_text()

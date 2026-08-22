@@ -35,7 +35,7 @@ poetry run start_bot
 
 Required application variables are documented in [.env.dist](.env.dist). At minimum, configure the Telegram bot token, owner Telegram ID, signature encryption key, and database URL. Requests from every other Telegram account are rejected without creating user records.
 
-`DATABASE_URL` is the only source of PostgreSQL host, port, database, username, and password. The PostgreSQL container derives the official image initialization settings and healthcheck connection from this URI without printing it or placing it in command arguments. For an existing volume, configure `DATABASE_URL` with credentials that the database role already accepts; changing the URI alone does not rotate an existing PostgreSQL role password.
+`DATABASE_URL` is the only source of PostgreSQL host, port, database, username, and password. For Docker Compose, including production, its host and port must be `postgres:5432`, as shown in `.env.dist`; `localhost` inside the bot or backup container points to that container itself. When running the bot directly on the host with the local Compose port mapping, use `localhost:5433` instead. The PostgreSQL container derives the official image initialization settings from this URI without printing it or placing it in command arguments. For an existing volume, configure `DATABASE_URL` with credentials that the database role already accepts; changing the URI alone does not rotate an existing PostgreSQL role password.
 
 ## Telegram flow
 
