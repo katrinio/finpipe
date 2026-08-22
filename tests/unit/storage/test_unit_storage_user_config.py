@@ -35,28 +35,13 @@ def test_user_config_upsert_preserves_existing_amount_when_none_is_passed(tmp_pa
     assert config.invoice_amount_eur == 1500
 
 
-def test_user_config_upsert_defaults_exchange_amount_to_received_amount(tmp_path: Path) -> None:
+def test_user_config_upsert_stores_latest_bank_amount(tmp_path: Path) -> None:
     database = Database(build_test_database_url(tmp_path / "test.db"))
     initialize_test_database(database)
 
-    UserConfig.upsert(telegram_id=123, received_amount_eur=1450.75)
+    UserConfig.upsert(telegram_id=123, bank_received_amount_eur=1450.75)
 
     config = UserConfig.get_by_owner(123)
 
     assert config is not None
-    assert config.received_amount_eur == 1450.75
     assert config.bank_received_amount_eur == 1450.75
-    assert config.exchange_amount_eur is None
-
-
-def test_user_config_upsert_preserves_explicit_exchange_amount(tmp_path: Path) -> None:
-    database = Database(build_test_database_url(tmp_path / "test.db"))
-    initialize_test_database(database)
-
-    UserConfig.upsert(telegram_id=123, received_amount_eur=1450.75, exchange_amount_eur=1200.0)
-
-    config = UserConfig.get_by_owner(123)
-
-    assert config is not None
-    assert config.received_amount_eur == 1450.75
-    assert config.exchange_amount_eur == 1200.0

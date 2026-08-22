@@ -4,14 +4,12 @@ from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.ui.buttons import NavigationButtons
 from src.integrations.telegram.ui.menu.menu import build_main_menu
-from src.storage.dependencies import StorageDependencies
-from tests.fakes.fake_storage import FakeStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 def test_home_callback_opens_main_menu() -> None:
     telegram_client = FakeTelegramClient()
-    bot = TelegramBot(cast(StorageDependencies, FakeStorage({123})), telegram=cast(TelegramClient, telegram_client))
+    bot = TelegramBot(telegram=cast(TelegramClient, telegram_client), owner_telegram_id=123)
 
     bot.process_update(
         {
@@ -26,32 +24,25 @@ def test_home_callback_opens_main_menu() -> None:
     assert telegram_client.sent_message_payloads[-1] == (
         123,
         NavigationButtons.HOME,
-        build_main_menu(is_owner=False),
+        build_main_menu(),
     )
 
 
 def test_legacy_main_menu_text_opens_main_menu() -> None:
     telegram_client = FakeTelegramClient()
-    bot = TelegramBot(cast(StorageDependencies, FakeStorage({123})), telegram=cast(TelegramClient, telegram_client))
+    bot = TelegramBot(telegram=cast(TelegramClient, telegram_client), owner_telegram_id=123)
 
     bot.handle_message("🏠 Главное меню", telegram_id=123, username="alice")
 
     assert telegram_client.sent_message_payloads[-1] == (
         123,
         NavigationButtons.HOME,
-        build_main_menu(is_owner=False),
+        build_main_menu(),
     )
 
 
-def test_main_menu_shows_admin_button_for_owner() -> None:
-    menu = build_main_menu(is_owner=True)
-
-    assert any(button["text"] == "🛠️ Админка" for row in menu["keyboard"] for button in row)
-    assert menu["resize_keyboard"] is True
-
-
-def test_main_menu_hides_admin_button_for_regular_user() -> None:
-    menu = build_main_menu(is_owner=False)
+def test_main_menu_has_no_multi_user_admin_controls() -> None:
+    menu = build_main_menu()
 
     assert all(button["text"] != "🛠️ Админка" for row in menu["keyboard"] for button in row)
     assert menu["resize_keyboard"] is True

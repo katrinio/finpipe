@@ -1,22 +1,16 @@
-from src.integrations.telegram.ui.buttons import MainMenuButtons, OwnerButtons
+from src.integrations.telegram.ui.buttons import MainMenuButtons
 
 
-def build_main_menu(is_owner: bool = False) -> dict:
-    """Строит главное меню с учётом owner-доступа."""
+def build_main_menu() -> dict:
+    """Строит главное меню владельца."""
 
     keyboard = [
         [
             {"text": MainMenuButtons.DOCUMENTS},
             {"text": MainMenuButtons.PROFILE},
         ],
-        [
-            {"text": MainMenuButtons.INTEGRATIONS},
-            {"text": MainMenuButtons.SYSTEM},
-        ],
+        [{"text": MainMenuButtons.SYSTEM}],
     ]
-
-    if is_owner:
-        keyboard.append([{"text": OwnerButtons.ADMIN_PANEL}])
 
     return {
         "keyboard": keyboard,

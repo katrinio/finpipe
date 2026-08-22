@@ -5,7 +5,6 @@ from cryptography.fernet import Fernet
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.state_service import UserStateService
-from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import Signature, UserConfig
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
@@ -17,7 +16,6 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
     from src.utils.credentials import EnvVar
 
     EnvVar.reset_dotenv_cache()
-    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, UserStateService)
 
@@ -25,7 +23,6 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         owner_telegram_id=123,
         company_name="Acme Software LLC",
         company_address="123 Innovation Street, Belgrade, Serbia",
-        company_email="accounting@acme.com",
         registration_number="12345678",
         city="Belgrade",
         payment_number="97",
@@ -37,9 +34,6 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
         account_number="123456789",
         iban="RS35123456789012345678",
         bic="EXAMPLERSBG",
-        bank_slug="altabanka",
-        bank_confirmation_email_recipient="company@example.com",
-        bank_confirmation_email_subject_contains="payment confirmation",
     )
     UserConfig.upsert(telegram_id=123, invoice_amount_eur=566)
     source = tmp_path / "signature.png"
@@ -66,13 +60,9 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
     assert "💰 Invoice          ✔️" in message
     assert "• payment_code" in message
     assert "• payment_description" in message
-    assert "• Bank slug: altabanka" in message
-    assert "• Bank email recipient: company@example.com" in message
-    assert "• Bank email subject contains: payment confirmation" in message
 
 
 def test_profile_screen_marks_signature_unusable_when_file_is_missing(tmp_path: Path) -> None:
-    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, UserStateService)
 

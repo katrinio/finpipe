@@ -6,11 +6,9 @@ from datetime import datetime, time
 import yaml
 from sqlalchemy import select
 
-from src.services.monitoring.event_logger import EventLogger
 from src.services.profile_template.exceptions import InvalidProfileTemplateError
-from src.services.profile_template.profile_template import BankConfirmationEmailTemplate, ProfileTemplate
+from src.services.profile_template.profile_template import ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
-from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.utils import Utils
@@ -59,14 +57,11 @@ class ProfileTemplateService:
         profile_data: dict[str, str | None] = {
             "company_name": None,
             "company_address": None,
-            "company_email": None,
             "registration_number": None,
             "city": None,
             "account_holder": None,
-            "account_holder_email": None,
             "account_holder_address": None,
             "bank_name": None,
-            "bank_slug": None,
             "account_number": None,
             "iban": None,
             "bic": None,
@@ -75,13 +70,11 @@ class ProfileTemplateService:
             "payment_code": None,
             "payment_description": None,
         }
-        bank_confirmation_email = BankConfirmationEmailTemplate(recipient=None, subject_contains=None)
         if isinstance(data, dict):
             for key in profile_data:
                 profile_data[key] = cls._normalize_profile_value(data.get(key), key)
-            bank_confirmation_email = cls._parse_bank_confirmation_email(data.get("bank_confirmation_email"))
 
-        return ProfileTemplate(**profile_data, bank_confirmation_email=bank_confirmation_email)
+        return ProfileTemplate(**profile_data)
 
     @classmethod
     def validate_required_fields(cls, profile: ProfileTemplate) -> None:
@@ -112,17 +105,6 @@ class ProfileTemplateService:
 
         return value if isinstance(value, str) else str(value)
 
-    @staticmethod
-    def _parse_bank_confirmation_email(value: object) -> BankConfirmationEmailTemplate:
-        if not isinstance(value, dict):
-            return BankConfirmationEmailTemplate(recipient=None, subject_contains=None)
-
-        return BankConfirmationEmailTemplate(
-            recipient=ProfileTemplateService._normalize_profile_value(value.get("recipient"), "recipient"),
-            # Тема письма может содержать дату, номер или сумму, поэтому используем contains-match.
-            subject_contains=ProfileTemplateService._normalize_profile_value(value.get("subject_contains"), "subject_contains"),
-        )
-
     @classmethod
     def import_profile(cls, telegram_id: int, profile: ProfileTemplate) -> None:
         """Сохраняет профиль компании и банковские реквизиты пользователя."""
@@ -134,7 +116,6 @@ class ProfileTemplateService:
                     owner_telegram_id=telegram_id,
                     company_name=cls._require_text(profile.company_name),
                     company_address=cls._require_text(profile.company_address),
-                    company_email=profile.company_email,
                     registration_number=profile.registration_number,
                     city=profile.city,
                     service_agreement_date=cls._require_datetime(profile.service_agreement_date),
@@ -146,7 +127,6 @@ class ProfileTemplateService:
             else:
                 company_profile.company_name = cls._require_text(profile.company_name)
                 company_profile.company_address = cls._require_text(profile.company_address)
-                company_profile.company_email = profile.company_email
                 company_profile.registration_number = profile.registration_number
                 company_profile.city = profile.city
                 company_profile.service_agreement_date = cls._require_datetime(profile.service_agreement_date)
@@ -159,46 +139,21 @@ class ProfileTemplateService:
                 bank_details = BankDetails(
                     owner_telegram_id=telegram_id,
                     account_holder=cls._require_text(profile.account_holder),
-                    account_holder_email=profile.account_holder_email,
                     account_holder_address=profile.account_holder_address,
-                    amount=None,
                     bank_name=cls._require_text(profile.bank_name),
-                    bank_slug=profile.bank_slug,
                     account_number=cls._require_text(profile.account_number),
                     iban=cls._require_text(profile.iban),
                     bic=cls._require_text(profile.bic),
-                    bank_confirmation_email_recipient=profile.bank_confirmation_email.recipient,
-                    bank_confirmation_email_subject_contains=profile.bank_confirmation_email.subject_contains,
                 )
                 session.add(bank_details)
             else:
                 bank_details.account_holder = cls._require_text(profile.account_holder)
-                bank_details.account_holder_email = profile.account_holder_email
                 bank_details.account_holder_address = profile.account_holder_address
-                bank_details.amount = None
                 bank_details.bank_name = cls._require_text(profile.bank_name)
-                if profile.bank_slug is not None:
-                    bank_details.bank_slug = profile.bank_slug
                 bank_details.account_number = cls._require_text(profile.account_number)
                 bank_details.iban = cls._require_text(profile.iban)
                 bank_details.bic = cls._require_text(profile.bic)
-                # Не затираем уже сохранённые настройки поиска письма банка пустым/неполным YAML.
-                if profile.bank_confirmation_email.recipient is not None:
-                    bank_details.bank_confirmation_email_recipient = profile.bank_confirmation_email.recipient
-                if profile.bank_confirmation_email.subject_contains is not None:
-                    bank_details.bank_confirmation_email_subject_contains = profile.bank_confirmation_email.subject_contains
-
             session.commit()
-        EventLogger.log(
-            EventType.SETTINGS_UPDATED,
-            EventSeverity.INFO,
-            {"telegram_id": telegram_id, "section": "bank_details"},
-        )
-        EventLogger.log(
-            EventType.SETTINGS_UPDATED,
-            EventSeverity.INFO,
-            {"telegram_id": telegram_id, "section": "company_profile"},
-        )
         LOGGER.info("Profile data imported for Telegram user %s", telegram_id)
 
     @staticmethod

@@ -1,0 +1,10 @@
+FROM postgres:17
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY scripts/postgres_runtime.py /usr/local/bin/finpipe-postgres-runtime
+
+ENTRYPOINT ["python3", "/usr/local/bin/finpipe-postgres-runtime"]
+CMD ["postgres"]

@@ -1,6 +1,6 @@
 <svg viewBox="0 0 680 260" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
 <title>Finpipe flow to PROFIT</title>
-<desc>Invoice and bank email flow into the bot, go to your phone, ??? and PROFIT</desc>
+<desc>Invoice data flows through Finpipe to a Telegram document</desc>
 <defs>
   <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
     <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -21,21 +21,17 @@
 <rect x="0" y="0" width="680" height="260" rx="0" fill="#0d1117"/>
 <rect x="20" y="20" width="640" height="220" rx="14" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
 
-<text x="100" y="96"  text-anchor="middle" font-size="36">🧾</text>
-<text x="100" y="118" text-anchor="middle" class="lbl">invoice</text>
+<text x="100" y="136" text-anchor="middle" font-size="36">🧾</text>
+<text x="100" y="158" text-anchor="middle" class="lbl">invoice data</text>
 
-<text x="100" y="178" text-anchor="middle" font-size="36">📩</text>
-<text x="100" y="200" text-anchor="middle" class="lbl">bank mail</text>
-
-<path d="M132 88 Q216 88 268 122"   fill="none" stroke="#444" stroke-width="1.8" class="f1" marker-end="url(#arrow)"/>
-<path d="M132 168 Q216 168 268 142" fill="none" stroke="#444" stroke-width="1.8" class="f2" marker-end="url(#arrow)"/>
+<line x1="132" y1="128" x2="268" y2="128" stroke="#444" stroke-width="1.8" class="f1" marker-end="url(#arrow)"/>
 
 <text x="300" y="142" text-anchor="middle" font-size="44" class="bot">⚙️</text>
 
 <line x1="336" y1="128" x2="376" y2="128" stroke="#444" stroke-width="1.8" class="f1" marker-end="url(#arrow)"/>
 
 <text x="410" y="142" text-anchor="middle" font-size="36">📱</text>
-<text x="410" y="164" text-anchor="middle" class="lbl">chat</text>
+<text x="410" y="164" text-anchor="middle" class="lbl">Telegram document</text>
 
 <line x1="440" y1="128" x2="476" y2="128" stroke="#444" stroke-width="1.8" class="f2" marker-end="url(#arrow)"/>
 

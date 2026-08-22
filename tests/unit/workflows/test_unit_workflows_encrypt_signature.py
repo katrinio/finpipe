@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 from cryptography.fernet import Fernet
 
-from scripts.bootstrap_allowed_users import bootstrap_primary_admin
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.storage.orm import Signature
 from src.storage.orm.database import Database
@@ -18,7 +17,6 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
 ) -> None:
     monkeypatch.setenv("SIGNATURE_ENCRYPTION_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "admin")
     SignatureCipher._cipher = None
 
     source = tmp_path / "signature.png"
@@ -29,8 +27,6 @@ def test_encrypt_signature_workflow_encrypts_source_and_prints_result(
     test_database_url = build_test_database_url(db_path)
     monkeypatch.setenv("TEST_DATABASE_URL", test_database_url)
     initialize_test_database(Database(test_database_url))
-    bootstrap_primary_admin()
-
     result = encrypt_signature_workflow(source, destination)
 
     captured = capsys.readouterr()
