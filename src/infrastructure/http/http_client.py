@@ -61,32 +61,6 @@ class HttpClient:
             timeout=timeout,
         )
 
-    def put(
-        self,
-        url: str,
-        *,
-        params: Mapping[str, object] | None = None,
-        headers: Mapping[str, str] | None = None,
-        json: Any = None,
-        data: Mapping[str, object] | None = None,
-        timeout: int | float | None = None,
-    ) -> Response:
-        """Выполняет HTTP PUT."""
-
-        return self._request("PUT", url, params=params, headers=headers, json=json, data=data, timeout=timeout)
-
-    def delete(
-        self,
-        url: str,
-        *,
-        params: Mapping[str, object] | None = None,
-        headers: Mapping[str, str] | None = None,
-        timeout: int | float | None = None,
-    ) -> Response:
-        """Выполняет HTTP DELETE."""
-
-        return self._request("DELETE", url, params=params, headers=headers, timeout=timeout)
-
     def _request(
         self,
         method: str,

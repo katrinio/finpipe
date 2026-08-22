@@ -1,10 +1,10 @@
 import logging
 
 from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.messages import SignatureMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
-from src.integrations.telegram.ui.messages import SignatureMessages
 from src.services.signing.exceptions import InvalidSignatureFormatError, InvalidSignatureImageError, SignatureTooLargeError
 from src.services.signing.signature_service import SignatureService
 from src.storage.orm import Signature

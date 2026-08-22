@@ -1,10 +1,10 @@
-from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.messages import MenuMessages
-from src.integrations.telegram.ui.buttons import (
+from src.integrations.telegram.buttons import (
     DocumentsMenuButtons,
     MainMenuButtons,
     NavigationButtons,
 )
+from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.messages import MenuMessages
 from src.integrations.telegram.ui.menu.document_menu import (
     build_document_menu,
     build_invoice_menu,

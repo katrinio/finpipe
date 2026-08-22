@@ -1,8 +1,8 @@
 from collections.abc import Callable
 
 from src.integrations.telegram.bot import TelegramBot
+from src.integrations.telegram.messages import CommonMessages
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.messages import CommonMessages
 from src.storage.orm import TelegramUpdate, UserConfig, UserStateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 

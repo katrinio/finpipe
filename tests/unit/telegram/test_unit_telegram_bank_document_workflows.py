@@ -7,12 +7,12 @@ from pypdf import PdfWriter
 
 from src.constants import TestData
 from src.integrations.telegram.bot import TelegramBot
+from src.integrations.telegram.buttons import DocumentsMenuButtons
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.handlers import document_handlers
+from src.integrations.telegram.messages import BankMessages
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.buttons import DocumentsMenuButtons
 from src.integrations.telegram.ui.menu.document_menu import build_document_menu
-from src.integrations.telegram.ui.messages import BankMessages
 from src.storage.orm import Signature, UserConfig
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile

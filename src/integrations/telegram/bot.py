@@ -5,13 +5,13 @@ import time
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.handlers.command_router import CommandRouter
 from src.integrations.telegram.handlers.state_handlers import StateHandler
+from src.integrations.telegram.messages import CommonMessages
 from src.integrations.telegram.settings import TelegramSettings
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.document_menu import build_document_menu, build_invoice_menu
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
-from src.integrations.telegram.ui.messages import CommonMessages
 from src.logging_config import configure_logging
 from src.storage.dependencies import initialize_storage
 from src.storage.orm.system.telegram_update import TelegramUpdate

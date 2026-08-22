@@ -30,21 +30,9 @@ class TelegramUpdate(BaseModel):
             return session.scalar(statement) is not None
 
     @classmethod
-    def get_by_update_id(cls, update_id: int) -> "TelegramUpdate | None":
-        with cls.session() as session:
-            statement = select(cls).where(cls.update_id == update_id).limit(1)
-            return session.scalar(statement)
-
-    @classmethod
     def get_last_processed_update_id(cls) -> int | None:
         with cls.session() as session:
             statement = select(cls.update_id).order_by(cls.update_id.desc()).limit(1)
-            return session.scalar(statement)
-
-    @classmethod
-    def get_last_processed_at(cls) -> datetime | None:
-        with cls.session() as session:
-            statement = select(cls.processed_at).order_by(cls.update_id.desc()).limit(1)
             return session.scalar(statement)
 
     @classmethod

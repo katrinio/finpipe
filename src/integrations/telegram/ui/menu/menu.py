@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import MainMenuButtons
+from src.integrations.telegram.buttons import MainMenuButtons
 
 
 def build_main_menu() -> dict:
