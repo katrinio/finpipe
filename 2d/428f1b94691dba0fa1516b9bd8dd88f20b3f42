@@ -1,0 +1,19 @@
+docs/development.md
+  s_30ff4316d5db65::t_2c24ab2398c760 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "2d428f1b94691dba0fa1516b9bd8dd88f20b3f42",
+  "prompts": {},
+  "sessions": {
+    "s_30ff4316d5db65": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02ab0-80e9-78b1-a9c3-1fcab65dea9e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
