@@ -6,16 +6,12 @@ from src.integrations.telegram.messages import CommonMessages
 class Cmd(StrEnum):
     MENU = "/menu"
     START = "/start"
-    ADD_USER = "/add_user"
-    REMOVE_USER = "/remove_user"
 
     @property
     def description(self) -> str:
         descriptions = {
             Cmd.MENU: "menu",
             Cmd.START: "start the Finpipe bot",
-            Cmd.ADD_USER: "grant access to a known Telegram user",
-            Cmd.REMOVE_USER: "revoke access from a Telegram user",
         }
 
         return descriptions[self]

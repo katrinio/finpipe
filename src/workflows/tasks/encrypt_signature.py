@@ -9,8 +9,7 @@ from pathlib import Path
 from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.logging_config import configure_logging
-from src.storage.migrations import run_alembic_upgrade_head
-from src.storage.orm import AllowedUser, Signature
+from src.storage.orm import Signature
 from src.storage.orm.database import Database
 from src.utils.credentials import EnvVar
 from src.utils.files import delete_file
@@ -67,15 +66,10 @@ def encrypt_signature_workflow(source: Path, destination: Path) -> Path:
         destination = SignatureCipher.encrypt_file(source, destination)
         signature_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
 
-        run_alembic_upgrade_head()
         database = Database.from_env()
         database.bind_models()
-        owner = AllowedUser.get_owner()
-        if owner is None:
-            msg = "Owner is not bootstrapped in storage"
-            raise RuntimeError(msg)
         Signature.create(
-            owner_telegram_id=owner.telegram_id,
+            owner_telegram_id=int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID")),
             signature_path=destination,
             signature_hash=signature_hash,
             active=True,

@@ -3,11 +3,9 @@
 from src.integrations.telegram.messages import (
     BankMessages,
     CommonMessages,
-    GmailMessages,
     InvoiceMessages,
     MenuMessages,
     MsgIcon,
-    OwnerMessages,
     ProfileMessages,
     SignatureMessages,
 )
@@ -15,12 +13,9 @@ from src.integrations.telegram.messages import (
 __all__ = [
     "BankMessages",
     "CommonMessages",
-    "GmailMessages",
     "InvoiceMessages",
     "MenuMessages",
     "MsgIcon",
-    "OwnerMessages",
-    "OwnerMessages",
     "ProfileMessages",
     "SignatureMessages",
 ]

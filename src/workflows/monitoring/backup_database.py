@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import gzip
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 
-from src.services.monitoring.event_logger import EventLogger
-from src.storage.orm.system.app_events import EventSeverity, EventType
+from sqlalchemy.engine import make_url
+
+from src.logging_config import configure_logging
 from src.utils.credentials import LOGGER, EnvVar
 
 
@@ -18,7 +20,6 @@ from src.utils.credentials import LOGGER, EnvVar
 class BackupConfig:
     project_dir: Path
     backup_dir: Path
-    retention_days: int
     database_url: str
 
 
@@ -29,13 +30,11 @@ def load_backup_config() -> BackupConfig:
     if not backup_dir.is_absolute():
         backup_dir = project_dir / backup_dir
 
-    retention_days = int(EnvVar.get_optional_env("BACKUP_RETENTION_DAYS", "7"))
-    database_url = _build_pg_dump_database_url(EnvVar.get_required_env("DATABASE_URL"))
+    database_url = EnvVar.get_required_env("DATABASE_URL")
 
     return BackupConfig(
         project_dir=project_dir,
         backup_dir=backup_dir,
-        retention_days=retention_days,
         database_url=database_url,
     )
 
@@ -46,14 +45,19 @@ def run_backup(now: datetime | None = None) -> Path:
 
     backup_name = _build_backup_filename(now or datetime.now(UTC))
     backup_path = config.backup_dir / backup_name
-    tmp_path = backup_path.with_suffix(".sql")
+    sql_tmp_path = config.backup_dir / f".{backup_name}.sql.tmp"
+    gzip_tmp_path = config.backup_dir / f".{backup_name}.tmp"
 
-    LOGGER.info("Starting database backup: project=%s backup_dir=%s retention_days=%s", config.project_dir, config.backup_dir, config.retention_days)
+    LOGGER.info("Starting database backup: project=%s backup_dir=%s", config.project_dir, config.backup_dir)
 
-    _run_pg_dump(config=config, output_path=tmp_path)
-    _gzip_file(tmp_path, backup_path)
-    _ensure_non_empty(backup_path)
-    _cleanup_old_backups(config.backup_dir, config.retention_days)
+    try:
+        _run_pg_dump(config=config, output_path=sql_tmp_path)
+        _gzip_file(sql_tmp_path, gzip_tmp_path)
+        _ensure_non_empty(gzip_tmp_path)
+        gzip_tmp_path.replace(backup_path)
+    finally:
+        sql_tmp_path.unlink(missing_ok=True)
+        gzip_tmp_path.unlink(missing_ok=True)
 
     size_bytes = backup_path.stat().st_size
     LOGGER.info("Database backup completed: file=%s size_bytes=%s", backup_path, size_bytes)
@@ -61,25 +65,14 @@ def run_backup(now: datetime | None = None) -> Path:
 
 
 def main() -> int:
+    configure_logging()
     EnvVar.load_dotenv()
     try:
         run_backup()
-    except Exception as error:
+    except Exception:
         LOGGER.exception("Database backup failed.")
-        try:
-            EventLogger.log(EventType.BACKUP_FAILED, EventSeverity.ERROR, {"error": str(error)})
-        except Exception:
-            LOGGER.exception("Failed to log backup failure.")
         return 1
     return 0
-
-
-def _build_pg_dump_database_url(database_url: str) -> str:
-    if database_url.startswith("postgresql+psycopg://"):
-        return "postgresql://" + database_url.removeprefix("postgresql+psycopg://")
-    if database_url.startswith("postgresql://"):
-        return database_url
-    raise RuntimeError("DATABASE_URL must use postgresql or postgresql+psycopg scheme")
 
 
 def _build_backup_filename(now: datetime) -> str:
@@ -87,12 +80,34 @@ def _build_backup_filename(now: datetime) -> str:
 
 
 def _run_pg_dump(config: BackupConfig, output_path: Path) -> None:
-    command = ["pg_dump", f"--dbname={config.database_url}"]
-    LOGGER.info("Running pg_dump for %s", config.database_url)
+    command = ["pg_dump", "--no-password"]
+    process_env = _build_postgres_environment(config.database_url)
+    LOGGER.info("Running pg_dump")
     with output_path.open("wb") as handle:
-        completed = subprocess.run(command, stdout=handle, stderr=subprocess.PIPE, check=False)
+        completed = subprocess.run(command, stdout=handle, stderr=subprocess.PIPE, check=False, env=process_env)
     if completed.returncode != 0:
         raise RuntimeError(completed.stderr.decode("utf-8", errors="replace").strip() or "pg_dump failed")
+
+
+def _build_postgres_environment(database_url: str) -> dict[str, str]:
+    url = make_url(database_url)
+    if url.get_backend_name() != "postgresql" or not url.host or not url.database or not url.username:
+        raise RuntimeError("DATABASE_URL must contain PostgreSQL host, database, and username")
+
+    process_env = os.environ.copy()
+    process_env.update(
+        {
+            "PGHOST": url.host,
+            "PGPORT": str(url.port or 5432),
+            "PGDATABASE": url.database,
+            "PGUSER": url.username,
+        }
+    )
+    if url.password is not None:
+        process_env["PGPASSWORD"] = url.password
+    else:
+        process_env.pop("PGPASSWORD", None)
+    return process_env
 
 
 def _gzip_file(source_path: Path, target_path: Path) -> None:
@@ -104,14 +119,6 @@ def _gzip_file(source_path: Path, target_path: Path) -> None:
 def _ensure_non_empty(path: Path) -> None:
     if not path.exists() or path.stat().st_size <= 0:
         raise RuntimeError(f"Backup file is missing or empty: {path}")
-
-
-def _cleanup_old_backups(backup_dir: Path, retention_days: int) -> None:
-    cutoff = datetime.now(UTC) - timedelta(days=retention_days)
-    for path in backup_dir.glob("finpipe_*.sql.gz"):
-        if datetime.fromtimestamp(path.stat().st_mtime, tz=UTC) < cutoff:
-            path.unlink(missing_ok=True)
-            LOGGER.info("Removed old backup: %s", path.name)
 
 
 def _format_size(size_bytes: int) -> str:

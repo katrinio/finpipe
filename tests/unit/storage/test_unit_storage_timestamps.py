@@ -1,50 +1,11 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 
 from src.integrations.telegram.states import UserState
-from src.storage.orm import AllowedUser, DocumentGenerationHistory, KnownUser, Signature, UserConfig
+from src.storage.orm import Signature, UserConfig
 from src.storage.orm.database import Database
-from src.storage.orm.system.document_generation_history import DocumentGenerationStatus, DocumentType
-from src.storage.orm.system.oauth_session import OAuthSession
 from src.storage.orm.system.user_state_storage import UserStateStorage
 from tests.helpers.database import initialize_test_database
-
-
-def test_orm_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:
-    database = Database.from_env()
-    initialize_test_database(database)
-
-    now = datetime.now(UTC).replace(tzinfo=None)
-    AllowedUser.create(telegram_id=1, username="owner")
-    allowed_user = AllowedUser.get_by_telegram_id(1)
-    assert allowed_user is not None
-    assert abs((now - allowed_user.created_at).total_seconds()) < 5
-
-    KnownUser.upsert(telegram_id=2, username="known", first_name="Known")
-    known_user = KnownUser.get_by_telegram_id(2)
-    assert known_user is not None
-    assert abs((now - known_user.created_at).total_seconds()) < 5
-    assert abs((now - known_user.last_seen_at).total_seconds()) < 5
-
-    expires_at = now.replace(microsecond=987654) + timedelta(minutes=15)
-    OAuthSession.create(
-        telegram_id=3,
-        telegram_username="oauth",
-        state="state-1",
-        expires_at=expires_at,
-    )
-    OAuthSession.mark_used("state-1")
-    oauth_session = OAuthSession.get_by_state("state-1")
-    assert oauth_session is not None
-    assert abs((now - oauth_session.created_at).total_seconds()) < 5
-    assert oauth_session.expires_at.microsecond == 0
-    assert oauth_session.used_at is not None
-    assert abs((now - oauth_session.used_at).total_seconds()) < 5
-
-    DocumentGenerationHistory.add_attempt(DocumentType.SALARY_INVOICE, "2026-05", telegram_id=4, status=DocumentGenerationStatus.SUCCESS)
-    history_record = DocumentGenerationHistory.get_last_attempt(DocumentType.SALARY_INVOICE, "2026-05")
-    assert history_record is not None
-    assert abs((now - history_record.created_at).total_seconds()) < 5
 
 
 def test_updated_timestamps_are_stored_without_microseconds(tmp_path: Path) -> None:

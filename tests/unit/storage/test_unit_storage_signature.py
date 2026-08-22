@@ -5,10 +5,8 @@ from pathlib import Path
 import pytest
 from cryptography.fernet import Fernet
 
-from scripts.bootstrap_allowed_users import bootstrap_primary_admin
-from src.constants import Dir
 from src.infrastructure.security.signature_cipher import SignatureCipher
-from src.storage.orm import AllowedUser, Signature
+from src.storage.orm import Signature
 from src.storage.orm.database import Database
 from src.utils.credentials import EnvVar
 from tests.helpers.database import build_test_database_url, initialize_test_database
@@ -49,61 +47,6 @@ def test_signature_create_persists_and_reuses_owner(tmp_path: Path) -> None:
     assert second_signature.id == first_signature.id
     assert second_signature.signature_path == str(second_path)
     assert second_signature.active is True
-
-
-def test_bootstrap_primary_admin_creates_admin_and_active_signature(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "admin")
-    source = tmp_path / "signature.png"
-    source.write_bytes(b"signature-bytes")
-    monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
-    monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "777_sign.enc")
-
-    db_path = tmp_path / "test.db"
-    initialize_test_database(Database(build_test_database_url(db_path)))
-    bootstrap_primary_admin()
-
-    admin = AllowedUser.get_by_telegram_id(777)
-    signature = Signature.get_active(777)
-
-    assert admin is not None
-    assert admin.user_name == "admin"
-    assert signature is not None
-    assert signature.owner_telegram_id == 777
-    assert signature.signature_path == str(tmp_path / "signatures" / "777_sign.enc")
-    assert signature.signature_hash == hashlib.sha256((tmp_path / "signatures" / "777_sign.enc").read_bytes()).hexdigest()
-    assert not source.exists()
-    assert (tmp_path / "signatures" / "777_sign.enc").exists()
-
-
-def test_bootstrap_primary_admin_is_idempotent(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("BOT_OWNER_TELEGRAM_ID", "777")
-    monkeypatch.setenv("BOT_OWNER_TELEGRAM_USERNAME", "admin")
-    source = tmp_path / "signature.png"
-    source.write_bytes(b"signature-bytes")
-    monkeypatch.setenv("SIGNATURE_SOURCE_PATH", str(source))
-    monkeypatch.setattr(Dir, "SIGNATURE_ENC", tmp_path / "signatures" / "777_sign.enc")
-
-    db_path = tmp_path / "test.db"
-    initialize_test_database(Database(build_test_database_url(db_path)))
-    bootstrap_primary_admin()
-    first_signature = Signature.get_by_owner(777)
-
-    bootstrap_primary_admin()
-    second_signature = Signature.get_by_owner(777)
-
-    assert first_signature is not None
-    assert second_signature is not None
-    assert first_signature.id == second_signature.id
-    assert first_signature.signature_hash == second_signature.signature_hash
-    assert len(AllowedUser.list_all()) == 1
-    assert not source.exists()
 
 
 def test_signature_delete_removes_db_row_and_file(tmp_path: Path) -> None:

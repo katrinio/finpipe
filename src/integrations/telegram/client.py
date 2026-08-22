@@ -1,6 +1,6 @@
 """Клиент Telegram Bot API для уведомлений workflow."""
 
-from datetime import UTC, datetime
+import mimetypes
 from pathlib import Path
 
 from src.infrastructure.http.http_client import HttpClient
@@ -43,8 +43,9 @@ class TelegramClient:
         )
 
     def send_document(self, chat_id: int, document_path: Path) -> None:
-        """Отправляет PDF-файл в Telegram как документ."""
+        """Отправляет файл в Telegram как документ с подходящим MIME-типом."""
 
+        mime_type = mimetypes.guess_type(document_path.name)[0] or "application/octet-stream"
         with open(document_path, "rb") as document:
             self.http.post(
                 f"{self.base_url}/sendDocument",
@@ -53,7 +54,7 @@ class TelegramClient:
                     "document": (
                         document_path.name,
                         document,
-                        "application/pdf",
+                        mime_type,
                     )
                 },
                 timeout=30,
@@ -85,34 +86,3 @@ class TelegramClient:
 
         params = {"offset": offset} if offset is not None else None
         return self.http.get(f"{self.base_url}/getUpdates", params=params, timeout=10).json()
-
-    def send_daily_report(
-        self,
-        chat_id: int,
-        duration_seconds: int,
-        allowed_users_count: int,
-        active_signatures_count: int,
-        generated_invoice_count: int,
-        generated_bank_pdf: int,
-        google_account_connected_count: int,
-    ) -> None:
-        """Отправляет итоговый отчёт по ежедневной проверке проекта."""
-
-        report_message = (
-            "💅 Finpipe daily check\n\n"
-            f"Duration: {duration_seconds}s\n"
-            "n/a\n"
-            "_\n\n"
-            "📊 Finpipe usage\n\n"
-            f"Users: {allowed_users_count}\n"
-            f"Active signatures: {active_signatures_count}\n"
-            f"Generated invoices: {generated_invoice_count}\n"
-            f"Generated bank PDFs: {generated_bank_pdf}\n"
-            f"Google accounts connected: {google_account_connected_count}\n"
-            f"Errors (24h): n/a\n"
-            "_\n\n"
-            f"Duration: {duration_seconds}s\n"
-            f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
-        )
-
-        self.send_message(chat_id, report_message)

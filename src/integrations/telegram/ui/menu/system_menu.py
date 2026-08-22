@@ -1,7 +1,7 @@
-from src.integrations.telegram.ui.buttons import NavigationButtons, OwnerButtons, SystemButtons
+from src.integrations.telegram.ui.buttons import NavigationButtons, SystemButtons
 
 
-def build_system_menu(is_owner: bool = False) -> dict:
+def build_system_menu() -> dict:
     keyboard = [
         [
             {"text": SystemButtons.EASY_START},
@@ -11,9 +11,6 @@ def build_system_menu(is_owner: bool = False) -> dict:
             {"text": NavigationButtons.HOME},
         ],
     ]
-
-    if is_owner:
-        keyboard.append([{"text": OwnerButtons.ADMIN_PANEL}])
 
     return {
         "keyboard": keyboard,

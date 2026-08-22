@@ -1,5 +1,3 @@
-from collections.abc import Callable
-from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -11,26 +9,15 @@ from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import SignatureButtons
 from src.integrations.telegram.ui.messages import SignatureMessages
 from src.services.signing.exceptions import InvalidSignatureFormatError
-from src.storage.dependencies import StorageDependencies
-from src.storage.orm import AllowedUser
-from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
+from tests.fakes.fake_storage import FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 def test_upload_signature_sets_waiting_state(
-    monkeypatch: pytest.MonkeyPatch,
-    fake_storage: Callable[[set[int] | None], FakeStorage],
     fake_update_storage: FakeTelegramUpdateStorage,
 ) -> None:
-    monkeypatch.setattr(
-        AllowedUser,
-        "get_by_telegram_id",
-        classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
-    )
-    monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
-
     telegram_client = FakeTelegramClient()
-    tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
+    tg_bot = TelegramBot(telegram=cast(TelegramClient, telegram_client), owner_telegram_id=123)
     tg_bot.update_storage = cast(Any, fake_update_storage)
 
     assert tg_bot.handle_message(SignatureButtons.SIGNATURE_UPLOAD, telegram_id=123, username="alice") is True
@@ -43,22 +30,14 @@ def test_upload_signature_sets_waiting_state(
 
 def test_successful_signature_upload_clears_state(
     monkeypatch: pytest.MonkeyPatch,
-    fake_storage: Callable[[set[int] | None], FakeStorage],
     fake_update_storage: FakeTelegramUpdateStorage,
 ) -> None:
-    monkeypatch.setattr(
-        AllowedUser,
-        "get_by_telegram_id",
-        classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
-    )
-    monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
-
     telegram_client = FakeTelegramClient(
         files={
             "signature-file-id": b"png-bytes",
         }
     )
-    tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
+    tg_bot = TelegramBot(telegram=cast(TelegramClient, telegram_client), owner_telegram_id=123)
     tg_bot.update_storage = cast(Any, fake_update_storage)
 
     monkeypatch.setattr(telegram_handlers.SignatureService, "upload", lambda **kwargs: None)
@@ -92,22 +71,14 @@ def test_successful_signature_upload_clears_state(
 
 def test_invalid_file_keeps_state(
     monkeypatch: pytest.MonkeyPatch,
-    fake_storage: Callable[[set[int] | None], FakeStorage],
     fake_update_storage: FakeTelegramUpdateStorage,
 ) -> None:
-    monkeypatch.setattr(
-        AllowedUser,
-        "get_by_telegram_id",
-        classmethod(lambda cls, telegram_id: SimpleNamespace(telegram_id=telegram_id, user_name="alice")),
-    )
-    monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
-
     telegram_client = FakeTelegramClient(
         files={
             "signature-file-id": b"jpeg-bytes",
         }
     )
-    tg_bot = TelegramBot(cast(StorageDependencies, fake_storage({123})), telegram=cast(TelegramClient, telegram_client))
+    tg_bot = TelegramBot(telegram=cast(TelegramClient, telegram_client), owner_telegram_id=123)
     tg_bot.update_storage = cast(Any, fake_update_storage)
 
     def raise_invalid(**kwargs: object) -> None:

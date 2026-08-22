@@ -1,99 +1,98 @@
 # Finpipe
 
-If you're a sole proprietor who fills in the same bank documents every month — this is for you.
+Finpipe is a Telegram bot that generates salary and bank documents from a saved profile. A requested document is generated as a PDF, sent to the requesting Telegram chat, and removed from the server immediately after the delivery attempt.
 
-Finpipe is a Telegram bot that handles the paperwork around salary payments. When the bank sends a notification, the bot finds it in Gmail, extracts the amount, fills in three signed documents, and sends them to your chat. You can run the whole thing from your phone.
-
-![](docs/header.svg)
-
----
+![Finpipe workflow](docs/header.svg)
 
 ## What it does
 
-### Bank day
+- Stores company, bank-account, payment, invoice-amount, and signature data.
+- Generates a Salary Invoice from the current profile and amount.
+- Generates a Conversion Request for the amount extracted from the latest bank document.
+- Accepts a bank PDF in Telegram and generates a filled Bank Transfer Confirmation from it.
+- Sends the generated PDF directly to Telegram.
+- Removes generated PDF and intermediate DOCX files after delivery, including failed delivery attempts.
+- Accepts commands only from the Telegram account configured by `BOT_OWNER_TELEGRAM_ID`.
 
-One command covers the full payment cycle:
-
-1. Finds the bank's email in Gmail
-2. Extracts the amount from the PDF attachment
-3. Generates Bank Confirmation, Conversion Order, and Salary Invoice — all signed
-4. Sends the documents to Telegram
-5. Offers to reply to the bank with the documents attached
-
-No laptop needed.
-
-### Documents
-
-| Document | Description |
-|---|---|
-| Salary Invoice | Payment invoice with profile data and signature |
-| Bank Confirmation | Signed confirmation for the bank |
-| Conversion Order | Signed currency conversion request |
-
-### Gmail
-
-- OAuth authorization
-- Searches incoming bank emails
-- Sends replies with attachments via Gmail API
-- Notifies you in chat if the token expires and reconnection is needed
-
-### Telegram
-
-- Manage company profile and bank details
-- Upload and store your signature (encrypted at rest)
-- Generate documents from chat
-- Monitoring chat for critical alerts
-
----
+Finpipe does not connect to or send messages through an electronic-mail provider.
 
 ## Stack
 
-- Python 3.14, Poetry
-- PostgreSQL + SQLAlchemy + Alembic
+- Python 3.14 and Poetry
+- PostgreSQL, SQLAlchemy, and Alembic
 - Telegram Bot API (polling)
-- Gmail API (OAuth 2.0)
 - Docker Compose
-
----
 
 ## Quick start
 
 ```bash
 poetry install
 cp .env.dist .env
-# fill in .env
+# Fill in .env
 ./scripts/setup_database.sh
-poetry run python src/integrations/telegram/bot.py
+poetry run start_bot
 ```
 
-For Gmail OAuth (local development):
+Required application variables are documented in [.env.dist](.env.dist). At minimum, configure the Telegram bot token, owner Telegram ID, signature encryption key, and database URL. Requests from every other Telegram account are rejected without creating user records.
 
-```bash
-./scripts/start_local_oauth_stack.sh
-```
+`DATABASE_URL` is the only source of PostgreSQL host, port, database, username, and password. For Docker Compose, including production, use `postgres:5432`, as shown in `.env.dist`. For compatibility with local host-based development, the bot container translates only loopback hosts (`localhost`, `127.0.0.1`, or `::1`) to the Compose address `postgres:5432`; credentials, database name, query parameters, and non-loopback database addresses remain unchanged. The URI and password are not logged or placed in child-process arguments. For an existing volume, configure `DATABASE_URL` with credentials that the database role already accepts; changing the URI alone does not rotate an existing PostgreSQL role password.
 
----
+## Telegram flow
+
+1. Open `Profile` and download the YAML template.
+2. Fill it in and upload it to the bot.
+3. Upload the signature used by signed document workflows.
+4. For a Salary Invoice, open `Documents` → `Invoice`, set the amount, and choose `Create invoice`.
+5. For a Bank Transfer Confirmation, choose it in `Documents` and upload the source bank PDF.
+6. To generate a Conversion Request for the extracted amount, choose it in `Documents` after the bank confirmation completes.
+
+The bot sends every generated PDF to the same Telegram chat and deletes all temporary input, PDF, and intermediate DOCX files.
 
 ## Docker
 
 ```bash
-# Main stack
-docker compose up -d
+docker compose up -d postgres
+docker compose run --rm finpipe-bot python -m src.workflows.monitoring.backup_database
+docker compose run --rm finpipe-bot alembic upgrade head
+docker compose up -d --wait finpipe-bot
 
-# Local (with exposed ports)
+# Local PostgreSQL port exposure
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
-
-# Monitoring stack
-docker compose -f monitoring.compose.yml up -d
 ```
 
----
+Production deploy stops the bot, invokes the existing database backup workflow into the persistent project directory `./backups`, applies Alembic migrations, and waits for the new bot readiness check. No separate retention policy is applied by deploy; retention remains the responsibility of the existing daily backup infrastructure. The readiness check verifies Telegram API access and reads every active ORM table. If a migration has committed, deploy never starts the old image against the new schema.
 
-## Docs
+### Database restore
+
+Backups are plain PostgreSQL SQL dumps compressed as `./backups/finpipe_YYYY-MM-DD_HH-MM-SS.sql.gz`. List them with:
+
+```bash
+find ./backups -maxdepth 1 -name 'finpipe_*.sql.gz' -print
+```
+
+To restore, first preserve the current database separately and stop the bot. The restore command recreates the database configured by `DATABASE_URL`, then feeds the selected dump to `psql` using libpq environment inherited only by its child processes:
+
+```bash
+docker compose stop finpipe-bot
+docker compose exec -T postgres python3 /usr/local/bin/finpipe-postgres-runtime --restore /backups/finpipe_YYYY-MM-DD_HH-MM-SS.sql.gz
+docker compose run --rm finpipe-bot alembic current
+docker compose up -d --wait finpipe-bot
+```
+
+Do not run `alembic upgrade` automatically after restoring unless the restored revision has first been checked with `alembic current` and the corresponding application version is available.
+
+## Quality checks
+
+```bash
+poetry run ruff check .
+poetry run mypy src
+poetry run pytest
+poetry run alembic check
+```
+
+## Documentation
 
 | Topic | File |
 |---|---|
-| Development & debugging | [docs/development.md](docs/development.md) |
-| Gmail OAuth | [docs/oauth.md](docs/oauth.md) |
+| Development and debugging | [docs/development.md](docs/development.md) |
 | Storage | [docs/storage.md](docs/storage.md) |
-| Monitoring | [docs/monitoring.md](docs/monitoring.md) |

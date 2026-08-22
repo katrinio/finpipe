@@ -1,7 +1,6 @@
 # company data (employer)
 company_name:
 company_address:
-company_email:
 service_agreement_date:
 registration_number:
 city:
@@ -9,7 +8,6 @@ city:
 # example
 # company_name: Acme Software LLC
 # company_address: 123 Main Street, London, UK
-# company_email: accounting@acme.com
 # service_agreement_date: 2025-01-01
 # registration_number: 12345678
 # city: London
@@ -20,7 +18,6 @@ account_holder:
 bic:
 iban:
 account_number:
-account_holder_email:
 account_holder_address:
 
 # example
@@ -28,7 +25,6 @@ account_holder_address:
 # bic: ABCDRSBG
 # iban: RS35105008123123123123
 # account_number: 123-123123123123-12
-# account_holder_email: ivan@example.com
 # account_holder_address: Knez Mihailova 1, Belgrade, Serbia
 
 
@@ -37,24 +33,6 @@ bank_name:
 
 # example
 # bank_name: Alta Banka AD Beograd
-
-
-# bank slug — selects the bank's email config (reply address, conversion request address)
-# supported: altabanka
-bank_slug:
-
-# example
-# bank_slug: altabanka
-
-
-# bank notification email — used to find the incoming payment confirmation
-bank_confirmation_email:
-  recipient: ""
-  subject_contains: ""
-
-# example
-# recipient: your@email.com
-# subject_contains: obaveštenje o deviznom prilivu
 
 
 # payment data

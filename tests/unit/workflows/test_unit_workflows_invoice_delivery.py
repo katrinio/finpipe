@@ -1,63 +1,22 @@
-"""Unit-тесты для run_invoice_delivery: email subject/body, отправка письма, удаление файла."""
+"""Unit-тесты доставки сгенерированного инвойса в Telegram."""
 
-from datetime import date
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from threading import Barrier, Lock
+from unittest.mock import patch
 
 import pytest
 
 from src.workflows import run_invoice_delivery
-from src.workflows.run_invoice_delivery import (
-    _invoice_email_body,
-    _invoice_email_subject,
-    discard_invoice_pdf,
-    generate_and_send_invoice,
-    send_invoice_email,
-)
+from src.workflows.run_invoice_delivery import generate_and_send_invoice
 from tests.fakes.fake_telegram import FakeTelegramClient
 
-# ---------------------------------------------------------------------------
-# subject / body helpers
-# ---------------------------------------------------------------------------
 
-
-@pytest.mark.parametrize(
-    ("name", "month", "expected"),
-    [
-        ("KATRIN TORSUNOVA", date(2026, 6, 1), "Invoice jun'26 — Katrin Torsunova"),
-        ("JOHN DOE", date(2026, 5, 15), "Invoice may'26 — John Doe"),
-    ],
-)
-def test_invoice_email_subject_format(name: str, month: date, expected: str) -> None:
-    assert _invoice_email_subject(name, month=month) == expected
-
-
-@pytest.mark.parametrize(
-    ("name", "email", "month", "month_ru"),
-    [
-        ("KATRIN TORSUNOVA", "katrin@example.com", date(2026, 6, 1), "июнь"),
-        ("JOHN DOE", "john@example.com", date(2026, 5, 15), "май"),
-    ],
-)
-def test_invoice_email_body_contains_month_and_signature(name: str, email: str, month: date, month_ru: str) -> None:
-    result = _invoice_email_body(name, email, month=month)
-    assert month_ru in result
-    assert name.title() in result
-    assert "С уважением" in result
-    assert email in result
-
-
-# ---------------------------------------------------------------------------
-# generate_and_send_invoice — PDF остаётся, docx удаляется
-# ---------------------------------------------------------------------------
-
-
-def test_generate_and_send_invoice_keeps_pdf_and_removes_docx(tmp_path: Path) -> None:
+def test_generate_and_send_invoice_sends_document_and_removes_temporary_files(tmp_path: Path) -> None:
     pdf_path = tmp_path / "invoice-2026-06.pdf"
     docx_path = tmp_path / "invoice-2026-06.docx"
     pdf_path.write_bytes(b"pdf")
     docx_path.write_bytes(b"docx")
-
     telegram_client = FakeTelegramClient()
 
     with (
@@ -66,83 +25,59 @@ def test_generate_and_send_invoice_keeps_pdf_and_removes_docx(tmp_path: Path) ->
     ):
         generate_and_send_invoice(chat_id=123)
 
-    assert pdf_path.exists(), "PDF должен остаться до подтверждения отправки"
-    assert not docx_path.exists(), "docx должен быть удалён сразу"
     assert telegram_client.sent_documents == [(123, str(pdf_path))]
+    assert not pdf_path.exists()
+    assert not docx_path.exists()
 
 
-# ---------------------------------------------------------------------------
-# send_invoice_email — письмо отправляется, PDF удаляется
-# ---------------------------------------------------------------------------
-
-
-def _fake_bank_details(account_holder: str = "KATRIN TORSUNOVA", account_holder_email: str = "katrin@example.com"):
-    details = MagicMock()
-    details.account_holder = account_holder
-    details.account_holder_email = account_holder_email
-    return details
-
-
-def test_send_invoice_email_calls_send_email_and_removes_pdf(tmp_path: Path) -> None:
+def test_generate_and_send_invoice_cleans_up_when_telegram_send_fails(tmp_path: Path) -> None:
     pdf_path = tmp_path / "invoice-2026-06.pdf"
+    docx_path = tmp_path / "invoice-2026-06.docx"
     pdf_path.write_bytes(b"pdf")
-
-    captured: dict = {}
-
-    def fake_send_email(telegram_id, to_email, subject, body, attachments):
-        captured["telegram_id"] = telegram_id
-        captured["subject"] = subject
-        captured["body"] = body
-        captured["attachments"] = attachments
+    docx_path.write_bytes(b"docx")
+    telegram_client = FakeTelegramClient()
 
     with (
-        patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=pdf_path),
-        patch.object(run_invoice_delivery.BankDetails, "get_by_owner", return_value=_fake_bank_details()),
-        patch.object(run_invoice_delivery.EnvVar, "get_required_env", return_value="test@example.com"),
-        patch.object(run_invoice_delivery, "send_email", fake_send_email),
+        patch.object(run_invoice_delivery, "generate_invoice_pdf", return_value=pdf_path),
+        patch.object(run_invoice_delivery, "TelegramClient", return_value=telegram_client),
+        patch.object(telegram_client, "send_document", side_effect=RuntimeError("Telegram unavailable")),
+        pytest.raises(RuntimeError, match="Telegram unavailable"),
     ):
-        send_invoice_email(telegram_id=123)
-
-    assert captured["telegram_id"] == 123
-    assert "Invoice" in captured["subject"]
-    assert "С уважением" in captured["body"]
-    assert pdf_path in captured["attachments"]
-    assert not pdf_path.exists(), "PDF должен быть удалён после отправки"
-
-
-def test_send_invoice_email_removes_pdf_even_if_send_fails(tmp_path: Path) -> None:
-    pdf_path = tmp_path / "invoice-2026-06.pdf"
-    pdf_path.write_bytes(b"pdf")
-
-    with (
-        patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=pdf_path),
-        patch.object(run_invoice_delivery.BankDetails, "get_by_owner", return_value=_fake_bank_details()),
-        patch.object(run_invoice_delivery.EnvVar, "get_required_env", return_value="test@example.com"),
-        patch.object(run_invoice_delivery, "send_email", side_effect=RuntimeError("smtp error")),
-        pytest.raises(RuntimeError),
-    ):
-        send_invoice_email(telegram_id=123)
-
-    assert not pdf_path.exists(), "PDF должен быть удалён даже при ошибке отправки"
-
-
-# ---------------------------------------------------------------------------
-# discard_invoice_pdf — файл удаляется без отправки
-# ---------------------------------------------------------------------------
-
-
-def test_discard_invoice_pdf_removes_file(tmp_path: Path) -> None:
-    pdf_path = tmp_path / "invoice-2026-06.pdf"
-    pdf_path.write_bytes(b"pdf")
-
-    with patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=pdf_path):
-        discard_invoice_pdf()
+        generate_and_send_invoice(chat_id=123)
 
     assert not pdf_path.exists()
+    assert not docx_path.exists()
 
 
-def test_discard_invoice_pdf_does_not_raise_if_file_missing(tmp_path: Path) -> None:
-    pdf_path = tmp_path / "invoice-2026-06.pdf"
+def test_parallel_invoice_deliveries_use_isolated_temporary_paths() -> None:
+    barrier = Barrier(2)
+    lock = Lock()
+    generated_paths: list[Path] = []
+    delivered: list[tuple[int, bytes]] = []
 
-    with patch.object(run_invoice_delivery, "_current_invoice_pdf_path", return_value=pdf_path):
-        discard_invoice_pdf()  # не должно кидать исключение
+    def fake_generate_invoice_pdf(telegram_id: int, output_dir: Path) -> Path:
+        pdf_path = output_dir / "invoice-2026-06.pdf"
+        pdf_path.write_bytes(str(telegram_id).encode())
+        pdf_path.with_suffix(".docx").write_bytes(b"docx")
+        with lock:
+            generated_paths.append(pdf_path)
+        barrier.wait()
+        return pdf_path
+
+    class RecordingTelegramClient:
+        def send_document(self, chat_id: int, document_path: Path) -> None:
+            with lock:
+                delivered.append((chat_id, document_path.read_bytes()))
+
+    with (
+        patch.object(run_invoice_delivery, "generate_invoice_pdf", side_effect=fake_generate_invoice_pdf),
+        patch.object(run_invoice_delivery, "TelegramClient", return_value=RecordingTelegramClient()),
+        ThreadPoolExecutor(max_workers=2) as executor,
+    ):
+        futures = [executor.submit(generate_and_send_invoice, chat_id) for chat_id in (123, 456)]
+        for future in futures:
+            future.result()
+
+    assert len({path.parent for path in generated_paths}) == 2
+    assert sorted(delivered) == [(123, b"123"), (456, b"456")]
+    assert all(not path.exists() and not path.with_suffix(".docx").exists() for path in generated_paths)

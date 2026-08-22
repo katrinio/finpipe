@@ -1,4 +1,4 @@
-"""Загрузка .env, путей и OAuth-учётных данных проекта."""
+"""Загрузка .env и файловых путей проекта."""
 
 import logging
 import os
@@ -6,7 +6,6 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from dotenv import load_dotenv
-from google.oauth2.credentials import Credentials
 
 LOGGER = logging.getLogger(__name__)
 ENV_PATH_OVERRIDE = "FINPIPE_ENV_PATH"
@@ -137,21 +136,3 @@ class EnvVar:
         """Форматирует список .env-файлов для сообщений об ошибках."""
 
         return ", ".join(str(path) for path in cls.get_dotenv_paths())
-
-    @classmethod
-    def load_credentials(cls, token_path: Path, scopes: Sequence[str] | None = None) -> Credentials | None:
-        """Читает Gmail OAuth token из файла и возвращает его, если он валиден."""
-
-        if not token_path.exists():
-            LOGGER.info("Gmail OAuth token not found at %s", token_path)
-            return None
-
-        try:
-            return Credentials.from_authorized_user_file(str(token_path), scopes)
-        except ValueError as error:
-            LOGGER.warning(
-                "Ignoring invalid Gmail OAuth token at %s: %s",
-                token_path,
-                error,
-            )
-            return None
