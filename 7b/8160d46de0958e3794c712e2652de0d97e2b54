@@ -1,0 +1,108 @@
+src/storage/orm/user/bank_details.py
+  s_5274dcb8563bf5::t_c3eb7034e32843 7
+tests/unit/telegram/test_unit_telegram_invoice_amount_workflow.py
+  s_5274dcb8563bf5::t_55f6464968b8ad 8,14,33,71,108
+tests/README.md
+  s_5274dcb8563bf5::t_76818769eb6896 68
+src/storage/dependencies.py
+  s_5274dcb8563bf5::t_15f945fa8cf240 1,6-7
+src/integrations/telegram/messages/common_messages.py
+  s_5274dcb8563bf5::t_13b15af6ecd999 47
+tests/fixtures/storage.py
+  s_5274dcb8563bf5::t_2741800c25b614 3
+tests/unit/storage/test_unit_single_owner_migration.py
+  s_5274dcb8563bf5::t_800ccdcfca0d44 1-25
+src/workflows/tasks/generate_conversion_order.py
+  s_5274dcb8563bf5::t_ad9c662a073fc4 47,89-90,98
+src/integrations/telegram/handlers/menu_handlers.py
+  s_5274dcb8563bf5::t_15f945fa8cf240 32,45,51,60
+src/integrations/telegram/handlers/command_router.py
+  s_5274dcb8563bf5::t_15f945fa8cf240 41,45
+  s_5274dcb8563bf5::t_4705f84231d48f 71
+  s_5274dcb8563bf5::t_794cd57fd90ce2 31
+src/integrations/telegram/handlers/system_handlers.py
+  s_5274dcb8563bf5::t_15f945fa8cf240 12,19,25,38,44
+src/integrations/telegram/ui/menu/menu.py
+  s_5274dcb8563bf5::t_15f945fa8cf240 1,4-5
+tests/unit/storage/test_unit_storage_signature.py
+  s_5274dcb8563bf5::t_b0c521bf4c618f 9
+docs/storage.md
+  s_5274dcb8563bf5::t_76818769eb6896 5
+src/integrations/telegram/bot.py
+  s_5274dcb8563bf5::t_13b15af6ecd999 16,27,30,32,168,176,193,238,251,253,289-290,306-307
+src/workflows/tasks/generate_invoice.py
+  s_5274dcb8563bf5::t_ad9c662a073fc4 31,37,83-84,92
+src/storage/README.md
+  s_5274dcb8563bf5::t_76818769eb6896 3,5
+tests/unit/telegram/test_unit_telegram_profile_upload_validation.py
+  s_5274dcb8563bf5::t_50758f465da50b 8,46
+tests/unit/telegram/test_unit_telegram_bank_document_workflows.py
+  s_5274dcb8563bf5::t_8c222cc9fc4d72 15,18,35
+tests/unit/telegram/test_unit_telegram_owner_access.py
+  s_5274dcb8563bf5::t_4aff1db7e43aa9 1,4-5,9-10,12-13,16-20,24,26-27,32-35
+tests/unit/workflows/test_unit_backup_database.py
+  s_5274dcb8563bf5::t_3aee93dd1d9a6c 67
+src/integrations/telegram/buttons/__init__.py
+  s_5274dcb8563bf5::t_13b15af6ecd999 9
+migrations/versions/e8f1a2b3c4d5_simplify_single_owner_architecture.py
+  s_5274dcb8563bf5::t_794cd57fd90ce2 43
+  s_5274dcb8563bf5::t_5d0c8aaed0ea5b 1-42,44-93
+tests/unit/storage/test_unit_storage_user_config.py
+  s_5274dcb8563bf5::t_3aee93dd1d9a6c 38,42
+tests/unit/telegram/test_unit_telegram_signature_upload.py
+  s_5274dcb8563bf5::t_670b62ca1051ec 12,20,40,81
+src/workflows/README.md
+  s_5274dcb8563bf5::t_76818769eb6896 7
+tests/unit/workflows/test_unit_workflows_generate_invoice.py
+  s_5274dcb8563bf5::t_943da682bc8413 8
+src/utils/utils.py
+  s_5274dcb8563bf5::t_5d0c8aaed0ea5b 4,21,28,34,40
+tests/unit/storage/test_unit_storage_timestamps.py
+  s_5274dcb8563bf5::t_b0c521bf4c618f 5
+src/workflows/tasks/encrypt_signature.py
+  s_5274dcb8563bf5::t_c3eb7034e32843 12,72
+tests/unit/test_unit_deploy_workflow.py
+  s_5274dcb8563bf5::t_0d3b651324d755 9-20
+tests/unit/telegram/test_unit_telegram_chatid_command.py
+  s_5274dcb8563bf5::t_45b5a1f8e42025 7,10
+tests/unit/telegram/test_unit_telegram_polling.py
+  s_5274dcb8563bf5::t_ad03bc727b4546 5,18
+src/workflows/tasks/generate_bank_confirmation.py
+  s_5274dcb8563bf5::t_1be664bdfb6a48 85,127-128,136
+pyproject.toml
+  s_5274dcb8563bf5::t_5d0c8aaed0ea5b 25
+src/integrations/telegram/ui/menu/system_menu.py
+  s_5274dcb8563bf5::t_15f945fa8cf240 1,4
+src/workflows/monitoring/backup_database.py
+  s_5274dcb8563bf5::t_1be664bdfb6a48 65
+src/integrations/telegram/settings.py
+  s_5274dcb8563bf5::t_15f945fa8cf240 10-11
+.github/workflows/deploy-finpipe.yml
+  s_5274dcb8563bf5::t_06daa8c0297536 45-48
+  s_5274dcb8563bf5::t_5d0c8aaed0ea5b 43,49
+  s_5274dcb8563bf5::t_0d3b651324d755 44
+tests/unit/telegram/test_unit_telegram_main_menu.py
+  s_5274dcb8563bf5::t_ad03bc727b4546 12,27,33,40,44-45
+README.md
+  s_5274dcb8563bf5::t_76818769eb6896 15,36,52-54
+docs/development.md
+  s_5274dcb8563bf5::t_76818769eb6896 5
+docker-compose.yml
+  s_5274dcb8563bf5::t_0d3b651324d755 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "7b8160d46de0958e3794c712e2652de0d97e2b54",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
