@@ -1,22 +1,34 @@
-FROM python:3.14-slim
+FROM python:3.14-slim AS base
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=2.2.1 \
+    POETRY_VIRTUALENVS_CREATE=false
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock README.md ./
-
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libreoffice-writer postgresql-client \
+    && apt-get install -y --no-install-recommends fonts-dejavu libreoffice-writer postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir poetry
+RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --only main --no-root --no-interaction --no-ansi
+COPY pyproject.toml poetry.lock README.md ./
 
-COPY alembic.ini README.md ./
+
+FROM base AS ci
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl git \
+    && rm -rf /var/lib/apt/lists/* \
+    && poetry install --no-root --with dev --no-interaction --no-ansi
+
+
+FROM base AS production
+
+RUN poetry install --only main --no-root --no-interaction --no-ansi
+
+COPY alembic.ini ./
 COPY src ./src
 COPY migrations ./migrations
 COPY scripts ./scripts
