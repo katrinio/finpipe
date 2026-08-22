@@ -36,15 +36,6 @@ def connection_environment() -> dict[str, str]:
     return environment
 
 
-def run_healthcheck() -> int:
-    completed = subprocess.run(
-        ["pg_isready", "--quiet"],
-        check=False,
-        env=connection_environment(),
-    )
-    return completed.returncode
-
-
 def restore_backup(backup_path: Path) -> int:
     """Recreate the configured database and restore a compressed SQL dump."""
 
@@ -98,8 +89,6 @@ def run_postgres_entrypoint(arguments: list[str]) -> None:
 def main(arguments: list[str] | None = None) -> int:
     resolved_arguments = arguments if arguments is not None else sys.argv[1:]
     try:
-        if resolved_arguments == ["--healthcheck"]:
-            return run_healthcheck()
         if len(resolved_arguments) == 2 and resolved_arguments[0] == "--restore":
             return restore_backup(Path(resolved_arguments[1]))
         run_postgres_entrypoint(resolved_arguments)

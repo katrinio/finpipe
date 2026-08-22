@@ -50,7 +50,11 @@ jobs:
             git reset --hard origin/main
 
             docker compose -f docker-compose.yml build
-            docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 postgres
+            if ! docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 postgres --remove-orphans; then
+              docker compose -f docker-compose.yml ps postgres
+              docker compose -f docker-compose.yml logs --tail=100 postgres
+              exit 1
+            fi
 
             schema_migrated=0
             restore_old_bot_on_failure() {

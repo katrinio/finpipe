@@ -32,6 +32,8 @@ def test_production_deploy_backs_up_before_migration_and_waits_for_readiness() -
     assert "--wait --wait-timeout 120 finpipe-bot" in workflow
     assert "schema_migrated=1" in workflow
     assert "automatic rollback is intentionally disabled" in workflow
+    assert "logs --tail=100 postgres" in workflow
+    assert "postgres --remove-orphans" in workflow
 
 
 def test_production_compose_uses_secret_configuration_and_persistent_backups() -> None:
@@ -41,6 +43,8 @@ def test_production_compose_uses_secret_configuration_and_persistent_backups() -
     assert "finpipe:finpipe" not in compose
     assert "DATABASE_URL: ${DATABASE_URL:" in compose
     assert "./backups:/app/backups" in compose
+    assert 'test: ["CMD", "pg_isready", "--quiet"]' in compose
+    assert 'finpipe-postgres-runtime", "--healthcheck' not in compose
     assert 'python", "-m", "src.workflows.readiness' in compose
 
 

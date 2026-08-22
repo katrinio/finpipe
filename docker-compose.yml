@@ -16,7 +16,7 @@ services:
       - finpipe
 
     healthcheck:
-      test: ["CMD", "python3", "/usr/local/bin/finpipe-postgres-runtime", "--healthcheck"]
+      test: ["CMD", "pg_isready", "--quiet"]
       interval: 10s
       timeout: 5s
       retries: 5
