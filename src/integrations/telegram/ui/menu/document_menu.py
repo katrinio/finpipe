@@ -10,6 +10,10 @@ def build_document_menu() -> dict:
         "keyboard": [
             [
                 {"text": DocumentsMenuButtons.SALARY_INVOICE},
+                {"text": DocumentsMenuButtons.CONVERSION_REQUEST},
+            ],
+            [
+                {"text": DocumentsMenuButtons.BANK_TRANSFER_CONFIRMATION},
             ],
             [
                 {"text": NavigationButtons.HOME},

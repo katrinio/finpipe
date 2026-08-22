@@ -132,6 +132,8 @@ class CommandRouter:
             MenuMessages.MAIN_MENU: lambda context: self.menu_handler.main_menu(context.telegram_id),
             # documents
             DocumentsMenuButtons.SALARY_INVOICE: lambda context: self.menu_handler.invoice_menu(context.telegram_id),
+            DocumentsMenuButtons.CONVERSION_REQUEST: lambda context: self.document_handler.conversion_request(context.telegram_id),
+            DocumentsMenuButtons.BANK_TRANSFER_CONFIRMATION: lambda context: self.document_handler.start_bank_document_upload(context.telegram_id),
             # invoice
             InvoiceMenuButtons.SET_INVOICE_AMOUNT: lambda context: self.document_handler.start_invoice_amount_input(context.telegram_id),
             InvoiceMenuButtons.GET_INVOICE_AMOUNT: lambda context: self.document_handler.get_invoice_amount(context.telegram_id),
