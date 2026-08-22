@@ -1,0 +1,27 @@
+tests/unit/test_unit_deploy_workflow.py
+  s_30ff4316d5db65::t_f66c689fed07f2 78-92
+docker-compose.yml
+  s_30ff4316d5db65::t_2c24ab2398c760 25-27
+.github/workflows/build-ci-image.yml
+  s_30ff4316d5db65::t_2c24ab2398c760 29-30,34
+docs/development.md
+  s_30ff4316d5db65::t_2c24ab2398c760 25-26
+Dockerfile
+  s_30ff4316d5db65::t_2c24ab2398c760 1,3-6,10-15,18-20,22-25,27,29,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "c21735d2ee4d55bfa7c5cfd2fd48912983e0df4b",
+  "prompts": {},
+  "sessions": {
+    "s_30ff4316d5db65": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02ab0-80e9-78b1-a9c3-1fcab65dea9e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
