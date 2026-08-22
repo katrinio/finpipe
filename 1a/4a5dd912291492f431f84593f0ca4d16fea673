@@ -1,0 +1,23 @@
+.env.dist
+  s_5274dcb8563bf5::t_e48cb5e513e53e 9
+tests/unit/test_unit_deploy_workflow.py
+  s_5274dcb8563bf5::t_e48cb5e513e53e 51-59
+README.md
+  s_5274dcb8563bf5::t_e48cb5e513e53e 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "1a4a5dd912291492f431f84593f0ca4d16fea673",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
