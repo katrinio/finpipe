@@ -42,3 +42,12 @@ def test_production_compose_uses_secret_configuration_and_persistent_backups() -
     assert "DATABASE_URL: ${DATABASE_URL:" in compose
     assert "./backups:/app/backups" in compose
     assert 'python", "-m", "src.workflows.readiness' in compose
+
+
+def test_ci_postgres_health_command_is_a_single_docker_option_value() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    workflow = (project_root / ".github/workflows/quality_tests.yml").read_text()
+
+    assert "--health-cmd pg_isready" in workflow
+    assert "--health-cmd '" not in workflow
+    assert '--health-cmd "' not in workflow
