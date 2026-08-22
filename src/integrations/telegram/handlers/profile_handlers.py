@@ -3,10 +3,10 @@ from collections.abc import Mapping
 
 from src.constants import Dir
 from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.messages import ProfileMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
-from src.integrations.telegram.ui.messages import ProfileMessages
 from src.services.profile_template.exceptions import InvalidProfileTemplateError, InvalidProfileTemplateFormatError, ProfileTemplateTooLargeError
 from src.services.profile_template.profile_template_service import ProfileTemplateService
 from src.storage.orm import Signature, UserConfig

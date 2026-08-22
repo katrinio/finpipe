@@ -1,8 +1,8 @@
 from typing import cast
 
 from src.integrations.telegram.bot import TelegramBot
+from src.integrations.telegram.buttons import NavigationButtons
 from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.ui.buttons import NavigationButtons
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from tests.fakes.fake_telegram import FakeTelegramClient
 

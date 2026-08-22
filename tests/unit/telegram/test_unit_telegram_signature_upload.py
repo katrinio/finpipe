@@ -2,12 +2,12 @@ from typing import Any, cast
 
 import pytest
 
-import src.integrations.telegram.handlers.command_handlers as telegram_handlers
+import src.integrations.telegram.handlers.signature_handlers as telegram_handlers
 from src.integrations.telegram.bot import TelegramBot
+from src.integrations.telegram.buttons import SignatureButtons
 from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.messages import SignatureMessages
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.buttons import SignatureButtons
-from src.integrations.telegram.ui.messages import SignatureMessages
 from src.services.signing.exceptions import InvalidSignatureFormatError
 from tests.fakes.fake_storage import FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
