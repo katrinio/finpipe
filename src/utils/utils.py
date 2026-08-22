@@ -1,12 +1,8 @@
 """Набор простых утилит для дат, тестовых данных и статусов."""
 
 import datetime
-import random
+import secrets
 import string
-
-from faker import Faker
-
-fake = Faker() if Faker is not None else None
 
 
 class Utils:
@@ -22,29 +18,26 @@ class Utils:
     def generate_int_string(length: int = 12) -> str:
         """Генерирует строку цифр заданной длины для тестовых данных."""
 
-        if fake is not None:
-            return f"1{fake.bothify('#' * (length - 1))}"
-
-        digits = "".join(random.choice(string.digits) for _ in range(length - 1))
+        digits = "".join(secrets.choice(string.digits) for _ in range(length - 1))
         return f"1{digits}"
 
     @staticmethod
     def generate_city() -> str:
         """Генерирует случайный город для тестовых сценариев."""
 
-        return fake.city() if fake is not None else "Test City"
+        return "Test City"
 
     @staticmethod
     def generate_name() -> str:
         """Генерирует случайное имя для тестовых сценариев."""
 
-        return fake.name() if fake is not None else "Test User"
+        return "Test User"
 
     @staticmethod
     def generate_random_sentence() -> str:
         """Генерирует случайное предложение для тестовых данных."""
 
-        return fake.sentence() if fake is not None else "Test sentence."
+        return "Test sentence."
 
     @staticmethod
     def parse_iso_date(value: str | datetime.date | None) -> datetime.date | None:

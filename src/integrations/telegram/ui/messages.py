@@ -6,7 +6,6 @@ from src.integrations.telegram.messages import (
     InvoiceMessages,
     MenuMessages,
     MsgIcon,
-    OwnerMessages,
     ProfileMessages,
     SignatureMessages,
 )
@@ -17,8 +16,6 @@ __all__ = [
     "InvoiceMessages",
     "MenuMessages",
     "MsgIcon",
-    "OwnerMessages",
-    "OwnerMessages",
     "ProfileMessages",
     "SignatureMessages",
 ]

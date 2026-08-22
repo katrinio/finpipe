@@ -2,7 +2,7 @@
 
 ## Environment
 
-Copy `.env.dist` to `.env` and configure Telegram, database, monitoring, and signature-encryption values. The bot is the only application process; PostgreSQL is its only Compose dependency.
+Copy `.env.dist` to `.env` and configure the Telegram bot token, owner Telegram ID, database, and signature-encryption key. The bot is the only application process; PostgreSQL is its only Compose dependency.
 
 ## Run locally
 

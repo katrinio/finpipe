@@ -64,15 +64,8 @@ def test_run_backup_fails_on_empty_file(monkeypatch: pytest.MonkeyPatch, tmp_pat
         backup_database.run_backup(now=datetime(2026, 6, 17, 5, 0, 0, tzinfo=UTC))
 
 
-def test_main_returns_one_and_logs_backup_failed(monkeypatch: pytest.MonkeyPatch) -> None:
-    logged: list[str] = []
+def test_main_returns_one_when_backup_fails(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(backup_database.EnvVar, "load_dotenv", lambda: None)
     monkeypatch.setattr(backup_database, "run_backup", lambda now=None: (_ for _ in ()).throw(RuntimeError("boom")))
-    monkeypatch.setattr(
-        backup_database.EventLogger,
-        "log",
-        lambda event_type, severity, details=None: logged.append(event_type.value),
-    )
 
     assert backup_database.main() == 1
-    assert "backup_failed" in logged

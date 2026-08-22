@@ -21,22 +21,16 @@ typing-extensions = ">=4.12"
 tz = ["tzdata"]
 
 [[package]]
-name = "anyio"
-version = "4.13.0"
-description = "High-level concurrency and networking framework on top of asyncio or Trio"
+name = "certifi"
+version = "2026.7.22"
+description = "Python package for providing Mozilla's CA Bundle."
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "anyio-4.13.0-py3-none-any.whl", hash = "sha256:08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708"},
-    {file = "anyio-4.13.0.tar.gz", hash = "sha256:334b70e641fd2221c1505b3890c69882fe4a2df910cba14d97019b90b24439dc"},
+    {file = "certifi-2026.7.22-py3-none-any.whl", hash = "sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775"},
+    {file = "certifi-2026.7.22.tar.gz", hash = "sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55"},
 ]
-
-[package.dependencies]
-idna = ">=2.8"
-
-[package.extras]
-trio = ["trio (>=0.32.0)"]
 
 [[package]]
 name = "cffi"
@@ -518,24 +512,6 @@ docs = ["Sphinx", "sphinxcontrib-napoleon"]
 subdoc = ["docxcompose"]
 
 [[package]]
-name = "faker"
-version = "40.21.0"
-description = "Faker is a Python package that generates fake data for you."
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "faker-40.21.0-py3-none-any.whl", hash = "sha256:cb6601b2ae8e128895dc96814d271eab6b930a2d2d7932c6f9ff26785c24ee18"},
-    {file = "faker-40.21.0.tar.gz", hash = "sha256:2fdee1b650a723a54432db9c6dfe17cfa29d1adc8bd60520444a07698524ba4d"},
-]
-
-[package.dependencies]
-tzdata = {version = "*", markers = "platform_system == \"Windows\""}
-
-[package.extras]
-tzdata = ["tzdata"]
-
-[[package]]
 name = "filelock"
 version = "3.29.0"
 description = "A platform independent file lock."
@@ -640,65 +616,6 @@ files = [
 [package.extras]
 docs = ["Sphinx", "furo"]
 test = ["objgraph", "psutil", "setuptools"]
-
-[[package]]
-name = "h11"
-version = "0.16.0"
-description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
-    {file = "h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1"},
-]
-
-[[package]]
-name = "httpcore2"
-version = "2.4.0"
-description = "A minimal low-level HTTP client."
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "httpcore2-2.4.0-py3-none-any.whl", hash = "sha256:5218779da5d6e3c2013ac706121abfb3815d450e0613495c0de50264dce58242"},
-    {file = "httpcore2-2.4.0.tar.gz", hash = "sha256:3093a8ab8980d9f910b9cb4351df9186a0ad2350a6284a9107ac9a362a584422"},
-]
-
-[package.dependencies]
-h11 = ">=0.16"
-truststore = ">=0.10"
-
-[package.extras]
-asyncio = ["anyio (>=4.5.0,<5.0)"]
-http2 = ["h2 (>=3,<5)"]
-socks = ["socksio (==1.*)"]
-trio = ["trio (>=0.22.0,<1.0)"]
-
-[[package]]
-name = "httpx2"
-version = "2.4.0"
-description = "The next generation HTTP client."
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "httpx2-2.4.0-py3-none-any.whl", hash = "sha256:425acd99297829599decf6701386dd84db3542597d36d3e2e4def930ecd57fd9"},
-    {file = "httpx2-2.4.0.tar.gz", hash = "sha256:32e0734b61eb0824b3f56a9e98d6d92d381a3ef12c0045aa917ee63df6c411ef"},
-]
-
-[package.dependencies]
-anyio = "*"
-httpcore2 = "2.4.0"
-idna = ">=3.18"
-truststore = ">=0.10"
-
-[package.extras]
-brotli = ["brotli ; platform_python_implementation == \"CPython\"", "brotlicffi ; platform_python_implementation != \"CPython\""]
-cli = ["click (==8.*)", "pygments (==2.*)", "rich (>=10,<16)"]
-http2 = ["h2 (>=3,<5)"]
-socks = ["socksio (==1.*)"]
-zstd = ["zstandard (>=0.18.0) ; python_version <= \"3.13\""]
 
 [[package]]
 name = "identify"
@@ -1032,30 +949,6 @@ lingua = ["lingua"]
 testing = ["pytest"]
 
 [[package]]
-name = "markdown-it-py"
-version = "4.2.0"
-description = "Python port of markdown-it. Markdown parsing, done right!"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "markdown_it_py-4.2.0-py3-none-any.whl", hash = "sha256:9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a"},
-    {file = "markdown_it_py-4.2.0.tar.gz", hash = "sha256:04a21681d6fbb623de53f6f364d352309d4094dd4194040a10fd51833e418d49"},
-]
-
-[package.dependencies]
-mdurl = ">=0.1,<1.0"
-
-[package.extras]
-benchmarking = ["psutil", "pytest", "pytest-benchmark"]
-compare = ["commonmark (>=0.9,<1.0)", "markdown (>=3.4,<4.0)", "markdown-it-pyrs", "mistletoe (>=1.0,<2.0)", "mistune (>=3.0,<4.0)", "panflute (>=2.3,<3.0)"]
-linkify = ["linkify-it-py (>=1,<3)"]
-plugins = ["mdit-py-plugins (>=0.5.0)"]
-profiling = ["gprof2dot"]
-rtd = ["ipykernel", "jupyter_sphinx", "mdit-py-plugins (>=0.5.0)", "myst-parser", "pyyaml", "sphinx", "sphinx-book-theme (>=1.0,<2.0)", "sphinx-copybutton", "sphinx-design"]
-testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions", "pytest-timeout", "requests"]
-
-[[package]]
 name = "markupsafe"
 version = "3.0.3"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -1152,18 +1045,6 @@ files = [
     {file = "markupsafe-3.0.3-cp39-cp39-win_amd64.whl", hash = "sha256:7c3fb7d25180895632e5d3148dbdc29ea38ccb7fd210aa27acbd1201a1902c6e"},
     {file = "markupsafe-3.0.3-cp39-cp39-win_arm64.whl", hash = "sha256:38664109c14ffc9e7437e86b4dceb442b0096dfe3541d7864d9cbe1da4cf36c8"},
     {file = "markupsafe-3.0.3.tar.gz", hash = "sha256:722695808f4b6457b320fdc131280796bdceb04ab50fe1795cd540799ebe1698"},
-]
-
-[[package]]
-name = "mdurl"
-version = "0.1.2"
-description = "Markdown URL utilities"
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
-    {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
 
 [[package]]
@@ -1545,7 +1426,7 @@ version = "2.20.0"
 description = "Pygments is a syntax highlighting package written in Python."
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "pygments-2.20.0-py3-none-any.whl", hash = "sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176"},
     {file = "pygments-2.20.0.tar.gz", hash = "sha256:6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f"},
@@ -1776,23 +1657,26 @@ renderpm = ["rl_renderPM (>=4.0.3,<4.1)"]
 shaping = ["uharfbuzz"]
 
 [[package]]
-name = "rich"
-version = "15.0.0"
-description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
+name = "requests"
+version = "2.34.2"
+description = "Python HTTP for Humans."
 optional = false
-python-versions = ">=3.9.0"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"},
-    {file = "rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36"},
+    {file = "requests-2.34.2-py3-none-any.whl", hash = "sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0"},
+    {file = "requests-2.34.2.tar.gz", hash = "sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed"},
 ]
 
 [package.dependencies]
-markdown-it-py = ">=2.2.0"
-pygments = ">=2.13.0,<3.0.0"
+certifi = ">=2023.5.7"
+charset_normalizer = ">=2,<4"
+idna = ">=2.5,<4"
+urllib3 = ">=1.26,<3"
 
 [package.extras]
-jupyter = ["ipywidgets (>=7.5.1,<9)"]
+socks = ["PySocks (>=1.5.6,!=1.5.7)"]
+use-chardet-on-py3 = ["chardet (>=3.0.2,<8)"]
 
 [[package]]
 name = "ruff"
@@ -1920,18 +1804,6 @@ pymysql = ["pymysql"]
 sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
-name = "truststore"
-version = "0.10.4"
-description = "Verify certificates using native system trust stores"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "truststore-0.10.4-py3-none-any.whl", hash = "sha256:adaeaecf1cbb5f4de3b1959b42d41f6fab57b2b1666adb59e89cb0b53361d981"},
-    {file = "truststore-0.10.4.tar.gz", hash = "sha256:9d91bd436463ad5e4ee4aba766628dd6cd7010cf3e2461756b3303710eebc301"},
-]
-
-[[package]]
 name = "types-pyyaml"
 version = "6.0.12.20260518"
 description = "Typing stubs for PyYAML"
@@ -1974,11 +1846,29 @@ description = "Provider of IANA time zone data"
 optional = false
 python-versions = ">=2"
 groups = ["main"]
-markers = "sys_platform == \"win32\" or platform_system == \"Windows\""
+markers = "sys_platform == \"win32\""
 files = [
     {file = "tzdata-2026.2-py2.py3-none-any.whl", hash = "sha256:bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7"},
     {file = "tzdata-2026.2.tar.gz", hash = "sha256:9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10"},
 ]
+
+[[package]]
+name = "urllib3"
+version = "2.7.0"
+description = "HTTP library with thread-safe connection pooling, file post, and more."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897"},
+    {file = "urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c"},
+]
+
+[package.extras]
+brotli = ["brotli (>=1.2.0) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=1.2.0.0) ; platform_python_implementation != \"CPython\""]
+h2 = ["h2 (>=4,<5)"]
+socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
+zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 
 [[package]]
 name = "virtualenv"
@@ -2001,4 +1891,4 @@ python-discovery = ">=1.3.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "b172387b2be2ddbc52404ea3f9e7ff7fdc5c73d34c65c3028f899401feaf4338"
+content-hash = "bed01a07483a7bf0f47a5d4aeff1b0319a0b70a4d79c6936fd9933a7035c9d9d"

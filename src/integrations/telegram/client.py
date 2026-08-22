@@ -1,7 +1,6 @@
 """Клиент Telegram Bot API для уведомлений workflow."""
 
 import mimetypes
-from datetime import UTC, datetime
 from pathlib import Path
 
 from src.infrastructure.http.http_client import HttpClient
@@ -87,32 +86,3 @@ class TelegramClient:
 
         params = {"offset": offset} if offset is not None else None
         return self.http.get(f"{self.base_url}/getUpdates", params=params, timeout=10).json()
-
-    def send_daily_report(
-        self,
-        chat_id: int,
-        duration_seconds: int,
-        allowed_users_count: int,
-        active_signatures_count: int,
-        generated_invoice_count: int,
-        generated_bank_pdf: int,
-    ) -> None:
-        """Отправляет итоговый отчёт по ежедневной проверке проекта."""
-
-        report_message = (
-            "💅 Finpipe daily check\n\n"
-            f"Duration: {duration_seconds}s\n"
-            "n/a\n"
-            "_\n\n"
-            "📊 Finpipe usage\n\n"
-            f"Users: {allowed_users_count}\n"
-            f"Active signatures: {active_signatures_count}\n"
-            f"Generated invoices: {generated_invoice_count}\n"
-            f"Generated bank PDFs: {generated_bank_pdf}\n"
-            f"Errors (24h): n/a\n"
-            "_\n\n"
-            f"Duration: {duration_seconds}s\n"
-            f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}"
-        )
-
-        self.send_message(chat_id, report_message)

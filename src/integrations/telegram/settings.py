@@ -7,8 +7,5 @@ class TelegramSettings:
     """Telegram-specific runtime settings."""
 
     @staticmethod
-    def get_monitoring_chat_id() -> int | None:
-        monitoring_chat_id = EnvVar.get_optional_env("MONITORING_CHAT_ID", "").strip()
-        if not monitoring_chat_id:
-            return None
-        return int(monitoring_chat_id)
+    def get_owner_telegram_id() -> int:
+        return int(EnvVar.get_required_env("BOT_OWNER_TELEGRAM_ID"))

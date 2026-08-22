@@ -1,5 +1,5 @@
 # Storage layer
 
-The storage layer contains SQLAlchemy models for user access, profiles, bank details, invoice settings, encrypted signatures, Telegram updates and state, audit logs, monitoring events, and document-generation history.
+The storage layer contains SQLAlchemy models for profiles, bank details, document settings, encrypted signatures, Telegram updates, and workflow state.
 
-`build_storage_dependencies()` upgrades the database to the current Alembic head and binds all active ORM models.
+`initialize_storage()` binds active ORM models. Alembic migrations are applied explicitly before application startup; production deploy performs this with a one-shot Compose command.

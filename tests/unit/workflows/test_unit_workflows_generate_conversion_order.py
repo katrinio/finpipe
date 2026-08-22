@@ -28,7 +28,6 @@ def test_generate_conversion_order_uses_conversion_amount_and_logs_amounts(
         owner_telegram_id=123,
         account_holder="John Doe",
         account_holder_address="Amsterdam",
-        amount=1500,
         bank_name="ABN AMRO",
         account_number="123456789",
         iban="NL91ABNA0417164300",

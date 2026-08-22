@@ -32,7 +32,6 @@ def test_build_bank_form_data_reads_bank_details_from_orm(tmp_path) -> None:
         owner_telegram_id=123,
         account_holder=recipient,
         account_holder_address="Serbia",
-        amount=123.45,
         bank_name="Test Bank",
         account_number=account_number,
         iban="RS123",

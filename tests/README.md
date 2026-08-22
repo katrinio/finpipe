@@ -65,7 +65,7 @@ Test implementations of external dependencies. Preferred over mocks.
 | Fake | Replaces |
 |---|---|
 | `FakeTelegram` | `TelegramClient` |
-| `FakeStorage` | PostgreSQL repositories |
+| `FakeTelegramUpdateStorage` | Telegram polling checkpoint |
 
 ---
 

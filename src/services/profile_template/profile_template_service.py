@@ -6,11 +6,9 @@ from datetime import datetime, time
 import yaml
 from sqlalchemy import select
 
-from src.services.monitoring.event_logger import EventLogger
 from src.services.profile_template.exceptions import InvalidProfileTemplateError
 from src.services.profile_template.profile_template import ProfileTemplate
 from src.services.profile_template.profile_template_validator import ProfileTemplateValidator
-from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.utils import Utils
@@ -142,7 +140,6 @@ class ProfileTemplateService:
                     owner_telegram_id=telegram_id,
                     account_holder=cls._require_text(profile.account_holder),
                     account_holder_address=profile.account_holder_address,
-                    amount=None,
                     bank_name=cls._require_text(profile.bank_name),
                     account_number=cls._require_text(profile.account_number),
                     iban=cls._require_text(profile.iban),
@@ -152,22 +149,11 @@ class ProfileTemplateService:
             else:
                 bank_details.account_holder = cls._require_text(profile.account_holder)
                 bank_details.account_holder_address = profile.account_holder_address
-                bank_details.amount = None
                 bank_details.bank_name = cls._require_text(profile.bank_name)
                 bank_details.account_number = cls._require_text(profile.account_number)
                 bank_details.iban = cls._require_text(profile.iban)
                 bank_details.bic = cls._require_text(profile.bic)
             session.commit()
-        EventLogger.log(
-            EventType.SETTINGS_UPDATED,
-            EventSeverity.INFO,
-            {"telegram_id": telegram_id, "section": "bank_details"},
-        )
-        EventLogger.log(
-            EventType.SETTINGS_UPDATED,
-            EventSeverity.INFO,
-            {"telegram_id": telegram_id, "section": "company_profile"},
-        )
         LOGGER.info("Profile data imported for Telegram user %s", telegram_id)
 
     @staticmethod

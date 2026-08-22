@@ -44,7 +44,7 @@ class CommonMessages:
         WHOAMI_PREFIX = "👤 Информация о пользователе"
 
     class Errors:
-        ACCESS_DENIED = "⛔ У вас пока нет доступа к Finpipe.\nНажмите «Кто я» и отправьте свой Telegram ID владельцу бота."
+        ACCESS_DENIED = "⛔ Доступ к Finpipe разрешён только владельцу бота."
 
         NO_SUCH_COMMAND = "🫥 Неизвестная команда."
         SYSTEM_ERROR = "💥 Произошла внутренняя ошибка."

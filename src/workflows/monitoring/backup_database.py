@@ -9,8 +9,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from src.services.monitoring.event_logger import EventLogger
-from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.utils.credentials import LOGGER, EnvVar
 
 
@@ -64,12 +62,8 @@ def main() -> int:
     EnvVar.load_dotenv()
     try:
         run_backup()
-    except Exception as error:
+    except Exception:
         LOGGER.exception("Database backup failed.")
-        try:
-            EventLogger.log(EventType.BACKUP_FAILED, EventSeverity.ERROR, {"error": str(error)})
-        except Exception:
-            LOGGER.exception("Failed to log backup failure.")
         return 1
     return 0
 

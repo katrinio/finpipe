@@ -45,7 +45,6 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
         owner_telegram_id=123,
         account_holder="Test User",
         account_holder_address="Serbia",
-        amount=123.45,
         bank_name="Test Bank",
         account_number="123",
         iban="RS123",
@@ -60,7 +59,6 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
         owner_telegram_id=123,
         account_holder=None,
         account_holder_address="Montenegro",
-        amount=None,
         bank_name="Updated Bank",
         account_number=None,
         iban="RS999",
@@ -72,7 +70,6 @@ def test_bank_details_upsert_creates_and_updates_without_overwriting_with_none(t
     assert updated.id == created_id
     assert updated.account_holder == "Test User"
     assert updated.account_holder_address == "Montenegro"
-    assert updated.amount == 123.45
     assert updated.bank_name == "Updated Bank"
     assert updated.account_number == "123"
     assert updated.iban == "RS999"

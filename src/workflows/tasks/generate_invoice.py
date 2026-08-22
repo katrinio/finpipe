@@ -12,10 +12,7 @@ from src.services.invoice.context import build_invoice_period
 from src.services.invoice.exceptions import InvoiceGenerationError
 from src.services.invoice.generate import generate_invoice
 from src.services.invoice.models import InvoiceData
-from src.services.monitoring.event_logger import EventLogger
 from src.storage.orm import UserConfig
-from src.storage.orm.system.app_events import EventSeverity, EventType
-from src.storage.orm.system.document_generation_history import DocumentGenerationHistory, DocumentGenerationStatus, DocumentType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.utils.credentials import EnvVar
@@ -31,15 +28,13 @@ def generate_invoice_pdf(
     template_path: Path = Dir.INVOICE_TEMPLATE,
     output_dir: Path = Dir.INVOICE_OUTPUT_DIR,
 ) -> Path:
-    """Генерирует Salary Invoice и пишет в БД результат каждой попытки."""
+    """Генерирует Salary Invoice и возвращает путь к PDF."""
 
     invoice_period = build_invoice_period(invoice_date)
     invoice_number = invoice_period.invoice_number
     output_pdf_path = output_dir / f"invoice-{invoice_number}.{Format.PDF}"
 
-    if DocumentGenerationHistory.has_attempts(DocumentType.SALARY_INVOICE, invoice_number):
-        LOGGER.info("Document regeneration requested type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
-    LOGGER.info("Document generation started type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
+    LOGGER.info("Document generation started type=salary_invoice document=%s telegram_id=%s", invoice_number, telegram_id)
     success = False
 
     try:
@@ -85,24 +80,8 @@ def generate_invoice_pdf(
             data=invoice_data,
         )
         success = True
-    except Exception as error:
-        DocumentGenerationHistory.add_attempt(
-            document_type=DocumentType.SALARY_INVOICE,
-            document_number=invoice_number,
-            telegram_id=telegram_id,
-            status=DocumentGenerationStatus.FAILED,
-            error_message=str(error),
-        )
-        EventLogger.log(
-            EventType.DOCUMENT_GENERATION_FAILED,
-            EventSeverity.WARNING,
-            {
-                "telegram_id": telegram_id,
-                "document_type": DocumentType.SALARY_INVOICE.value,
-                "error_type": type(error).__name__,
-            },
-        )
-        LOGGER.warning("Document generation failed type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
+    except Exception:
+        LOGGER.warning("Document generation failed type=salary_invoice document=%s telegram_id=%s", invoice_number, telegram_id)
         raise
     finally:
         if not success:
@@ -110,22 +89,7 @@ def generate_invoice_pdf(
             delete_file(output_pdf_path.with_suffix(".docx"), LOGGER)
 
     if success:
-        DocumentGenerationHistory.add_attempt(
-            document_type=DocumentType.SALARY_INVOICE,
-            document_number=invoice_number,
-            telegram_id=telegram_id,
-            status=DocumentGenerationStatus.SUCCESS,
-            error_message=None,
-        )
-        EventLogger.log(
-            EventType.DOCUMENT_GENERATED,
-            EventSeverity.INFO,
-            {
-                "telegram_id": telegram_id,
-                "document_type": DocumentType.SALARY_INVOICE.value,
-            },
-        )
-        LOGGER.info("Document generation succeeded type=%s document=%s telegram_id=%s", DocumentType.SALARY_INVOICE, invoice_number, telegram_id)
+        LOGGER.info("Document generation succeeded type=salary_invoice document=%s telegram_id=%s", invoice_number, telegram_id)
         return output_pdf_path
 
     msg = "Salary Invoice generation did not complete"

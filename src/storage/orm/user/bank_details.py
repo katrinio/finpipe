@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import Integer, String, delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import BIGINT, DateTime, Float
+from sqlalchemy.sql.sqltypes import BIGINT, DateTime
 
 from src.storage.orm.base import BaseModel
 
@@ -17,7 +17,6 @@ class BankDetails(BaseModel):
     owner_telegram_id: Mapped[int] = mapped_column(BIGINT, nullable=False, unique=True, index=True)
     account_holder: Mapped[str] = mapped_column(String)
     account_holder_address: Mapped[str | None] = mapped_column(String, nullable=True)
-    amount: Mapped[float | None] = mapped_column(Float, nullable=True)
     bank_name: Mapped[str] = mapped_column(String)
     account_number: Mapped[str] = mapped_column(String)
     iban: Mapped[str] = mapped_column(String)

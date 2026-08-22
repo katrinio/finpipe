@@ -5,7 +5,6 @@ from cryptography.fernet import Fernet
 from src.infrastructure.security.signature_cipher import SignatureCipher
 from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
 from src.integrations.telegram.state_service import UserStateService
-from src.storage.dependencies import build_storage_dependencies
 from src.storage.orm import Signature, UserConfig
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
@@ -17,7 +16,6 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
     from src.utils.credentials import EnvVar
 
     EnvVar.reset_dotenv_cache()
-    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, UserStateService)
 
@@ -65,7 +63,6 @@ def test_profile_screen_shows_status_summary_and_missing_fields(tmp_path: Path) 
 
 
 def test_profile_screen_marks_signature_unusable_when_file_is_missing(tmp_path: Path) -> None:
-    build_storage_dependencies()
     telegram_client = FakeTelegramClient()
     handlers = ProfileHandlers(telegram_client, UserStateService)
 

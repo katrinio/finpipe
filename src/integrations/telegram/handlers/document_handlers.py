@@ -15,10 +15,8 @@ from src.integrations.telegram.ui.messages import BankMessages, InvoiceMessages
 from src.services.bank.exceptions import BankPdfError
 from src.services.conversion_order.exceptions import TransferRequestError
 from src.services.invoice.exceptions import InvoiceError
-from src.services.monitoring.event_logger import EventLogger
 from src.services.system_status.system_status_service import SystemStatusService
 from src.storage.orm import Signature, UserConfig
-from src.storage.orm.system.app_events import EventSeverity, EventType
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.workflows.run_bank_confirmation_delivery import generate_and_send_bank_confirmation
@@ -47,11 +45,6 @@ class DocumentHandlers:
 
         amount = int(text)
         UserConfig.upsert(telegram_id=telegram_id, invoice_amount_eur=amount)
-        EventLogger.log(
-            EventType.SETTINGS_UPDATED,
-            EventSeverity.INFO,
-            {"telegram_id": telegram_id, "section": "user_config"},
-        )
         UserStateService.clear_state(telegram_id)
         self.telegram.send_message(telegram_id, InvoiceMessages.Amount.SAVED.format(amount), reply_markup=build_invoice_menu())
 

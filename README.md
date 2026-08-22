@@ -12,7 +12,7 @@ Finpipe is a Telegram bot that generates salary and bank documents from a saved 
 - Accepts a bank PDF in Telegram and generates a filled Bank Transfer Confirmation from it.
 - Sends the generated PDF directly to Telegram.
 - Removes generated PDF and intermediate DOCX files after delivery, including failed delivery attempts.
-- Keeps document-generation history and operational audit events in PostgreSQL.
+- Accepts commands only from the Telegram account configured by `BOT_OWNER_TELEGRAM_ID`.
 
 Finpipe does not connect to or send messages through an electronic-mail provider.
 
@@ -33,7 +33,7 @@ cp .env.dist .env
 poetry run start_bot
 ```
 
-Required application variables are documented in [.env.dist](.env.dist). At minimum, configure the Telegram bot token, owner identity, signature encryption key, and database URL.
+Required application variables are documented in [.env.dist](.env.dist). At minimum, configure the Telegram bot token, owner Telegram ID, signature encryption key, and database URL. Requests from every other Telegram account are rejected without creating user records.
 
 ## Telegram flow
 
@@ -49,7 +49,9 @@ The bot sends every generated PDF to the same Telegram chat and deletes all temp
 ## Docker
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
+docker compose run --rm finpipe-bot alembic upgrade head
+docker compose up -d finpipe-bot
 
 # Local PostgreSQL port exposure
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
@@ -70,4 +72,3 @@ poetry run alembic check
 |---|---|
 | Development and debugging | [docs/development.md](docs/development.md) |
 | Storage | [docs/storage.md](docs/storage.md) |
-| Monitoring | [docs/monitoring.md](docs/monitoring.md) |

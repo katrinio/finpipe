@@ -12,11 +12,10 @@ from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import DocumentsMenuButtons
 from src.integrations.telegram.ui.menu.document_menu import build_document_menu
 from src.integrations.telegram.ui.messages import BankMessages
-from src.storage.dependencies import StorageDependencies
-from src.storage.orm import AllowedUser, Signature, UserConfig
+from src.storage.orm import Signature, UserConfig
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
-from tests.fakes.fake_storage import FakeStorage, FakeTelegramUpdateStorage
+from tests.fakes.fake_storage import FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 
 
@@ -29,12 +28,11 @@ def _pdf_bytes() -> bytes:
 
 
 def _build_ready_bot(monkeypatch: pytest.MonkeyPatch, telegram: FakeTelegramClient) -> TelegramBot:
-    monkeypatch.setattr(AllowedUser, "exists", classmethod(lambda cls, telegram_id: True))
     monkeypatch.setattr(CompanyProfile, "get_by_owner", classmethod(lambda cls, telegram_id: SimpleNamespace()))
     monkeypatch.setattr(BankDetails, "get_by_owner", classmethod(lambda cls, telegram_id: SimpleNamespace()))
     monkeypatch.setattr(Signature, "is_usable", classmethod(lambda cls, telegram_id: True))
 
-    bot = TelegramBot(cast(StorageDependencies, FakeStorage({123})), telegram=cast(TelegramClient, telegram))
+    bot = TelegramBot(telegram=cast(TelegramClient, telegram), owner_telegram_id=123)
     bot.update_storage = cast(Any, FakeTelegramUpdateStorage())
     return bot
 

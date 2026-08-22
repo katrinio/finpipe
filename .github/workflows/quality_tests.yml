@@ -9,7 +9,6 @@ env:
   TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
   SIGNATURE_ENCRYPTION_KEY: ${{ secrets.SIGNATURE_ENCRYPTION_KEY }}
   BOT_OWNER_TELEGRAM_ID: ${{ secrets.BOT_OWNER_TELEGRAM_ID }}
-  BOT_OWNER_TELEGRAM_USERNAME: ${{ secrets.BOT_OWNER_TELEGRAM_USERNAME }}
   TEST_DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe_test
 
 jobs:

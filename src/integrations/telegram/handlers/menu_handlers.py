@@ -4,9 +4,7 @@ from src.integrations.telegram.ui.buttons import (
     DocumentsMenuButtons,
     MainMenuButtons,
     NavigationButtons,
-    OwnerButtons,
 )
-from src.integrations.telegram.ui.menu.admin_menu import build_users_menu
 from src.integrations.telegram.ui.menu.document_menu import (
     build_document_menu,
     build_invoice_menu,
@@ -14,7 +12,6 @@ from src.integrations.telegram.ui.menu.document_menu import (
 from src.integrations.telegram.ui.menu.menu import build_main_menu
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
 from src.integrations.telegram.ui.menu.system_menu import build_system_menu
-from src.storage.orm import AllowedUser
 from src.storage.orm.user.user_config import UserConfig
 
 
@@ -32,7 +29,7 @@ class MenuHandler:
             self.telegram.send_message(
                 telegram_id,
                 MenuMessages.System.ONBOARDING,
-                reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+                reply_markup=build_main_menu(),
             )
             UserConfig.mark_onboarding_shown(telegram_id)
 
@@ -45,13 +42,13 @@ class MenuHandler:
             self.telegram.send_message(
                 telegram_id,
                 NavigationButtons.HOME,
-                reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+                reply_markup=build_main_menu(),
             )
         else:
             self.telegram.send_message(
                 telegram_id,
                 MenuMessages.System.ONBOARDING,
-                reply_markup=build_main_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+                reply_markup=build_main_menu(),
             )
 
     def system_menu(self, telegram_id: int) -> None:
@@ -60,7 +57,7 @@ class MenuHandler:
         self.telegram.send_message(
             telegram_id,
             MainMenuButtons.SYSTEM,
-            reply_markup=build_system_menu(is_owner=AllowedUser.is_owner(telegram_id)),
+            reply_markup=build_system_menu(),
         )
 
     def settings_menu(self, telegram_id: int) -> None:
@@ -88,13 +85,4 @@ class MenuHandler:
             telegram_id,
             DocumentsMenuButtons.SALARY_INVOICE,
             reply_markup=build_invoice_menu(),
-        )
-
-    def user_menu(self, telegram_id: int) -> None:
-        """Открывает раздел администрирования пользователей."""
-
-        self.telegram.send_message(
-            telegram_id,
-            OwnerButtons.USERS,
-            reply_markup=build_users_menu(),
         )
