@@ -5,8 +5,8 @@ Finpipe is a personal automation project, but PRs and issues are welcome.
 ## Before you start
 
 - Architecture and setup — [docs/development.md](docs/development.md)
-- Storage schema — [docs/storage.md](docs/storage.md)
-- Monitoring — [docs/monitoring.md](docs/monitoring.md)
+- Storage behavior — [docs/storage.md](docs/storage.md)
+- Production Docker, backup, and restore workflow — [README.md](README.md#docker)
 
 ## Setup
 
@@ -21,11 +21,13 @@ poetry run pre-commit install
 
 ```bash
 poetry run ruff check .
-poetry run mypy .
-poetry run pytest tests/unit tests/integration
+poetry run mypy src
+poetry run alembic heads
+poetry run alembic check
+poetry run pytest tests
 ```
 
-All three run in CI on every PR — a red CI won't get merged.
+These checks run in CI on every PR. The test job uses PostgreSQL and enforces at least 70% source coverage; the real Telegram test remains opt-in and is skipped in CI.
 
 ## Style
 
