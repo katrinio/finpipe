@@ -1,0 +1,27 @@
+.github/workflows/deploy-finpipe.yml
+  s_5274dcb8563bf5::t_3c24860d9c6040 53-57
+  s_5274dcb8563bf5::t_ab6a7a05e508a2 31-45,88-119
+README.md
+  s_5274dcb8563bf5::t_03877aa6a400d3 38
+.env.dist
+  s_5274dcb8563bf5::t_e48cb5e513e53e 9
+docker-compose.yml
+  s_5274dcb8563bf5::t_96810d23d765d6 19
+  s_5274dcb8563bf5::t_8bd85cadf5f5aa 27,34,42,44-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "091db10fb8424e46d8fde22324d08a09d127af1c",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
