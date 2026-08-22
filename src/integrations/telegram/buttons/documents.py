@@ -1,9 +1,4 @@
 class DocumentsMenuButtons:
     SALARY_INVOICE = "🧾 Инвойс"
-    BANK_DAY = "🏦 Банковский день"
-
-
-class BankDayButtons:
-    START = "▶️ Запустить"
-    REPLY_TO_BANK = "📤 Ответить банку"
-    REQUEST_CONVERSION = "💱 Запросить конвертацию"
+    CONVERSION_REQUEST = "💱 Запрос на конвертацию"
+    BANK_TRANSFER_CONFIRMATION = "🏦 Подтверждение перевода"

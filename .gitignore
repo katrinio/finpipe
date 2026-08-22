@@ -220,7 +220,6 @@ credentials.json
 token.json
 logs/
 output/
-src/storage/processed_messages.json
 /templates/signature.png
 /src/storage/signatures/
 

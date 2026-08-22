@@ -9,8 +9,10 @@ on:
       - 'migrations/**'
       - 'tests/**'
       - 'Dockerfile'
+      - 'Dockerfile.postgres'
       - 'docker-compose.yml'
       - 'docker-compose.local.yml'
+      - 'scripts/**'
       - '.github/workflows/deploy-finpipe.yml'
       - '.env.dist'
       - 'pyproject.toml'
@@ -18,7 +20,7 @@ on:
 
 concurrency:
   group: deploy-finpipe
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -39,14 +41,35 @@ jobs:
             git fetch origin
             git reset --hard origin/main
 
-            docker compose -f docker-compose.yml down --remove-orphans
             docker compose -f docker-compose.yml build
-            docker compose -f docker-compose.yml up -d
+            docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 postgres
 
+            schema_migrated=0
+            restore_old_bot_on_failure() {
+              exit_code=$?
+              trap - EXIT
+              if [ "$exit_code" -ne 0 ] && [ "$schema_migrated" -eq 0 ]; then
+                docker compose -f docker-compose.yml start finpipe-bot || true
+              fi
+              exit "$exit_code"
+            }
+            trap restore_old_bot_on_failure EXIT
+
+            docker compose -f docker-compose.yml stop finpipe-bot
+            docker compose -f docker-compose.yml run --rm finpipe-bot python -m src.workflows.monitoring.backup_database
             docker compose -f docker-compose.yml run --rm finpipe-bot alembic upgrade head
+            schema_migrated=1
+
+            if ! docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 finpipe-bot --remove-orphans; then
+              docker compose -f docker-compose.yml ps
+              docker compose -f docker-compose.yml logs --tail=100 finpipe-bot
+              echo "New bot failed readiness after schema migration; automatic rollback is intentionally disabled."
+              exit 1
+            fi
+
+            trap - EXIT
 
             docker compose -f docker-compose.yml ps
             docker compose -f docker-compose.yml logs --tail=30 finpipe-bot
-            docker compose -f docker-compose.yml logs --tail=30 finpipe-web
 
             docker image prune -f

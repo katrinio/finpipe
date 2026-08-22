@@ -29,7 +29,6 @@ Fast, isolated tests — no network, no filesystem, no external services.
 | Business logic | Invoice generation, amount calculations |
 | ORM models | Create, read, update |
 | Telegram handlers | Command routing, state handling |
-| Gmail services | OAuth flow, email search |
 | Validation | Profile, bank details |
 
 ---
@@ -49,7 +48,7 @@ Tests covering multiple components together. Local PostgreSQL, filesystem, and d
 
 ### external
 
-Tests against real external integrations (Telegram API, Gmail API, OAuth). Not run in CI by default.
+Tests against real external integrations such as Telegram API. Not run in CI by default.
 
 ---
 
@@ -66,8 +65,7 @@ Test implementations of external dependencies. Preferred over mocks.
 | Fake | Replaces |
 |---|---|
 | `FakeTelegram` | `TelegramClient` |
-| `FakeGmail` | Gmail API |
-| `FakeStorage` | PostgreSQL repositories |
+| `FakeTelegramUpdateStorage` | Telegram polling checkpoint |
 
 ---
 

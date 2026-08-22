@@ -79,7 +79,6 @@ class ProfileHandlers:
         company_fields = {
             "company_name": getattr(cp, "company_name", None),
             "company_address": getattr(cp, "company_address", None),
-            "company_email": getattr(cp, "company_email", None),
             "registration_number": getattr(cp, "registration_number", None),
             "city": getattr(cp, "city", None),
         }
@@ -89,9 +88,6 @@ class ProfileHandlers:
             "iban": getattr(bd, "iban", None),
             "bic": getattr(bd, "bic", None),
             "bank_name": getattr(bd, "bank_name", None),
-            "bank_slug": getattr(bd, "bank_slug", None),
-            "bank_confirmation_email_recipient": getattr(bd, "bank_confirmation_email_recipient", None),
-            "bank_confirmation_email_subject_contains": getattr(bd, "bank_confirmation_email_subject_contains", None),
         }
         payment_fields = {
             "payment_number": getattr(cp, "payment_number", None),
@@ -128,19 +124,15 @@ class ProfileHandlers:
                 "🏢 Компания",
                 f"• {self.format_field(company_fields['company_name'])}",
                 f"• {self.format_field(company_fields['company_address'])}",
-                f"• Email бухгалтерии: {self.format_field(company_fields['company_email'])}",
                 f"• Регистрационный номер: {self.format_field(company_fields['registration_number'])}",
                 f"• Город: {self.format_field(company_fields['city'])}",
                 "",
                 "🏦 Банковские реквизиты",
                 f"• Банк: {self.format_field(bank_fields['bank_name'])}",
-                f"• Bank slug: {self.format_field(bank_fields['bank_slug'])}",
                 f"• Получатель: {self.format_field(bank_fields['account_holder'])}",
                 f"• Счёт: {self.format_field(bank_fields['account_number'])}",
                 f"• IBAN: {self.format_field(bank_fields['iban'])}",
                 f"• BIC: {self.format_field(bank_fields['bic'])}",
-                f"• Bank email recipient: {self.format_field(bank_fields['bank_confirmation_email_recipient'])}",
-                f"• Bank email subject contains: {self.format_field(bank_fields['bank_confirmation_email_subject_contains'])}",
                 "",
                 "💳 Платёж",
                 f"• Номер платежа: {self.format_field(payment_fields['payment_number'])}",

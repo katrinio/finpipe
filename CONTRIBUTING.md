@@ -6,7 +6,6 @@ Finpipe is a personal automation project, but PRs and issues are welcome.
 
 - Architecture and setup — [docs/development.md](docs/development.md)
 - Storage schema — [docs/storage.md](docs/storage.md)
-- Gmail OAuth — [docs/oauth.md](docs/oauth.md)
 - Monitoring — [docs/monitoring.md](docs/monitoring.md)
 
 ## Setup

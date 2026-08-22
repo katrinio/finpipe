@@ -1,24 +1,22 @@
 services:
   postgres:
-    image: postgres:17
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: finpipe
-      POSTGRES_USER: finpipe
-      POSTGRES_PASSWORD: finpipe
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups:ro
 
     networks:
-      finpipe:
-      shared:
-        aliases:
-          - finpipe-postgres
+      - finpipe
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U finpipe -d finpipe"]
+      test: ["CMD", "python3", "/usr/local/bin/finpipe-postgres-runtime", "--healthcheck"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,61 +24,28 @@ services:
   finpipe-bot:
     build: .
     restart: unless-stopped
-    container_name: finpipe-bot
-
-    labels:
-      com.katrin.logs.app: "finpipe-bot"
-      com.katrin.logs.environment: "production"
-
     command: python -m src.integrations.telegram.bot
 
     env_file:
       - .env
 
     environment:
-      DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       TEST_DATABASE_URL: ""
-      CONTAINER_NAME: finpipe-bot
-
-    volumes:
-      - ~/finpipe-secrets/credentials.json:/app/credentials.json:ro
-      - ~/finpipe-secrets/token.json:/app/token.json:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
 
     depends_on:
       postgres:
         condition: service_healthy
 
-    networks:
-      - finpipe
-
-  finpipe-web:
-    build: .
-    ports:
-      - "127.0.0.1:8000:8000"
-
-    restart: unless-stopped
-
-    labels:
-      com.katrin.logs.app: "finpipe-web"
-      com.katrin.logs.environment: "production"
-
-    command: uvicorn src.interfaces.web.app:app --host 0.0.0.0 --port 8000
-
-    env_file:
-      - .env
-
-    environment:
-      DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
-      TEST_DATABASE_URL: ""
-
     volumes:
-      - ~/finpipe-secrets/credentials.json:/app/credentials.json:ro
-      - ~/finpipe-secrets/token.json:/app/token.json:ro
+      - ./backups:/app/backups
 
-    depends_on:
-      postgres:
-        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-m", "src.workflows.readiness"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 5s
 
     networks:
       - finpipe
@@ -91,5 +56,3 @@ volumes:
 
 networks:
   finpipe:
-  shared:
-    name: finpipe-shared

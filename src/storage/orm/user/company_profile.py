@@ -20,7 +20,6 @@ class CompanyProfile(BaseModel):
     company_address: Mapped[str] = mapped_column(String)
     registration_number: Mapped[str | None] = mapped_column(String, nullable=True)
     city: Mapped[str | None] = mapped_column(String, nullable=True)
-    company_email: Mapped[str | None] = mapped_column(String, nullable=True)
     payment_number: Mapped[str | None] = mapped_column(String, nullable=True)
     payment_code: Mapped[str | None] = mapped_column(String, nullable=True)
     payment_description: Mapped[str | None] = mapped_column(String, nullable=True)

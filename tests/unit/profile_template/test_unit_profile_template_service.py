@@ -12,7 +12,6 @@ company_address: Belgrade
 registration_number: 12345678
 city: Belgrade
 account_holder: Test User
-account_holder_email: test@example.com
 account_holder_address: Serbia
 bank_name: Test Bank
 account_number: "123"
@@ -30,7 +29,6 @@ payment_description: Fee
     assert profile.registration_number == "12345678"
     assert profile.city == "Belgrade"
     assert profile.account_holder == "Test User"
-    assert profile.account_holder_email == "test@example.com"
     assert profile.account_holder_address == "Serbia"
     assert profile.bank_name == "Test Bank"
     assert profile.account_number == "123"
@@ -40,8 +38,6 @@ payment_description: Fee
     assert profile.payment_number == "1"
     assert profile.payment_code == "2"
     assert profile.payment_description == "Fee"
-    assert profile.bank_confirmation_email.recipient is None
-    assert profile.bank_confirmation_email.subject_contains is None
 
 
 def test_parse_turns_missing_values_into_none() -> None:
@@ -57,7 +53,6 @@ bank_name: Test Bank
     assert profile.registration_number is None
     assert profile.city is None
     assert profile.account_holder is None
-    assert profile.account_holder_email is None
     assert profile.account_holder_address is None
     assert profile.bank_name == "Test Bank"
     assert profile.account_number is None
@@ -67,23 +62,6 @@ bank_name: Test Bank
     assert profile.payment_number is None
     assert profile.payment_code is None
     assert profile.payment_description is None
-    assert profile.bank_confirmation_email.recipient is None
-    assert profile.bank_confirmation_email.subject_contains is None
-
-
-def test_parse_reads_bank_confirmation_email_block() -> None:
-    profile = ProfileTemplateService.parse(
-        b"""
-company_name: Test Company
-bank_name: Test Bank
-bank_confirmation_email:
-  recipient: company@example.com
-  subject_contains: payment confirmation
-""",
-    )
-
-    assert profile.bank_confirmation_email.recipient == "company@example.com"
-    assert profile.bank_confirmation_email.subject_contains == "payment confirmation"
 
 
 def test_validate_required_fields_accepts_complete_profile() -> None:

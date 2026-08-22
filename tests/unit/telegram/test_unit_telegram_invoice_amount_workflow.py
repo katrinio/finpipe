@@ -5,16 +5,13 @@ from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.buttons import InvoiceMenuButtons
 from src.integrations.telegram.ui.menu.document_menu import build_invoice_menu
 from src.integrations.telegram.ui.messages import InvoiceMessages
-from src.storage.dependencies import build_storage_dependencies
-from src.storage.orm import AllowedUser, UserConfig
+from src.storage.orm import UserConfig
 from tests.fakes.fake_telegram import FakeTelegramClient
 
 
 def test_invoice_amount_button_starts_waiting_state_and_prompts(tmp_path: Path) -> None:
-    storage = build_storage_dependencies()
-    AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
-    bot = TelegramBot(storage, telegram=telegram_client)
+    bot = TelegramBot(telegram=telegram_client, owner_telegram_id=123)
 
     bot.process_update(
         {
@@ -32,10 +29,8 @@ def test_invoice_amount_button_starts_waiting_state_and_prompts(tmp_path: Path) 
 
 
 def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path) -> None:
-    storage = build_storage_dependencies()
-    AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
-    bot = TelegramBot(storage, telegram=telegram_client)
+    bot = TelegramBot(telegram=telegram_client, owner_telegram_id=123)
 
     bot.process_update(
         {
@@ -72,10 +67,8 @@ def test_invoice_amount_state_saves_valid_number_and_clears_state(tmp_path: Path
 
 
 def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path: Path) -> None:
-    storage = build_storage_dependencies()
-    AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
-    bot = TelegramBot(storage, telegram=telegram_client)
+    bot = TelegramBot(telegram=telegram_client, owner_telegram_id=123)
 
     bot.process_update(
         {
@@ -111,10 +104,8 @@ def test_invoice_amount_state_rejects_non_numeric_input_and_keeps_state(tmp_path
 
 
 def test_get_invoice_amount_reports_missing_value(tmp_path: Path) -> None:
-    storage = build_storage_dependencies()
-    AllowedUser.create(123, "alice")
     telegram_client = FakeTelegramClient()
-    bot = TelegramBot(storage, telegram=telegram_client)
+    bot = TelegramBot(telegram=telegram_client, owner_telegram_id=123)
 
     bot.handlers.document_handler.get_invoice_amount(123)
 
