@@ -1,0 +1,77 @@
+src/logging_config.py
+  s_5274dcb8563bf5::t_f1fd98f345dcb8 4,10-34,36,48-54
+  s_5274dcb8563bf5::t_cc4ad20b6124d8 6,35
+src/infrastructure/http/http_client.py
+  s_5274dcb8563bf5::t_dd99c721526928 13-15
+src/integrations/telegram/bot.py
+  s_5274dcb8563bf5::t_6d397c993e9cc0 80,87,250-256,259,262,275-278
+Dockerfile.postgres
+  s_5274dcb8563bf5::t_bdcae5dac54b9d 1-10
+tests/integration/storage/test_integration_production_database_operations.py
+  s_5274dcb8563bf5::t_08ba25080ddf28 15,37-40,102
+  s_5274dcb8563bf5::t_24ee383f372615 117
+  s_5274dcb8563bf5::t_c6cc7af9564790 1-14,16-36,41-101,103-116,118-129
+tests/unit/test_unit_postgres_runtime.py
+  s_5274dcb8563bf5::t_1e026ba83380b5 1-46
+src/workflows/monitoring/backup_database.py
+  s_5274dcb8563bf5::t_f1fd98f345dcb8 6,13-15,48-49,53-60,68,83-85,87,92-110
+  s_5274dcb8563bf5::t_bdcae5dac54b9d 10,51
+  s_5274dcb8563bf5::t_e5f824cc05511e 33
+README.md
+  s_5274dcb8563bf5::t_697ab47f05812c 38,63,67,70,73,77
+  s_5274dcb8563bf5::t_dd99c721526928 39
+  s_5274dcb8563bf5::t_66e8fe5ec07463 55,57,64-66,68-69,71-72,74-76,78-82
+.github/workflows/quality_tests.yml
+  s_5274dcb8563bf5::t_e5f824cc05511e 12,42-43,47
+  s_5274dcb8563bf5::t_b277aae24077d1 66-68
+tests/unit/test_unit_deploy_workflow.py
+  s_5274dcb8563bf5::t_93d7e13ff73bab 16,21-34
+  s_5274dcb8563bf5::t_697ab47f05812c 43
+  s_5274dcb8563bf5::t_e22648396ac516 35-42,44
+tests/unit/workflows/test_unit_workflows_bank_confirmation_delivery.py
+  s_5274dcb8563bf5::t_565bc804521565 92-105
+  s_5274dcb8563bf5::t_3504c0876bd6c5 14-18,26,58,107,150
+  s_5274dcb8563bf5::t_788d3a6eab9e4e 8-9,42,69,76-91,106,108-149,151-154
+tests/unit/telegram/test_unit_telegram_owner_access.py
+  s_5274dcb8563bf5::t_3d63d74e58f75f 4,37-71
+tests/unit/telegram/test_unit_telegram_bank_document_workflows.py
+  s_5274dcb8563bf5::t_5adb3bedc999bb 8,19-20,146-176
+tests/unit/telegram/test_unit_telegram_polling.py
+  s_5274dcb8563bf5::t_3d63d74e58f75f 5-7,27-94
+tests/unit/test_unit_sensitive_logging.py
+  s_5274dcb8563bf5::t_93d7e13ff73bab 1-54
+src/workflows/run_bank_confirmation_delivery.py
+  s_5274dcb8563bf5::t_6d397c993e9cc0 8-9,30,35,38
+tests/unit/workflows/test_unit_backup_database.py
+  s_5274dcb8563bf5::t_55d485637ea654 19-25,46-47,55-56,64,73
+  s_5274dcb8563bf5::t_93d7e13ff73bab 13,36-37
+scripts/postgres_runtime.py
+  s_5274dcb8563bf5::t_568d7772c63ef0 87-94
+  s_5274dcb8563bf5::t_697ab47f05812c 49,55-71
+  s_5274dcb8563bf5::t_bdcae5dac54b9d 1-48,50-54,72-86,95-113
+docker-compose.yml
+  s_5274dcb8563bf5::t_bdcae5dac54b9d 3-5,9,13,19,41
+  s_5274dcb8563bf5::t_66e8fe5ec07463 33,40,42-49
+src/workflows/readiness.py
+  s_5274dcb8563bf5::t_f1fd98f345dcb8 1-38
+.github/workflows/deploy-finpipe.yml
+  s_5274dcb8563bf5::t_66e8fe5ec07463 23,45-49,51-57,59-66,69-70
+  s_5274dcb8563bf5::t_5f7eeb47d528a0 12,15
+  s_5274dcb8563bf5::t_dd99c721526928 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "f28b061cac560bb41a83cf26b23a94464cf26859",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
