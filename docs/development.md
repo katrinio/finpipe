@@ -22,3 +22,5 @@ poetry run alembic check
 ```
 
 Generated documents are temporary delivery artifacts. The delivery workflow deletes both PDF and intermediate DOCX files after the Telegram request completes or fails.
+
+The root `Dockerfile` has two targets: `production` for the deployed bot and `ci` for quality jobs with development dependencies. `Dockerfile.postgres` remains separate because it extends PostgreSQL rather than the Python application image.

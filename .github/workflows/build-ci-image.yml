@@ -26,7 +26,8 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: .docker/ci/Dockerfile
+          file: Dockerfile
+          target: ci
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/finpipe-ci:latest

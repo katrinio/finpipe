@@ -75,3 +75,18 @@ def test_ci_postgres_health_command_is_a_single_docker_option_value() -> None:
     assert "--health-cmd pg_isready" in workflow
     assert "--health-cmd '" not in workflow
     assert '--health-cmd "' not in workflow
+
+
+def test_python_images_share_one_multistage_dockerfile() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    dockerfile = (project_root / "Dockerfile").read_text()
+    compose = (project_root / "docker-compose.yml").read_text()
+    ci_workflow = (project_root / ".github/workflows/build-ci-image.yml").read_text()
+
+    assert "FROM python:3.14-slim AS base" in dockerfile
+    assert "FROM base AS ci" in dockerfile
+    assert "FROM base AS production" in dockerfile
+    assert "target: production" in compose
+    assert "file: Dockerfile" in ci_workflow
+    assert "target: ci" in ci_workflow
+    assert not (project_root / ".docker/ci/Dockerfile").exists()
