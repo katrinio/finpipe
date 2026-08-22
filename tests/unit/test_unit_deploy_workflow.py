@@ -45,7 +45,8 @@ def test_production_compose_uses_secret_configuration_and_persistent_backups() -
     assert "./backups:/app/backups" in compose
     assert 'test: ["CMD", "pg_isready", "--quiet"]' in compose
     assert 'finpipe-postgres-runtime", "--healthcheck' not in compose
-    assert 'python", "-m", "src.workflows.readiness' in compose
+    assert 'entrypoint: ["python", "/app/scripts/bot_container_runtime.py"]' in compose
+    assert '"/app/scripts/bot_container_runtime.py", "python", "-m", "src.workflows.readiness"' in compose
 
 
 def test_distributed_database_url_uses_the_compose_postgres_service() -> None:
