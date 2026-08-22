@@ -28,14 +28,15 @@ Finpipe does not connect to or send messages through an electronic-mail provider
 ```bash
 poetry install
 cp .env.dist .env
-# Fill in .env
+# Fill in the secrets and change DATABASE_URL host to localhost:5433
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres
 ./scripts/setup_database.sh
 poetry run start_bot
 ```
 
 Required application variables are documented in [.env.dist](.env.dist). At minimum, configure the Telegram bot token, owner Telegram ID, signature encryption key, and database URL. Requests from every other Telegram account are rejected without creating user records.
 
-`DATABASE_URL` is the only source of PostgreSQL host, port, database, username, and password. For Docker Compose, including production, use `postgres:5432`, as shown in `.env.dist`. For compatibility with local host-based development, the bot container translates only loopback hosts (`localhost`, `127.0.0.1`, or `::1`) to the Compose address `postgres:5432`; credentials, database name, query parameters, and non-loopback database addresses remain unchanged. The URI and password are not logged or placed in child-process arguments. For an existing volume, configure `DATABASE_URL` with credentials that the database role already accepts; changing the URI alone does not rotate an existing PostgreSQL role password.
+`DATABASE_URL` is the only source of PostgreSQL host, port, database, username, and password. `.env.dist` contains the container-to-container address `postgres:5432`, which is correct when commands run through Docker Compose. When the bot and Alembic run directly on the host, use `localhost:5433` and start PostgreSQL with the local Compose override shown above. The bot container translates loopback hosts (`localhost`, `127.0.0.1`, or `::1`) to `postgres:5432`; credentials, database name, query parameters, and non-loopback database addresses remain unchanged. The URI and password are not logged or placed in child-process arguments. For an existing volume, configure `DATABASE_URL` with credentials that the database role already accepts; changing the URI alone does not rotate an existing PostgreSQL role password.
 
 ## Telegram flow
 
@@ -60,7 +61,7 @@ docker compose up -d --wait finpipe-bot
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
 ```
 
-Production deploy stops the bot, invokes the existing database backup workflow into the persistent project directory `./backups`, applies Alembic migrations, and waits for the new bot readiness check. No separate retention policy is applied by deploy; retention remains the responsibility of the existing daily backup infrastructure. The readiness check verifies Telegram API access and reads every active ORM table. If a migration has committed, deploy never starts the old image against the new schema.
+Production deploy stops the bot, invokes the database backup workflow into the persistent project directory `./backups`, applies Alembic migrations, and waits for the new bot readiness check. Deploy creates one backup per run and does not prune old backups; additional scheduling and retention are outside this repository. The readiness check verifies Telegram API access and reads every active ORM table. If a migration has committed, deploy never starts the old image against the new schema.
 
 ### Database restore
 

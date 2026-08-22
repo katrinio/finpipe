@@ -7,15 +7,6 @@ class Cmd(StrEnum):
     MENU = "/menu"
     START = "/start"
 
-    @property
-    def description(self) -> str:
-        descriptions = {
-            Cmd.MENU: "menu",
-            Cmd.START: "start the Finpipe bot",
-        }
-
-        return descriptions[self]
-
 
 def format_whoami(telegram_id: int | None, username: str | None) -> str:
     """Форматирует информацию о текущем пользователе."""

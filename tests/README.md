@@ -22,12 +22,12 @@ tests/
 
 ### unit
 
-Fast, isolated tests — no network, no filesystem, no external services.
+Fast, isolated tests with no real network or external services. Temporary filesystem paths and an isolated SQLite database are allowed.
 
 | Area | Examples |
 |---|---|
 | Business logic | Invoice generation, amount calculations |
-| ORM models | Create, read, update |
+| ORM models | Create, read, update against isolated test storage |
 | Telegram handlers | Command routing, state handling |
 | Validation | Profile, bank details |
 
@@ -35,7 +35,7 @@ Fast, isolated tests — no network, no filesystem, no external services.
 
 ### integration
 
-Tests covering multiple components together. Local PostgreSQL, filesystem, and document templates are allowed.
+Tests covering multiple components together. A reachable PostgreSQL `TEST_DATABASE_URL`, filesystem, document templates, and local conversion tools are allowed. These tests are skipped when PostgreSQL is unavailable.
 
 | Area | Examples |
 |---|---|
@@ -64,7 +64,7 @@ Test implementations of external dependencies. Preferred over mocks.
 
 | Fake | Replaces |
 |---|---|
-| `FakeTelegram` | `TelegramClient` |
+| `FakeTelegramClient` | `TelegramClient` |
 | `FakeTelegramUpdateStorage` | Telegram polling checkpoint |
 
 ---
@@ -106,18 +106,16 @@ Test names describe the **behavior** being tested, not the implementation.
 
 | Command | What it runs |
 |---|---|
-| `pytest` | All tests |
-| `pytest tests/unit` | Unit only |
-| `pytest tests/integration` | Integration only |
-| `pytest tests/external` | External only |
-| `pytest -q` | Compact output |
+| `poetry run pytest` | All tests; unavailable integration and opt-in external checks are skipped |
+| `poetry run pytest tests/unit` | Unit only |
+| `poetry run pytest tests/integration` | Integration only; requires PostgreSQL |
+| `RUN_EXTERNAL_TELEGRAM_TESTS=1 poetry run pytest tests/external` | Real Telegram API check |
+| `poetry run pytest -q` | Compact output |
 
 ---
 
 ## CI
 
-CI runs only `unit` and `integration` tests — fast and deterministic.
+CI invokes the complete `tests` tree with PostgreSQL and coverage enabled. The external Telegram test is collected but skipped because CI does not set `RUN_EXTERNAL_TELEGRAM_TESTS=1`.
 
-`external` tests are not run automatically — use them for manual integration checks.
-
-Before opening a PR: run `pytest` locally, all tests must pass.
+Before opening a PR, run `poetry run pytest` locally; every test that is enabled by the available services and explicit opt-in flags must pass.

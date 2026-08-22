@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import NavigationButtons, SignatureButtons
+from src.integrations.telegram.buttons import NavigationButtons, SignatureButtons
 from src.integrations.telegram.ui.menu.profile_menu import build_profile_menu
 
 

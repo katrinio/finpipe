@@ -40,7 +40,6 @@ class MsgIcon:
 
 class CommonMessages:
     class General:
-        HELP_HEADER = "📚 Доступные команды"
         WHOAMI_PREFIX = "👤 Информация о пользователе"
 
     class Errors:
@@ -50,5 +49,4 @@ class CommonMessages:
         SYSTEM_ERROR = "💥 Произошла внутренняя ошибка."
 
     class Actions:
-        USE_CONFIRMATION_BTN = "Используйте кнопки подтверждения ниже."
         OPERATION_CANCELLED = "Текущая операция отменена."

@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import NavigationButtons, SystemButtons
+from src.integrations.telegram.buttons import NavigationButtons, SystemButtons
 
 
 def build_system_menu() -> dict:

@@ -5,13 +5,13 @@ from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
 from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.messages import BankMessages, InvoiceMessages
 from src.integrations.telegram.state_service import UserStateService
 from src.integrations.telegram.states import UserState
 from src.integrations.telegram.ui.menu.document_menu import (
     build_document_menu,
     build_invoice_menu,
 )
-from src.integrations.telegram.ui.messages import BankMessages, InvoiceMessages
 from src.services.bank.exceptions import BankPdfError
 from src.services.conversion_order.exceptions import TransferRequestError
 from src.services.invoice.exceptions import InvoiceError

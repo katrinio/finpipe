@@ -1,16 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from src.integrations.telegram.client import TelegramClient
-from src.integrations.telegram.commands import Cmd
-from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
-from src.integrations.telegram.handlers.menu_handlers import MenuHandler
-from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
-from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
-from src.integrations.telegram.handlers.system_handlers import SystemHandlers
-from src.integrations.telegram.messages.menu_messages import MenuMessages
-from src.integrations.telegram.state_service import UserStateService
-from src.integrations.telegram.ui.buttons import (
+from src.integrations.telegram.buttons import (
     DocumentsMenuButtons,
     InvoiceMenuButtons,
     MainMenuButtons,
@@ -19,11 +10,17 @@ from src.integrations.telegram.ui.buttons import (
     SignatureButtons,
     SystemButtons,
 )
-from src.integrations.telegram.ui.messages import CommonMessages
-from src.services.signing.signature_service import SignatureService as _SignatureService
+from src.integrations.telegram.client import TelegramClient
+from src.integrations.telegram.commands import Cmd
+from src.integrations.telegram.handlers.document_handlers import DocumentHandlers
+from src.integrations.telegram.handlers.menu_handlers import MenuHandler
+from src.integrations.telegram.handlers.profile_handlers import ProfileHandlers
+from src.integrations.telegram.handlers.signature_handlers import SignatureHandlers
+from src.integrations.telegram.handlers.system_handlers import SystemHandlers
+from src.integrations.telegram.messages import CommonMessages
+from src.integrations.telegram.messages.menu_messages import MenuMessages
+from src.integrations.telegram.state_service import UserStateService
 from src.utils.credentials import LOGGER
-
-SignatureService = _SignatureService
 
 
 @dataclass(frozen=True)
@@ -32,7 +29,6 @@ class CommandContext:
 
     telegram_id: int
     username: str | None
-    command: str
 
 
 class CommandRouter:
@@ -57,7 +53,6 @@ class CommandRouter:
         context = CommandContext(
             telegram_id=telegram_id,
             username=username,
-            command=text,
         )
 
         try:
@@ -123,6 +118,3 @@ class CommandRouter:
         if len(command) > 64:
             command = command[:64]
         return f"{command!r} (len={len(text)})"
-
-
-TelegramHandlers = CommandRouter

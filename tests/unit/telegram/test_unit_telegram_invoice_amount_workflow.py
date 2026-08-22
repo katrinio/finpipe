@@ -1,10 +1,10 @@
 from pathlib import Path
 
 from src.integrations.telegram.bot import TelegramBot
+from src.integrations.telegram.buttons import InvoiceMenuButtons
+from src.integrations.telegram.messages import InvoiceMessages
 from src.integrations.telegram.states import UserState
-from src.integrations.telegram.ui.buttons import InvoiceMenuButtons
 from src.integrations.telegram.ui.menu.document_menu import build_invoice_menu
-from src.integrations.telegram.ui.messages import InvoiceMessages
 from src.storage.orm import UserConfig
 from tests.fakes.fake_telegram import FakeTelegramClient
 

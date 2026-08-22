@@ -1,4 +1,4 @@
-from src.integrations.telegram.ui.buttons import (
+from src.integrations.telegram.buttons import (
     DocumentsMenuButtons,
     InvoiceMenuButtons,
     NavigationButtons,
