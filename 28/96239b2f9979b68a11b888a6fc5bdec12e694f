@@ -1,0 +1,52 @@
+src/integrations/telegram/handlers/command_router.py
+  s_30ff4316d5db65::t_a32882890664b7 4-12,20
+src/integrations/telegram/handlers/signature_handlers.py
+  s_30ff4316d5db65::t_6402dad2b715d0 4
+src/integrations/telegram/buttons/__init__.py
+  s_30ff4316d5db65::t_a32882890664b7 4
+src/integrations/telegram/handlers/menu_handlers.py
+  s_30ff4316d5db65::t_a32882890664b7 1
+  s_30ff4316d5db65::t_6402dad2b715d0 6-7
+tests/unit/telegram/test_unit_telegram_bank_document_workflows.py
+  s_30ff4316d5db65::t_6402dad2b715d0 10,13
+tests/unit/telegram/test_unit_telegram_signature_menu.py
+  s_30ff4316d5db65::t_4e6af2f19125f6 1
+src/integrations/telegram/ui/menu/menu.py
+  s_30ff4316d5db65::t_a32882890664b7 1
+src/integrations/telegram/bot.py
+  s_30ff4316d5db65::t_6402dad2b715d0 8
+tests/unit/telegram/test_unit_telegram_signature_upload.py
+  s_30ff4316d5db65::t_4e6af2f19125f6 5,7,9
+src/integrations/telegram/ui/menu/document_menu.py
+  s_30ff4316d5db65::t_a32882890664b7 1
+src/integrations/telegram/ui/menu/system_menu.py
+  s_30ff4316d5db65::t_a32882890664b7 1
+src/integrations/telegram/ui/menu/profile_menu.py
+  s_30ff4316d5db65::t_a32882890664b7 1
+tests/unit/telegram/test_unit_telegram_main_menu.py
+  s_30ff4316d5db65::t_4e6af2f19125f6 4
+tests/unit/telegram/test_unit_telegram_owner_access.py
+  s_30ff4316d5db65::t_4e6af2f19125f6 4
+tests/unit/telegram/test_unit_telegram_invoice_amount_workflow.py
+  s_30ff4316d5db65::t_4e6af2f19125f6 4-5
+src/integrations/telegram/handlers/profile_handlers.py
+  s_30ff4316d5db65::t_6402dad2b715d0 6
+src/integrations/telegram/handlers/document_handlers.py
+  s_30ff4316d5db65::t_6402dad2b715d0 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "2896239b2f9979b68a11b888a6fc5bdec12e694f",
+  "prompts": {},
+  "sessions": {
+    "s_30ff4316d5db65": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02ab0-80e9-78b1-a9c3-1fcab65dea9e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
