@@ -16,7 +16,7 @@ services:
       - finpipe
 
     healthcheck:
-      test: ["CMD", "python3", "/usr/local/bin/finpipe-postgres-runtime", "--healthcheck"]
+      test: ["CMD", "pg_isready", "--quiet"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,6 +24,7 @@ services:
   finpipe-bot:
     build: .
     restart: unless-stopped
+    entrypoint: ["python", "/app/scripts/bot_container_runtime.py"]
     command: python -m src.integrations.telegram.bot
 
     env_file:
@@ -41,7 +42,8 @@ services:
       - ./backups:/app/backups
 
     healthcheck:
-      test: ["CMD", "python", "-m", "src.workflows.readiness"]
+      test:
+        ["CMD", "python", "/app/scripts/bot_container_runtime.py", "python", "-m", "src.workflows.readiness"]
       interval: 30s
       timeout: 15s
       retries: 3

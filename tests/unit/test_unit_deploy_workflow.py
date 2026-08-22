@@ -32,6 +32,8 @@ def test_production_deploy_backs_up_before_migration_and_waits_for_readiness() -
     assert "--wait --wait-timeout 120 finpipe-bot" in workflow
     assert "schema_migrated=1" in workflow
     assert "automatic rollback is intentionally disabled" in workflow
+    assert "logs --tail=100 postgres" in workflow
+    assert "postgres --remove-orphans" in workflow
 
 
 def test_production_compose_uses_secret_configuration_and_persistent_backups() -> None:
@@ -41,7 +43,29 @@ def test_production_compose_uses_secret_configuration_and_persistent_backups() -
     assert "finpipe:finpipe" not in compose
     assert "DATABASE_URL: ${DATABASE_URL:" in compose
     assert "./backups:/app/backups" in compose
-    assert 'python", "-m", "src.workflows.readiness' in compose
+    assert 'test: ["CMD", "pg_isready", "--quiet"]' in compose
+    assert 'finpipe-postgres-runtime", "--healthcheck' not in compose
+    assert 'entrypoint: ["python", "/app/scripts/bot_container_runtime.py"]' in compose
+    assert '"/app/scripts/bot_container_runtime.py", "python", "-m", "src.workflows.readiness"' in compose
+
+
+def test_distributed_database_url_uses_the_compose_postgres_service() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    env_dist = (project_root / ".env.dist").read_text()
+
+    database_url = next(line for line in env_dist.splitlines() if line.startswith("DATABASE_URL="))
+    assert "@postgres:5432/" in database_url
+    assert "localhost" not in database_url
+
+
+def test_production_deploy_retries_only_ssh_transport_failures() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    workflow = (project_root / ".github/workflows/deploy-finpipe.yml").read_text()
+
+    assert "appleboy/ssh-action" not in workflow
+    assert "for attempt in 1 2 3" in workflow
+    assert 'if [ "$exit_code" -ne 255 ]' in workflow
+    assert "timeout 20m ssh" in workflow
 
 
 def test_ci_postgres_health_command_is_a_single_docker_option_value() -> None:
