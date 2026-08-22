@@ -1,0 +1,54 @@
+README.md
+  s_5274dcb8563bf5::t_640e6fbf48dee8 3,11-12,43-45,47
+src/integrations/telegram/buttons/documents.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 3-4
+src/integrations/telegram/bot.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 15,60-63,304-305
+tests/unit/workflows/test_unit_workflows_conversion_request_delivery.py
+  s_5274dcb8563bf5::t_77eb5fa7e69828 6-7,51-80
+  s_5274dcb8563bf5::t_b6b9dd802a5d67 1-5,8-50
+src/integrations/telegram/handlers/command_router.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 135-136
+src/integrations/telegram/README.md
+  s_5274dcb8563bf5::t_640e6fbf48dee8 5
+tests/unit/telegram/test_unit_telegram_bank_document_workflows.py
+  s_5274dcb8563bf5::t_1caf12ca846cb8 10
+  s_5274dcb8563bf5::t_fbb002374d7fb4 1-9,11-144
+src/workflows/run_bank_confirmation_delivery.py
+  s_5274dcb8563bf5::t_1f1671badd7893 1-38
+src/integrations/telegram/ui/messages.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 4,15
+src/integrations/telegram/messages/__init__.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 3,12
+src/workflows/run_conversion_request_delivery.py
+  s_5274dcb8563bf5::t_1f1671badd7893 1-36
+src/integrations/telegram/messages/bank_messages.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 1-21
+src/integrations/telegram/handlers/document_handlers.py
+  s_5274dcb8563bf5::t_0bc8b01b205166 2-5,11,14-16,20,22-25,34-35,86-113,115-138,140-145,154-172,174
+src/workflows/README.md
+  s_5274dcb8563bf5::t_640e6fbf48dee8 5-6
+tests/unit/workflows/test_unit_workflows_bank_confirmation_delivery.py
+  s_5274dcb8563bf5::t_b6b9dd802a5d67 1-5,8-46,48-61,63,65-66
+  s_5274dcb8563bf5::t_8697daf8a244f3 6-7,47,62,64
+src/integrations/telegram/states.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 7
+src/integrations/telegram/ui/menu/document_menu.py
+  s_5274dcb8563bf5::t_6894d0bca845ad 13-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "dfbfa2d040e07a4039c9d1f047fe7b6bb7f80ca6",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
