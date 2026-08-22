@@ -5,6 +5,7 @@ from typing import Any, cast
 import pytest
 from pypdf import PdfWriter
 
+from src.constants import TestData
 from src.integrations.telegram.bot import TelegramBot
 from src.integrations.telegram.client import TelegramClient
 from src.integrations.telegram.handlers import document_handlers
@@ -15,6 +16,8 @@ from src.integrations.telegram.ui.messages import BankMessages
 from src.storage.orm import Signature, UserConfig
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
+from src.workflows import run_bank_confirmation_delivery
+from src.workflows.run_bank_confirmation_delivery import generate_and_send_bank_confirmation
 from tests.fakes.fake_storage import FakeTelegramUpdateStorage
 from tests.fakes.fake_telegram import FakeTelegramClient
 
@@ -140,3 +143,34 @@ def test_conversion_request_requires_bank_amount(monkeypatch: pytest.MonkeyPatch
     bot.handle_message(DocumentsMenuButtons.CONVERSION_REQUEST, telegram_id=123, username="alice")
 
     assert telegram.sent_message_payloads[-1] == (123, BankMessages.Validation.NO_BANK_AMOUNT, build_document_menu())
+
+
+def test_bank_pdf_amount_is_persisted_and_used_by_conversion_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    telegram = FakeTelegramClient()
+    bot = _build_ready_bot(monkeypatch, telegram)
+
+    def fake_generate_bank_confirmation(telegram_id: int, bank_template, output_dir, amount: float):
+        output_path = output_dir / "bank-confirmation.pdf"
+        output_path.write_bytes(b"confirmation")
+        return output_path
+
+    monkeypatch.setattr(run_bank_confirmation_delivery, "generate_bank_confirmation", fake_generate_bank_confirmation)
+    generate_and_send_bank_confirmation(
+        cast(TelegramClient, telegram),
+        123,
+        TestData.BANK_TEMPLATE_PATH.read_bytes(),
+    )
+
+    config = UserConfig.get_by_owner(123)
+    assert config is not None
+    assert config.bank_received_amount_eur == 1234.56
+
+    delivered: list[float] = []
+    monkeypatch.setattr(
+        document_handlers,
+        "generate_and_send_conversion_request",
+        lambda client, chat_id, amount: delivered.append(amount),
+    )
+    bot.handle_message(DocumentsMenuButtons.CONVERSION_REQUEST, telegram_id=123, username="owner")
+
+    assert delivered == [1234.56]

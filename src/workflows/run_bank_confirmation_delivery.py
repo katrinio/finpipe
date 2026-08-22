@@ -5,6 +5,8 @@ import tempfile
 from pathlib import Path
 
 from src.integrations.telegram.client import TelegramClient
+from src.services.bank.bank_extract import extract_amount
+from src.storage.orm.user.user_config import UserConfig
 from src.utils.files import delete_file
 from src.workflows.tasks.generate_bank_confirmation import generate_bank_confirmation
 
@@ -25,12 +27,15 @@ def generate_and_send_bank_confirmation(
         confirmation_path: Path | None = None
 
         try:
+            amount = extract_amount(source_path)
             confirmation_path = generate_bank_confirmation(
                 telegram_id=chat_id,
                 bank_template=source_path,
                 output_dir=output_dir,
+                amount=amount,
             )
             telegram.send_document(chat_id, document_path=confirmation_path)
+            UserConfig.upsert(telegram_id=chat_id, bank_received_amount_eur=amount)
         finally:
             delete_file(source_path, LOGGER)
             if confirmation_path is not None:

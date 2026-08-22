@@ -77,13 +77,14 @@ class TelegramBot:
 
         processed_count = 0
 
-        for update in result:
+        for update in sorted(result, key=lambda item: item["update_id"]):
             try:
                 self.process_update(update)
                 processed_count += 1
             except Exception:
                 update_id = update.get("update_id")
                 LOGGER.exception("Failed to process Telegram update %s", update_id)
+                break
 
         return processed_count
 
@@ -180,7 +181,6 @@ class TelegramBot:
 
                 LOGGER.info("Processing state %s for Telegram user %s", state.name, telegram_id)
                 state_handler.handler(telegram_id, text)
-                self.update_storage.mark_processed(update["update_id"])
                 return True
 
             if text in self.handlers._command_handlers:
@@ -204,7 +204,6 @@ class TelegramBot:
                 state_handler.error_message,
                 reply_markup=self._build_state_navigation_menu(telegram_id, state),
             )
-            self.update_storage.mark_processed(update["update_id"])
             return True
 
         file_name, file_size, file_id, _ = file_data
@@ -223,7 +222,6 @@ class TelegramBot:
 
         LOGGER.info("Successfully processed upload for Telegram user %s", telegram_id)
 
-        self.update_storage.mark_processed(update["update_id"])
         return True
 
     def _build_state_navigation_menu(self, telegram_id: int, state: UserState) -> dict:
@@ -249,14 +247,19 @@ class TelegramBot:
         text, telegram_id, username = data
 
         if not self.is_authorized(telegram_id):
-            LOGGER.warning("Access denied for Telegram user %s", telegram_id)
-            self.telegram.send_message(telegram_id, CommonMessages.Errors.ACCESS_DENIED)
-            self.update_storage.mark_processed(update["update_id"])
+            LOGGER.warning("Access denied for Telegram user")
+            try:
+                self.telegram.send_message(telegram_id, CommonMessages.Errors.ACCESS_DENIED)
+            except Exception:
+                LOGGER.warning("Could not send Telegram access-denied response")
+            finally:
+                self.update_storage.mark_processed(update["update_id"])
             return
 
-        LOGGER.info("Authorized Telegram user %s", telegram_id)
+        LOGGER.info("Authorized Telegram owner")
 
         if self._process_waiting_state(telegram_id=telegram_id, update=update):
+            self.update_storage.mark_processed(update["update_id"])
             return
 
         if text is None:
@@ -269,10 +272,10 @@ class TelegramBot:
             telegram_id,
         )
 
-        try:
-            self.handle_message(text=text, telegram_id=telegram_id, username=username)
-        finally:
-            self.update_storage.mark_processed(update["update_id"])
+        if not self.handle_message(text=text, telegram_id=telegram_id, username=username):
+            msg = "Telegram command failed"
+            raise RuntimeError(msg)
+        self.update_storage.mark_processed(update["update_id"])
 
     def handle_message(self, text: str, telegram_id: int | None, username: str | None) -> bool:
         """Делегирует команду вынесенным handlers, сохраняя совместимый API."""

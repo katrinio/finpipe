@@ -10,6 +10,9 @@ from requests import Response
 from requests.exceptions import RequestException
 
 LOGGER = logging.getLogger(__name__)
+# Telegram authenticates in the URL path. Prevent the underlying transport from
+# emitting that path even when another entry point enables global DEBUG logging.
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 TELEGRAM_BOT_URL_PATTERN = re.compile(r"^(https://api\.telegram\.org/(?:file/)?bot)([^/]+)(/.*)?$")
 
 

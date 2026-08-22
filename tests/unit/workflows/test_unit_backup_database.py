@@ -10,15 +10,19 @@ import pytest
 from src.workflows.monitoring import backup_database
 
 
-def test_run_backup_creates_gz_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_backup_creates_gz_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     backup_dir = tmp_path / "backups"
     monkeypatch.setattr(backup_database.EnvVar, "PROJECT_ROOT", tmp_path)
     monkeypatch.setenv("BACKUP_DIR", str(backup_dir))
-    monkeypatch.setenv("BACKUP_RETENTION_DAYS", "7")
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe")
 
-    def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool) -> SimpleNamespace:
-        assert command == ["pg_dump", "--dbname=postgresql://finpipe:finpipe@postgres:5432/finpipe"]
+    def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool, env: dict[str, str]) -> SimpleNamespace:
+        assert command == ["pg_dump", "--no-password"]
+        assert env["PGHOST"] == "postgres"
+        assert env["PGPORT"] == "5432"
+        assert env["PGDATABASE"] == "finpipe"
+        assert env["PGUSER"] == "finpipe"
+        assert env["PGPASSWORD"] == "finpipe"
         stdout.write(b"CREATE TABLE test();\n")
         return SimpleNamespace(returncode=0, stderr=b"")
 
@@ -29,16 +33,18 @@ def test_run_backup_creates_gz_file(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     assert path.exists()
     assert path.name == "finpipe_2026-06-17_05-00-00.sql.gz"
     assert path.stat().st_size > 0
+    assert "postgresql" not in caplog.text
+    assert "finpipe:finpipe" not in caplog.text
 
 
 def test_run_backup_fails_when_pg_dump_fails(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     backup_dir = tmp_path / "backups"
     monkeypatch.setattr(backup_database.EnvVar, "PROJECT_ROOT", tmp_path)
     monkeypatch.setenv("BACKUP_DIR", str(backup_dir))
-    monkeypatch.setenv("BACKUP_RETENTION_DAYS", "7")
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe")
 
-    def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool) -> SimpleNamespace:
+    def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool, env: dict[str, str]) -> SimpleNamespace:
+        stdout.write(b"partial dump")
         return SimpleNamespace(returncode=1, stderr=b"pg_dump: error")
 
     monkeypatch.setattr(backup_database.subprocess, "run", fake_run)
@@ -46,15 +52,16 @@ def test_run_backup_fails_when_pg_dump_fails(monkeypatch: pytest.MonkeyPatch, tm
     with pytest.raises(RuntimeError, match="pg_dump: error"):
         backup_database.run_backup(now=datetime(2026, 6, 17, 5, 0, 0, tzinfo=UTC))
 
+    assert list(backup_dir.iterdir()) == []
+
 
 def test_run_backup_fails_on_empty_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     backup_dir = tmp_path / "backups"
     monkeypatch.setattr(backup_database.EnvVar, "PROJECT_ROOT", tmp_path)
     monkeypatch.setenv("BACKUP_DIR", str(backup_dir))
-    monkeypatch.setenv("BACKUP_RETENTION_DAYS", "7")
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe")
 
-    def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool) -> SimpleNamespace:
+    def fake_run(command: list[str], stdout: Any, stderr: Any, check: bool, env: dict[str, str]) -> SimpleNamespace:
         return SimpleNamespace(returncode=0, stderr=b"")
 
     monkeypatch.setattr(backup_database.subprocess, "run", fake_run)
@@ -62,6 +69,8 @@ def test_run_backup_fails_on_empty_file(monkeypatch: pytest.MonkeyPatch, tmp_pat
 
     with pytest.raises(RuntimeError, match="empty file"):
         backup_database.run_backup(now=datetime(2026, 6, 17, 5, 0, 0, tzinfo=UTC))
+
+    assert list(backup_dir.iterdir()) == []
 
 
 def test_main_returns_one_when_backup_fails(monkeypatch: pytest.MonkeyPatch) -> None:

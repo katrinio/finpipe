@@ -14,7 +14,6 @@ from src.services.invoice.context import build_invoice_period
 from src.storage.orm.user.bank_details import BankDetails
 from src.storage.orm.user.company_profile import CompanyProfile
 from src.storage.orm.user.signature import Signature
-from src.storage.orm.user.user_config import UserConfig
 from src.utils.credentials import EnvVar
 from src.utils.files import delete_file
 from src.utils.utils import Utils
@@ -95,10 +94,6 @@ def generate_bank_confirmation(
 
         LOGGER.info("Preparing bank confirmation from %s", bank_template)
         amount = amount or extract_amount(bank_template)
-        UserConfig.upsert(
-            telegram_id=telegram_id,
-            bank_received_amount_eur=amount,
-        )
         bank_details = BankDetails.get_by_owner(telegram_id)
         if bank_details is None:
             msg = "Банковские реквизиты не настроены. Загрузите профиль через раздел «Профиль»."

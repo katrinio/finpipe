@@ -1,21 +1,22 @@
 services:
   postgres:
-    image: postgres:17
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: finpipe
-      POSTGRES_USER: finpipe
-      POSTGRES_PASSWORD: finpipe
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups:ro
 
     networks:
       - finpipe
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U finpipe -d finpipe"]
+      test: ["CMD", "python3", "/usr/local/bin/finpipe-postgres-runtime", "--healthcheck"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,12 +30,22 @@ services:
       - .env
 
     environment:
-      DATABASE_URL: postgresql+psycopg://finpipe:finpipe@postgres:5432/finpipe
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       TEST_DATABASE_URL: ""
 
     depends_on:
       postgres:
         condition: service_healthy
+
+    volumes:
+      - ./backups:/app/backups
+
+    healthcheck:
+      test: ["CMD", "python", "-m", "src.workflows.readiness"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 5s
 
     networks:
       - finpipe
