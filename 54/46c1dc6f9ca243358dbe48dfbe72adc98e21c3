@@ -1,0 +1,21 @@
+tests/unit/test_unit_deploy_workflow.py
+  s_5274dcb8563bf5::t_ab6a7a05e508a2 47-56
+.github/workflows/deploy-finpipe.yml
+  s_5274dcb8563bf5::t_ab6a7a05e508a2 31-45,84-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "0.0.51",
+  "base_commit_sha": "5446c1dc6f9ca243358dbe48dfbe72adc98e21c3",
+  "prompts": {},
+  "sessions": {
+    "s_5274dcb8563bf5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0263d-3fff-7093-a9ac-4418f1db92ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Katrin Torsunova <to.katrin.t@gmail.com>"
+    }
+  }
+}
