@@ -49,10 +49,56 @@ jobs:
             git fetch origin
             git reset --hard origin/main
 
-            docker compose -f docker-compose.yml build
-            if ! docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 postgres --remove-orphans; then
-              docker compose -f docker-compose.yml ps postgres
-              docker compose -f docker-compose.yml logs --tail=100 postgres
+            if [ ! -f .env ]; then
+              echo "ERROR: missing production .env"
+              exit 1
+            fi
+
+            # These values must come only from Infisical in production. Unsetting
+            # them prevents legacy .env values from satisfying the preflight.
+            unset DATABASE_URL SIGNATURE_ENCRYPTION_KEY TELEGRAM_BOT_TOKEN INFISICAL_TOKEN
+
+            if ! command -v infisical >/dev/null 2>&1; then
+              echo "ERROR: Infisical CLI is not installed"
+              exit 1
+            fi
+
+            infisical_auth_file="${INFISICAL_AUTH_FILE:-$HOME/.config/infisical/finpipe-auth.env}"
+            if [ ! -r "$infisical_auth_file" ]; then
+              echo "ERROR: Infisical Machine Identity credentials are missing or unreadable"
+              exit 1
+            fi
+
+            source "$infisical_auth_file"
+            : "${INFISICAL_CLIENT_ID:?INFISICAL_CLIENT_ID is missing}"
+            : "${INFISICAL_CLIENT_SECRET:?INFISICAL_CLIENT_SECRET is missing}"
+            : "${INFISICAL_PROJECT_ID:?INFISICAL_PROJECT_ID is missing}"
+
+            INFISICAL_TOKEN="$(infisical login \
+              --method=universal-auth \
+              --client-id="$INFISICAL_CLIENT_ID" \
+              --client-secret="$INFISICAL_CLIENT_SECRET" \
+              --silent \
+              --plain)"
+            export INFISICAL_TOKEN
+            unset INFISICAL_CLIENT_ID INFISICAL_CLIENT_SECRET
+
+            infisical_run() {
+              infisical run \
+                --projectId="$INFISICAL_PROJECT_ID" \
+                --env=prod \
+                --path=/finpipe \
+                -- "$@"
+            }
+
+            # Complete all preflight checks while the current services are intact.
+            infisical_run bash scripts/validate-production-config.sh
+            infisical_run docker compose -f docker-compose.yml config --quiet
+            infisical_run docker compose -f docker-compose.yml build
+
+            if ! infisical_run docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 postgres --remove-orphans; then
+              infisical_run docker compose -f docker-compose.yml ps postgres
+              infisical_run docker compose -f docker-compose.yml logs --tail=100 postgres
               exit 1
             fi
 
@@ -61,28 +107,28 @@ jobs:
               exit_code=$?
               trap - EXIT
               if [ "$exit_code" -ne 0 ] && [ "$schema_migrated" -eq 0 ]; then
-                docker compose -f docker-compose.yml start finpipe-bot || true
+                infisical_run docker compose -f docker-compose.yml start finpipe-bot || true
               fi
               exit "$exit_code"
             }
             trap restore_old_bot_on_failure EXIT
 
-            docker compose -f docker-compose.yml stop finpipe-bot
-            docker compose -f docker-compose.yml run --rm finpipe-bot python -m src.workflows.monitoring.backup_database
-            docker compose -f docker-compose.yml run --rm finpipe-bot alembic upgrade head
+            infisical_run docker compose -f docker-compose.yml stop finpipe-bot
+            infisical_run docker compose -f docker-compose.yml run --rm finpipe-bot python -m src.workflows.monitoring.backup_database
+            infisical_run docker compose -f docker-compose.yml run --rm finpipe-bot alembic upgrade head
             schema_migrated=1
 
-            if ! docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 finpipe-bot --remove-orphans; then
-              docker compose -f docker-compose.yml ps
-              docker compose -f docker-compose.yml logs --tail=100 finpipe-bot
+            if ! infisical_run docker compose -f docker-compose.yml up -d --wait --wait-timeout 120 finpipe-bot --remove-orphans; then
+              infisical_run docker compose -f docker-compose.yml ps
+              infisical_run docker compose -f docker-compose.yml logs --tail=100 finpipe-bot
               echo "New bot failed readiness after schema migration; automatic rollback is intentionally disabled."
               exit 1
             fi
 
             trap - EXIT
 
-            docker compose -f docker-compose.yml ps
-            docker compose -f docker-compose.yml logs --tail=30 finpipe-bot
+            infisical_run docker compose -f docker-compose.yml ps
+            infisical_run docker compose -f docker-compose.yml logs --tail=30 finpipe-bot
 
             docker image prune -f
           REMOTE_SCRIPT

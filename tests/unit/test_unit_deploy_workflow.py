@@ -42,6 +42,9 @@ def test_production_compose_uses_secret_configuration_and_persistent_backups() -
 
     assert "finpipe:finpipe" not in compose
     assert "DATABASE_URL: ${DATABASE_URL:" in compose
+    assert "SIGNATURE_ENCRYPTION_KEY: ${SIGNATURE_ENCRYPTION_KEY:" in compose
+    assert "TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:" in compose
+    assert 'TEST_DATABASE_URL: ""' in compose
     assert "./backups:/app/backups" in compose
     assert 'test: ["CMD", "pg_isready", "--quiet"]' in compose
     assert 'finpipe-postgres-runtime", "--healthcheck' not in compose
@@ -56,6 +59,29 @@ def test_distributed_database_url_uses_the_compose_postgres_service() -> None:
     database_url = next(line for line in env_dist.splitlines() if line.startswith("DATABASE_URL="))
     assert "@postgres:5432/" in database_url
     assert "localhost" not in database_url
+
+
+def test_removed_email_configuration_is_absent_from_current_runtime_files() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    runtime_files = (
+        project_root / ".env.dist",
+        project_root / "docker-compose.yml",
+        project_root / ".github/workflows/deploy-finpipe.yml",
+    )
+    removed_names = (
+        "EMAIL_DRY_RUN",
+        "EMAIL_DRY_RUN_RECIPIENT",
+        "GMAIL_CREDENTIALS_PATH",
+        "GMAIL_TOKEN_PATH",
+        "GMAIL_CLIENT_ID",
+        "GMAIL_CLIENT_SECRET",
+        "GMAIL_OAUTH_CALLBACK_ENABLED",
+        "GMAIL_OAUTH_CALLBACK_URL",
+    )
+
+    for runtime_file in runtime_files:
+        contents = runtime_file.read_text()
+        assert all(name not in contents for name in removed_names)
 
 
 def test_production_deploy_retries_only_ssh_transport_failures() -> None:

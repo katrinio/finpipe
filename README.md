@@ -36,6 +36,8 @@ poetry run start_bot
 
 Required application variables are documented in [.env.dist](.env.dist). At minimum, configure the Telegram bot token, owner Telegram ID, signature encryption key, and database URL. Requests from every other Telegram account are rejected without creating user records.
 
+Local development keeps its values in `.env`. Production keeps ordinary configuration there, but injects `DATABASE_URL`, `SIGNATURE_ENCRYPTION_KEY`, and `TELEGRAM_BOT_TOKEN` from Infisical environment `prod`, path `/finpipe`. `TEST_DATABASE_URL` is only for local and CI tests and is explicitly cleared in the production bot container.
+
 `DATABASE_URL` is the only source of PostgreSQL host, port, database, username, and password. `.env.dist` contains the container-to-container address `postgres:5432`, which is correct when commands run through Docker Compose. When the bot and Alembic run directly on the host, use `localhost:5433` and start PostgreSQL with the local Compose override shown above. The bot container translates loopback hosts (`localhost`, `127.0.0.1`, or `::1`) to `postgres:5432`; credentials, database name, query parameters, and non-loopback database addresses remain unchanged. The URI and password are not logged or placed in child-process arguments. For an existing volume, configure `DATABASE_URL` with credentials that the database role already accepts; changing the URI alone does not rotate an existing PostgreSQL role password.
 
 ## Telegram flow
